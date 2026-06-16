@@ -1,0 +1,3034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<!-- /* VERSAO-SUCREE-2026-CORRIGIDA */ -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#C8A35B">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Minhas Receitas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --gold:#C8A35B;--coral:#C8A35B;--coral-light:#F7F0E0;--coral-dark:#7A6030;
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#9FE1CB;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#B5D4F4;
+  --amber-light:#FAEEDA;--amber-dark:#633806;
+  --green-light:#EAF3DE;--green-dark:#27500A;
+  --red-light:#FCEBEB;--red-dark:#791F1F;
+  --bg:#F8F7F5;--surface:rgba(255,255,255,0.88);--border:rgba(0,0,0,0.12);
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+.app{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--surface)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px}
+.logo i{color:var(--gold);font-size:22px}
+.sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+.sync-dot.ok{background:#2A8A6A}.sync-dot.err{background:#A32D2D}.sync-dot.syncing{background:var(--gold);animation:pulse .7s infinite alternate}
+@keyframes pulse{to{opacity:.2}}
+.content{flex:1;padding:14px 14px 80px}
+.page{display:none}.page.act{display:block}
+.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;border:none;background:none;font-size:10px;color:var(--text3);font-family:inherit}
+.bni i{font-size:22px}.bni.act{color:var(--gold)}
+.card{background:rgba(255,255,255,0.88);border:1px solid rgba(200,163,91,0.2);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.met{background:var(--bg);border-radius:var(--radius-sm);padding:10px 8px;text-align:center}
+.ml{font-size:11px;color:var(--text2);margin-bottom:3px}.mv{font-size:17px;font-weight:700}
+.mv.coral{color:var(--gold)}.mv.green{color:var(--teal)}.mv.blue{color:var(--blue)}
+.st{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.05em}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);position:relative}
+.rc.shared{border-left:3px solid var(--blue)}
+.rn{font-size:14px;font-weight:700;margin-bottom:5px}
+.rm{font-size:11px;color:var(--text2);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.racts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.rb{font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--text2);display:flex;align-items:center;gap:3px;transition:all .15s}
+.rb.share-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);font-weight:600}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
+.td{background:var(--amber-light);color:var(--amber-dark)}.ts{background:var(--teal-light);color:var(--teal)}
+.pb{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
+.pok{background:var(--green-light);color:var(--green-dark)}.pwn{background:var(--amber-light);color:var(--amber-dark)}.pbd{background:var(--red-light);color:var(--red-dark)}
+.badge{display:inline-flex;align-items:center;gap:2px;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.badge-blue{background:var(--blue-light);color:var(--blue)}.badge-teal{background:var(--teal-light);color:var(--teal)}
+.fg{margin-bottom:12px}
+.fg label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;-webkit-appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
+.fg textarea{resize:vertical;min-height:80px;line-height:1.6}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btnp{background:var(--gold);color:#fff;border:none;padding:12px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
+.btnp:active{opacity:.8}.btnp:disabled{opacity:.4}
+.btnp.full{width:100%;justify-content:center}
+.btns{background:none;color:var(--text);border:1px solid var(--border);padding:11px 16px;border-radius:var(--radius-sm);font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.btns:active{background:var(--bg)}
+.btng{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal-mid);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.srow{display:flex;gap:8px;margin-bottom:12px}
+.srow input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit}
+.srow select{padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;max-width:110px}
+.tg{display:flex;gap:3px;margin-bottom:14px;background:var(--bg);padding:3px;border-radius:var(--radius-sm);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tg::-webkit-scrollbar{display:none}
+.tb{flex:0 0 auto;border:none;background:none;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:600;color:var(--text2);font-family:inherit;white-space:nowrap}
+.tb.act{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:flex;flex-direction:column;justify-content:flex-end}
+.sheet{background:var(--surface);border-radius:18px 18px 0 0;max-height:92vh;display:flex;flex-direction:column;width:100%;max-width:480px;margin:0 auto}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 6px}
+.sheet-header{padding:10px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sheet-header h2{font-size:16px;font-weight:700}
+.sheet-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.sheet-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0))}
+.sheet-footer .btnp{flex:1;justify-content:center}
+.xb{background:none;border:none;font-size:20px;color:var(--text2);padding:4px;border-radius:var(--radius-sm)}
+.it{width:100%;border-collapse:collapse;font-size:12px}
+.it th{text-align:left;font-size:10px;font-weight:700;color:var(--text2);padding:5px 3px;border-bottom:1px solid var(--border);text-transform:uppercase}
+.it td{padding:5px 3px;border-bottom:1px solid var(--border);vertical-align:middle}
+.it td input{border:1px solid var(--border);border-radius:5px;padding:4px 5px;font-size:12px;background:var(--surface);color:var(--text);font-family:inherit;width:100%}
+.ihl{background:var(--blue-light)}
+.db{background:none;border:none;color:#A32D2D;padding:3px 6px;border-radius:5px;font-size:14px}
+.cb{background:var(--bg);border-radius:var(--radius-sm);padding:12px 14px}
+.cr{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--text2)}
+.cr.tot{font-size:14px;font-weight:700;color:var(--text);border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
+.cr.sal{color:var(--gold);font-weight:600}
+.photo-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:22px 16px;text-align:center;cursor:pointer;background:var(--bg)}
+.photo-zone i{font-size:32px;color:var(--gold);display:block;margin-bottom:8px}
+.photo-zone p{font-size:14px;color:var(--text2);font-weight:600}
+.photo-zone small{font-size:12px;color:var(--text3)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.photo-grid-item{aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg);position:relative}
+.photo-grid-item img{width:100%;height:100%;object-fit:cover}
+.photo-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center}
+.ai-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);margin-bottom:10px}
+.ai-dot{width:9px;height:9px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.ai-dot.ok{background:var(--teal)}.ai-dot.err{background:#A32D2D}.ai-dot.pulse{background:var(--gold);animation:pulse .7s infinite alternate}
+.nmc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.nmc{border:2px solid var(--border);border-radius:var(--radius);padding:18px 12px;text-align:center;cursor:pointer;background:var(--bg)}
+.nmc.sel{border-color:var(--gold);background:var(--gold-light)}
+.nmc i{font-size:28px;display:block;margin-bottom:7px;color:var(--gold)}
+.nmc p{font-size:13px;font-weight:700;margin-bottom:3px}
+.nmc small{font-size:11px;color:var(--text2)}
+.prop-box{border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;margin-bottom:13px}
+.prop-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:4px}
+.pmodes{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.pm{padding:5px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:600;background:none;color:var(--text2);font-family:inherit}
+.pm.act{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid)}
+.pinrow{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pinrow label{font-size:13px;color:var(--text2)}
+.pinrow input{width:75px;padding:7px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;text-align:center;background:var(--surface);color:var(--text);font-family:inherit}
+.prbdg{background:var(--teal-light);color:var(--teal);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.pct-helper{background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px}
+.pct-helper-title{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px}
+.pct-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pct-row input{width:58px;padding:6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)}
+.pct-result{font-size:12px;font-weight:700;color:var(--teal);padding:3px 10px;background:var(--teal-light);border-radius:20px}
+.use-pct{font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;border:1px solid var(--blue-mid);background:var(--blue-light);color:var(--blue);font-family:inherit}
+.bclc{background:var(--blue-light);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:11px}
+.bcl{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:7px;display:flex;align-items:center;gap:4px}
+.bcrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.bcrow label{font-size:13px;color:var(--blue)}
+.bcrow input{width:85px;padding:7px 8px;border:1px solid var(--blue-mid);border-radius:var(--radius-sm);font-size:15px;font-weight:700;text-align:center;background:var(--surface);color:var(--text);font-family:inherit}
+.bcratio{font-size:11px;font-weight:700;background:var(--blue-mid);color:var(--blue);padding:3px 9px;border-radius:20px;margin-left:auto}
+.comment-box{background:var(--bg);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:12px}
+.comment-box label{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.comment-box textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);resize:vertical;min-height:70px;line-height:1.6}
+.forma-toggle{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:10px;cursor:pointer}
+.forma-toggle p{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.forma-toggle small{font-size:11px;color:var(--text2);display:block;margin-top:2px}
+.toggle-sw{width:44px;height:26px;background:var(--border);border-radius:13px;position:relative;transition:background .2s;flex-shrink:0;border:none}
+.toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-sw.on{background:var(--gold)}.toggle-sw.on::after{transform:translateX(18px)}
+.formas-section{display:none}.formas-section.visible{display:block}
+.forma-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;background:var(--surface)}
+.forma-img{width:60px;height:60px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);cursor:pointer}
+.forma-img img{width:100%;height:100%;object-fit:cover}
+.forma-img i{font-size:24px;color:var(--text3)}
+.info-box{background:var(--blue-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--blue);margin-bottom:10px;display:flex;gap:7px;align-items:flex-start}
+.warn-box{background:var(--amber-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--amber-dark);margin-bottom:10px;display:flex;gap:7px;align-items:flex-start}
+.success-box{background:var(--teal-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--teal);margin-bottom:10px;display:flex;gap:7px;align-items:flex-start}
+.share-info-box{background:var(--teal-light);border-radius:var(--radius-sm);padding:11px 13px;font-size:13px;color:var(--teal);margin-bottom:13px;display:flex;gap:7px;align-items:flex-start}
+.rci{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;margin-bottom:6px;background:var(--surface)}
+.lock-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.lock-screen i{font-size:48px;color:var(--gold);margin-bottom:14px}
+.lock-screen h2{font-size:20px;font-weight:700;margin-bottom:8px}
+.lock-screen p{font-size:14px;color:var(--text2);margin-bottom:18px}
+.lock-screen input{text-align:center;letter-spacing:.2em;font-size:20px;padding:12px;width:200px;margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;background:var(--surface);color:var(--text)}
+.lerr{font-size:13px;color:#A32D2D;margin-top:6px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:#222;color:#fff;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;opacity:0;transition:all .25s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.est{text-align:center;padding:40px 20px;color:var(--text2)}
+.est i{font-size:40px;display:block;margin-bottom:10px;color:var(--text3)}
+.est p{font-size:14px;margin-bottom:14px}
+.flex-row{display:flex;align-items:center;gap:8px}
+.text-sm{font-size:12px;color:var(--text2)}
+.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.loading-overlay i{font-size:36px;color:var(--gold);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay p{font-size:14px;color:var(--text2);font-weight:600}
+.user-id-box{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 50%,#1A1208 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.login-box{background:rgba(26,18,8,.9);border-radius:20px;padding:22px 20px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.6);text-align:center;border:1px solid rgba(200,163,91,.3);margin:auto}
+.login-logo{font-size:52px;margin-bottom:6px}
+.login-title{font-size:20px;font-weight:700;margin-bottom:3px;color:#F0E6CC}
+.login-sub{font-size:13px;color:#B8972A;margin-bottom:12px}
+.login-input{width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:10px;transition:border-color .2s}
+.login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
+.login-btn{width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
+.login-btn:active{opacity:.8}
+.login-err{font-size:13px;color:#FF8080;margin-top:4px;min-height:18px}
+.login-hint{font-size:11px;color:rgba(200,163,91,.5);margin-top:10px}
+.login-setup{background:rgba(255,255,255,.06);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;font-size:12px;color:rgba(200,163,91,.7);text-align:left;border:1px solid rgba(200,163,91,.2)}
+.login-setup p{font-weight:700;margin-bottom:6px;color:var(--text)}
+.pwd-toggle{position:relative;margin-bottom:12px}
+.pwd-toggle input{padding-right:44px}
+.pwd-toggle button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px}
+.login-forgot{font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline;margin-top:6px;display:inline-block}
+
+@keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
+
+.estoque-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.estoque-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.estoque-item-name{font-size:14px;font-weight:700}
+.estoque-item-price{font-size:15px;font-weight:700;color:var(--gold)}
+.estoque-item-meta{font-size:11px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.estoque-item-recipes{font-size:11px;color:var(--text3);margin-top:4px}
+.estoque-edit-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.estoque-edit-row input{flex:1;min-width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)}
+.estoque-edit-row select{padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)}
+.estoque-badge{background:var(--teal-light);color:var(--teal);font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+.estoque-badge-new{background:var(--amber-light);color:var(--amber-dark);font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700}
+
+.aro-btn{padding:8px 4px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;text-align:center}
+.aro-btn.sel{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
+.pedido-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);cursor:pointer;position:relative}
+.pedido-card:hover{border-color:var(--border)}
+.pedido-card.status-confirmado{border-left:3px solid var(--teal)}
+.pedido-card.status-producao{border-left:3px solid var(--coral)}
+.pedido-card.status-pronto{border-left:3px solid #185FA5}
+.pedido-card.status-entregue{border-left:3px solid #888}
+.pedido-card.status-cancelado{opacity:.6}
+.status-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
+.sb-pendente{background:#FAEEDA;color:#633806}
+.sb-confirmado{background:var(--teal-light);color:var(--teal)}
+.sb-producao{background:var(--gold-light);color:var(--gold-dark)}
+.sb-pronto{background:var(--blue-light);color:var(--blue)}
+.sb-entregue{background:#F1EFE8;color:#5F5E5A}
+.sb-cancelado{background:var(--red-light);color:var(--red-dark)}
+.total-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:0.5px solid var(--border)}
+.total-row.grand{font-size:17px;font-weight:700;color:var(--gold);border-bottom:none;border-top:1.5px solid var(--border);margin-top:6px;padding-top:8px}
+.total-row.saldo{font-size:14px;font-weight:700;color:var(--teal)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" class="login-overlay">
+  <div class="login-box">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
+      style="width:110px;height:auto;filter:drop-shadow(0 2px 14px rgba(200,163,91,.5));margin-bottom:8px">
+    <div class="login-title">Área Administrativa</div>
+    <div class="login-sub">Sucrée Confeitaria</div>
+
+    <!-- USER SELECTOR -->
+    <div id="user-selector" style="display:flex;gap:8px;margin-bottom:12px;width:100%">
+      <button id="btn-user-admin" onclick="selectUser('admin')"
+        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+        <span style="font-size:18px">👨‍🍳</span>
+        <span>Administrador</span>
+      </button>
+      <button id="btn-user-guest" onclick="selectUser('guest')"
+        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid rgba(200,163,91,.3);background:rgba(255,255,255,.07);color:rgba(200,163,91,.8);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+        <span style="font-size:18px">👤</span>
+        <span>Convidado</span>
+      </button>
+    </div>
+
+    <div id="login-setup-box" class="login-setup" style="display:none">
+      <p>👋 Primeira vez? Crie sua senha de administrador:</p>
+      <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
+    </div>
+
+    <div id="login-user-label" style="font-size:11px;font-weight:700;color:rgba(200,163,91,.8);margin-bottom:6px;text-align:left;width:100%">SENHA DO ADMINISTRADOR</div>
+
+    <div class="pwd-toggle">
+      <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
+        onkeydown="if(event.key==='Enter')doLogin()"
+        oninput="document.getElementById('login-err').textContent=''">
+      <button onclick="toggleLoginPwd()" id="pwd-eye"><i class="ti ti-eye"></i></button>
+    </div>
+
+    <div id="confirm-pwd-box" style="display:none">
+      <div class="pwd-toggle">
+        <input class="login-input" type="password" id="login-pwd2" placeholder="Confirmar senha"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button onclick="toggleLoginPwd2()"><i class="ti ti-eye"></i></button>
+      </div>
+    </div>
+
+    <button class="login-btn" onclick="doLogin()" id="login-btn-label">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+    <span class="login-forgot" id="login-forgot" onclick="forgotPwd()" style="display:none">Esqueci minha senha</span>
+    <div class="login-hint" id="login-hint">Acesso completo ao app de receitas</div>
+  </div>
+</div>
+
+<div class="app" id="app">
+<div class="topbar">
+  <div class="logo" style="padding:2px 0">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:36px;width:auto;filter:drop-shadow(0 1px 3px rgba(200,163,91,.3))">
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="sync-status" id="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-text">conectando...</span>
+    </div>
+    <button onclick="doLogout()" title="Sair" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;border-radius:var(--radius-sm)"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+<div class="content">
+  <div class="page act" id="page-home"></div>
+  <div class="page" id="page-receitas">
+    <div class="srow">
+      <input type="text" placeholder="Buscar..." id="si" oninput="renderRecipes()">
+      <select id="fc" onchange="renderRecipes()"><option value="">Todas</option><option value="doce">Doces</option><option value="salgada">Salgadas</option></select>
+      <select id="fg2" onchange="renderRecipes()"><option value="">Grupos</option></select>
+    </div>
+    <div id="recipes-list"></div>
+  </div>
+  <div class="page" id="page-confeitaria"></div>
+  <div class="page" id="page-estoque"></div>
+  <div class="page" id="page-config"></div>
+  <div class="page" id="page-share"></div>
+</div>
+<div class="bottomnav">
+  <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
+  <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
+  <button class="bni" style="color:var(--gold)" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--gold)"></i><span style="color:var(--gold)">Nova</span></button>
+  <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+  <button class="bni" onclick="abrirMenuCardapio()" id="nav-cardapio"><i class="ti ti-send"></i><span>Cardápio</span></button>
+</div>
+
+<!-- CARDAPIO SHARE BOTTOM SHEET -->
+<div class="overlay" id="modal-cardapio-share" style="display:none" onclick="if(event.target===this)cm('modal-cardapio-share')">
+<div class="sheet" style="border-radius:18px 18px 0 0">
+  <div class="sheet-handle"></div>
+  <div style="background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);padding:20px 20px 24px;text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(184,151,42,.12)"></div>
+    <div style="position:absolute;bottom:-20px;left:-20px;width:70px;height:70px;border-radius:50%;background:rgba(184,151,42,.08)"></div>
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:140px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.3))">
+    <div style="font-size:13px;color:#C8B89A">Compartilhe o cardápio com seus clientes</div>
+  </div>
+  <div style="padding:16px">
+    <div style="background:#F5F4F1;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <i class="ti ti-link" style="color:#B8972A;flex-shrink:0"></i>
+      <span style="font-size:11px;color:var(--text2);word-break:break-all;flex:1">herberthg99-prog.github.io/minhas-receitas/cardapio.html</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="compartilharCardapioWhats()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-brand-whatsapp" style="font-size:20px"></i> Enviar pelo WhatsApp
+      </button>
+      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-copy" style="font-size:20px"></i> Copiar link
+      </button>
+      <button onclick="abrirCardapioNovAba()" style="width:100%;padding:14px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-external-link" style="font-size:20px"></i> Abrir cardápio
+      </button>
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <button onclick="cm('modal-cardapio-share')" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;font-family:inherit;padding:8px">Fechar</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <i class="ti ti-loader"></i>
+  <p id="loading-text">Conectando à nuvem...</p>
+</div>
+
+<!-- CHOICE SHEET -->
+<div class="overlay" id="modal-choice" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><h2>Nova receita</h2><button class="xb" onclick="cm('modal-choice')"><i class="ti ti-x"></i></button></div>
+  <div class="sheet-body">
+    <div class="nmc-grid">
+      <div class="nmc" id="nmc-manual" onclick="chooseMode('manual')"><i class="ti ti-keyboard"></i><p>Digitar</p><small>Preencho eu mesmo</small></div>
+      <div class="nmc" id="nmc-foto" onclick="chooseMode('foto')"><i class="ti ti-camera"></i><p>Foto / rascunho</p><small>Claude lê minha anotação</small></div>
+    </div>
+    <div class="fr" style="margin-bottom:12px">
+      <div class="fg" style="margin-bottom:0"><label>Categoria</label><select id="choice-cat"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
+      <div class="fg" style="margin-bottom:0"><label>Grupo</label>
+        <select id="choice-grp"><option value="">Sem grupo</option>
+          <option value="Carnes">Carnes</option><option value="Aves">Aves</option><option value="Peixes">Peixes</option>
+          <option value="Massas">Massas</option><option value="Tortas">Tortas</option><option value="Lanches">Lanches</option>
+          <option value="Sopas">Sopas</option><option value="Bolos">Bolos</option><option value="Sobremesas">Sobremesas</option>
+          <option value="Biscoitos">Biscoitos</option><option value="Pães">Pães</option><option value="Bebidas">Bebidas</option>
+        </select>
+      </div>
+    </div>
+    <div id="foto-section" style="display:none">
+      <div class="photo-zone" onclick="document.getElementById('foto-input').click()">
+        <i class="ti ti-photo-up"></i><p>Toque para selecionar foto</p><small>Foto da anotação a caneta</small>
+      </div>
+      <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="handleFoto(event)">
+      <div id="foto-prev" style="display:none;margin-top:10px;border-radius:var(--radius-sm);overflow:hidden;max-height:180px;background:var(--bg);display:flex;align-items:center;justify-content:center"></div>
+      <div id="ai-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse" id="ai-dot"></div><span id="ai-msg">Lendo anotação...</span></div>
+      <button class="btnp full" id="btn-ler" style="display:none;margin-top:8px" onclick="lerFoto()"><i class="ti ti-wand"></i> Criar com Claude</button>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btns" onclick="cm('modal-choice')">Cancelar</button>
+    <button class="btnp" id="btn-choice-ok" style="display:none" onclick="proceedChoice()"><i class="ti ti-arrow-right"></i> Continuar</button>
+  </div>
+</div>
+</div>
+
+<!-- EDIT SHEET -->
+<div class="overlay" id="modal-edit" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><h2 id="edit-title">Nova receita</h2><button class="xb" onclick="cm('modal-edit')"><i class="ti ti-x"></i></button></div>
+  <div class="sheet-body">
+    <div class="tg">
+      <button class="tb act" onclick="st2(0)"><i class="ti ti-info-circle"></i> Dados</button>
+      <button class="tb" onclick="st2(1)"><i class="ti ti-list"></i> Ingredientes</button>
+      <button class="tb" onclick="st2(2)"><i class="ti ti-notes"></i> Preparo</button>
+      <button class="tb" onclick="st2(3)"><i class="ti ti-currency-dollar"></i> Custos</button>
+      <button class="tb" onclick="st2(4)"><i class="ti ti-message"></i> Notas</button>
+      <button class="tb" onclick="st2(5)"><i class="ti ti-photo"></i> Fotos</button>
+      <button class="tb" id="tab-forma" onclick="st2(6)" style="display:none"><i class="ti ti-cake"></i> Formas</button>
+    </div>
+    <div id="et0">
+      <div class="fg"><label>Nome da receita</label><input type="text" id="fn" placeholder="Ex: Bolo de cenoura"></div>
+      <div class="fr">
+        <div class="fg"><label>Categoria</label><select id="fcat" onchange="checkFormaTab()"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
+        <div class="fg"><label>Grupo</label><select id="fgrp" onchange="checkFormaTab()">
+          <option value="">Sem grupo</option>
+          <option value="Carnes">Carnes</option><option value="Aves">Aves</option><option value="Peixes">Peixes</option>
+          <option value="Massas">Massas</option><option value="Tortas">Tortas</option><option value="Lanches">Lanches</option>
+          <option value="Sopas">Sopas</option><option value="Bolos">Bolos</option><option value="Sobremesas">Sobremesas</option>
+          <option value="Biscoitos">Biscoitos</option><option value="Pães">Pães</option><option value="Bebidas">Bebidas</option>
+        </select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Rendimento</label><input type="number" id="fyld" value="6" min="1"></div>
+        <div class="fg"><label>Tempo (min)</label><input type="number" id="ftm" value="60" min="1"></div>
+      </div>
+      <div class="fg"><label>Unidade de venda</label><select id="funit"><option value="porção">Porção</option><option value="kg">kg</option><option value="unidade">Unidade</option><option value="fatia">Fatia</option><option value="dúzia">Dúzia</option></select></div>
+      <div class="info-box"><i class="ti ti-star" style="flex-shrink:0;margin-top:1px"></i><span>Marque o ingrediente principal na aba Ingredientes para habilitar o cálculo por quantidade.</span></div>
+    </div>
+    <div id="et1" style="display:none">
+      <div class="flex-row" style="margin-bottom:10px">
+        <div class="info-box" style="flex:1;margin-bottom:0;font-size:11px"><i class="ti ti-info-circle" style="flex-shrink:0"></i> Radio = ingrediente principal</div>
+        <button class="btng" id="btn-upd" onclick="atualizarPrecos()" style="margin-left:8px;font-size:11px;padding:7px 9px;white-space:nowrap"><i class="ti ti-refresh"></i> Preços ES</button>
+      </div>
+      <div id="ai-preco-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span id="ai-preco-msg">Buscando preços...</span></div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="it" style="min-width:420px">
+          <thead><tr><th style="width:26px">Base</th><th>Ingrediente / Observação</th><th style="width:58px">Qtd</th><th style="width:42px">Un.</th><th style="width:70px">R$/kg</th><th style="width:65px">Subtotal</th><th style="width:28px"></th></tr></thead>
+          <tbody id="ingr-body"></tbody>
+        </table>
+      </div>
+      <button class="btns" style="margin-top:10px;font-size:13px;width:100%;justify-content:center" onclick="addIngr()"><i class="ti ti-plus"></i> Adicionar ingrediente</button>
+    </div>
+    <div id="et2" style="display:none">
+      <div class="fg"><label>Modo de preparo</label><textarea id="fprep" style="min-height:200px" placeholder="Passo a passo..."></textarea></div>
+    </div>
+    <div id="et3" style="display:none">
+      <div id="cost-prev" class="cb" style="margin-bottom:12px"></div>
+      <div class="fr">
+        <div class="fg"><label>Margem de lucro (%)</label><input type="number" id="fmrg" value="100" min="0" oninput="updCosts()"></div>
+        <div class="fg"><label>Embalagem / fixos (R$)</label><input type="number" id="fext" value="0" step=".01" oninput="updCosts()"></div>
+      </div>
+      <div id="sale-prev" class="cb"></div>
+    </div>
+    <div id="et4" style="display:none">
+      <div class="comment-box">
+        <label><i class="ti ti-message"></i> Comentários e anotações</label>
+        <textarea id="fcomment" placeholder="Dicas, variações, truques..."></textarea>
+      </div>
+      <div id="ai-comment-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span>Claude gerando sugestões...</span></div>
+      <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="pedirComentario()"><i class="ti ti-wand"></i> Sugestão do Claude</button>
+    </div>
+    <div id="et5" style="display:none">
+      <p class="text-sm" style="margin-bottom:10px">Fotos do preparo finalizado.</p>
+      <div class="photo-zone" onclick="document.getElementById('recipe-photo-input').click()">
+        <i class="ti ti-camera-plus"></i><p>Adicionar foto</p><small>Foto do prato pronto</small>
+      </div>
+      <input type="file" id="recipe-photo-input" accept="image/*" capture="environment" style="display:none" onchange="addRecipePhoto(event)">
+      <div class="photo-grid" id="recipe-photos-grid"></div>
+    </div>
+    <div id="et6" style="display:none">
+      <div class="forma-toggle" onclick="toggleFormas()">
+        <div><p><i class="ti ti-cake"></i> Informações de formas</p><small>Tamanhos e quantidade de massa</small></div>
+        <button class="toggle-sw" id="forma-toggle-sw" onclick="event.stopPropagation();toggleFormas()"></button>
+      </div>
+      <div class="formas-section" id="formas-section">
+        <div id="formas-list"></div>
+        <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="addForma()"><i class="ti ti-plus"></i> Adicionar forma</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btns" onclick="cm('modal-edit')">Cancelar</button>
+    <button class="btnp" onclick="saveRecipe()"><i class="ti ti-device-floppy"></i> Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- VIEW SHEET -->
+<div class="overlay" id="modal-view" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2 id="vt">Receita</h2>
+    <div class="flex-row">
+      <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
+      <button class="xb" onclick="cm('modal-view')"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="vb"></div>
+</div>
+</div>
+
+<!-- GUEST SHEET -->
+<div class="overlay" id="modal-guest" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><h2>Receitas compartilhadas</h2><button class="xb" onclick="cm('modal-guest')"><i class="ti ti-x"></i></button></div>
+  <div class="sheet-body" id="gb"></div>
+</div>
+</div>
+
+<div id="toast" class="toast"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// SUPABASE CONFIG
+// ═══════════════════════════════════════════
+const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══════════════════════════════════════════
+// USER ID (dispositivo único)
+// ═══════════════════════════════════════════
+// ID fixo do administrador - nunca muda
+const USER_ID = 'herberth_admin';
+localStorage.setItem('mr_user_id', USER_ID);
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let recipes = [];
+let shareConfig = { pwd: '', sharedIds: [] };
+let editId = null, curIngr = [], curPhotos = [], curFormas = [], formasEnabled = false;
+let newMode = null, fotoB64 = null, viewState = {}, rmap = {};
+let syncPending = false;
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function genId() { return 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fR(v) { return 'R$\u00a0' + parseFloat(v || 0).toFixed(2); }
+function fT(m) { if (!m) return '—'; if (m < 60) return m + 'min'; const h = Math.floor(m / 60), r = m % 60; return h + 'h' + (r ? r + 'min' : ''); }
+function toast(msg, dur = 2400) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), dur); }
+function cm(id) { document.getElementById(id).style.display = 'none'; }
+function getBase(r) { return (r.ingredients || []).find(i => i.isBase) || null; }
+function iCost(ig, q) { return q * parseFloat(ig.price || 0); }
+function totIC(ingrs) { return ingrs.reduce((a, ig) => a + iCost(ig, parseFloat(ig.qty || 0)), 0); }
+function pctClass(p) { return p >= 50 ? 'pok' : p >= 10 ? 'pwn' : 'pbd'; }
+function setSyncStatus(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = text;
+}
+function calcAt(r, ratio) {
+  const s = (r.ingredients || []).map(ig => ({ ...ig, qty: parseFloat(ig.qty || 0) * ratio }));
+  const ic = totIC(s), ext = parseFloat(r.extra || 0) * ratio, cost = ic + ext;
+  const sale = cost * (1 + parseFloat(r.margin || 100) / 100);
+  return { scaled: s, cost, sale, luc: sale - cost, portions: parseFloat(r.yield_qty || r.yield || 1) * ratio, ratio };
+}
+
+// ═══════════════════════════════════════════
+// CLOUD: LOAD
+// ═══════════════════════════════════════════
+async function loadFromCloud() {
+  setSyncStatus('syncing', 'carregando...');
+  try {
+    const uid = (USER_ID||'').trim();
+    const role = getCurrentRole();
+    let recs, error;
+
+    if (role === 'guest') {
+      // Guests load ALL shared recipes from all users
+      const res = await sb.from('receitas').select('*').eq('shared', true);
+      recs = res.data; error = res.error;
+    } else {
+      // Admin loads own recipes
+      const res = await sb.from('receitas').select('*').eq('user_id', uid);
+      recs = res.data; error = res.error;
+    }
+
+    if (error) throw error;
+    recipes = (recs || []).map(dbToLocal);
+    const ids = recipes.filter(r => r.shared).map(r => r.id);
+    shareConfig.sharedIds = ids;
+
+    try {
+      const { data: cfgs } = await sb.from('config').select('*').eq('user_id', uid).limit(1);
+      if (cfgs && cfgs.length > 0) shareConfig.pwd = cfgs[0].share_pwd || '';
+    } catch(e) {}
+
+    recipes.forEach(r => rmap[r.id] = r);
+    setSyncStatus('ok', 'sincronizado (' + recipes.length + ')');
+    return true;
+  } catch (err) {
+    setSyncStatus('err', 'erro: ' + err.message);
+    try { recipes = JSON.parse(localStorage.getItem('mr_v4_recipes') || '[]'); } catch (e) {}
+    recipes.forEach(r => rmap[r.id] = r);
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════
+// CLOUD: SAVE RECIPE
+// ═══════════════════════════════════════════
+async function saveToCloud(recipe) {
+  setSyncStatus('syncing', 'salvando...');
+  const row = localToDb(recipe);
+  try {
+    const { error } = await sb.from('receitas').upsert(row, { onConflict: 'id' });
+    if (error) throw error;
+    setSyncStatus('ok', 'sincronizado');
+    // backup local
+    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
+  } catch (err) {
+    setSyncStatus('err', 'erro ao salvar');
+    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
+    toast('Salvo localmente (sem conexão)');
+  }
+}
+
+async function deleteFromCloud(id) {
+  try {
+    await sb.from('receitas').delete().eq('id', id).eq('user_id', USER_ID);
+    setSyncStatus('ok', 'sincronizado');
+  } catch (err) {
+    setSyncStatus('err', 'erro');
+  }
+}
+
+async function saveConfigToCloud() {
+  try {
+    await sb.from('config').upsert({ user_id: USER_ID, share_pwd: shareConfig.pwd }, { onConflict: 'user_id' });
+    // update shared flag on all recipes
+    const allIds = recipes.map(r => r.id);
+    for (const r of recipes) {
+      await sb.from('receitas').update({ shared: shareConfig.sharedIds.includes(r.id) }).eq('id', r.id).eq('user_id', USER_ID);
+    }
+  } catch (err) { /* silent */ }
+}
+
+// ═══════════════════════════════════════════
+// DATA MAPPING
+// ═══════════════════════════════════════════
+function localToDb(r) {
+  return {
+    id: r.id, user_id: USER_ID,
+    name: r.name, cat: r.cat, recipe_group: r.group || null,
+    unit: r.unit, yield_qty: r.yield_qty || r.yield || 6,
+    time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
+    preparo: r.preparo || '', comment: r.comment || '',
+    photos: r.photos || [], formas: r.formas || [],
+    formas_enabled: r.formasEnabled || false,
+    ingredients: r.ingredients || [],
+    shared: shareConfig.sharedIds.includes(r.id),
+    updated_at: new Date().toISOString()
+  };
+}
+
+function dbToLocal(row) {
+  return {
+    id: row.id, name: row.name, cat: row.cat, group: row.recipe_group || '',
+    unit: row.unit || 'porção', yield_qty: row.yield_qty || 6, yield: row.yield_qty || 6,
+    time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
+    preparo: row.preparo || '', comment: row.comment || '',
+    photos: row.photos || [], formas: row.formas || [],
+    formasEnabled: row.formas_enabled || false,
+    ingredients: row.ingredients || [],
+    shared: row.shared || false,
+    createdAt: new Date(row.created_at).getTime()
+  };
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function goPage(p) {
+  document.querySelectorAll('.page').forEach(e => e.classList.remove('act'));
+  document.querySelectorAll('.bni').forEach(e => e.classList.remove('act'));
+  document.getElementById('page-' + p).classList.add('act');
+  const el = document.getElementById('nav-' + p);
+  if (el) el.classList.add('act');
+  if (p === 'home') renderHome();
+  if (p === 'receitas') { updateGroupFilter(); renderRecipes(); }
+  if (p === 'confeitaria') renderConfeitaria();
+  if (p === 'estoque') renderEstoque();
+  if (p === 'config') renderConfigPage();
+  if (p === 'share') renderSharePage();
+}
+
+function updateGroupFilter() {
+  const sel = document.getElementById('fg2');
+  const cur = sel.value;
+  const groups = [...new Set(recipes.map(r => r.group).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Grupos</option>' + groups.map(g => `<option value="${g}">${g}</option>`).join('');
+  if (groups.includes(cur)) sel.value = cur;
+}
+
+// ═══════════════════════════════════════════
+// RENDER HOME
+// ═══════════════════════════════════════════
+function renderHome() {
+  const tot = recipes.length, dc = recipes.filter(r => r.cat === 'doce').length, sl = recipes.filter(r => r.cat === 'salgada').length;
+  const avg = tot ? recipes.reduce((a, r) => a + calcAt(r, 1).luc, 0) / tot : 0;
+  const shCount = shareConfig.sharedIds.length;
+  document.getElementById('page-home').innerHTML = `
+    <div class="user-id-box"><i class="ti ti-device-mobile" style="font-size:14px"></i> Administrador: <strong>Herberth</strong></div>
+    <div class="g4">
+      <div class="met"><div class="ml">Total</div><div class="mv">${tot}</div></div>
+      <div class="met"><div class="ml">Doces</div><div class="mv blue">${dc}</div></div>
+      <div class="met"><div class="ml">Salgadas</div><div class="mv green">${sl}</div></div>
+      <div class="met"><div class="ml">Lucro médio</div><div class="mv coral">${fR(avg)}</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:14px">
+      <div>
+        <div class="st"><i class="ti ti-flame"></i> Recentes</div>
+        ${[...recipes].reverse().slice(0, 4).map(r => `<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span>${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div></div>`).join('') || '<div class="est" style="padding:20px"><i class="ti ti-book"></i><p>Nenhuma ainda</p></div>'}
+      </div>
+      <div>
+        <div class="st"><i class="ti ti-trending-up"></i> Lucrativas</div>
+        ${[...recipes].sort((a, b) => calcAt(b, 1).luc - calcAt(a, 1).luc).slice(0, 4).map(r => `<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span><span style="color:var(--teal);font-weight:700">+${fR(calcAt(r, 1).luc)}</span></div></div>`).join('') || ''}
+      </div>
+    </div>
+    ${shCount ? `<div class="success-box"><i class="ti ti-share" style="flex-shrink:0"></i> ${shCount} receita(s) marcada(s) para compartilhar</div>` : ''}
+    <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="syncNow()"><i class="ti ti-refresh"></i> Sincronizar agora</button>`;
+}
+
+async function syncNow() {
+  toast('Sincronizando...');
+  const ok = await loadFromCloud();
+  updateGroupFilter();
+  renderHome();
+  renderRecipes();
+  toast(ok ? 'Sincronizado! ' + recipes.length + ' receita(s)' : 'Erro na conexao');
+}
+
+// ═══════════════════════════════════════════
+// RENDER RECIPES
+// ═══════════════════════════════════════════
+function renderRecipes() {
+  const q = (document.getElementById('si').value || '').toLowerCase();
+  const cat = document.getElementById('fc').value;
+  const grp = document.getElementById('fg2').value;
+  const list = recipes.filter(r => (!q || (r.name || '').toLowerCase().includes(q)) && (!cat || r.cat === cat) && (!grp || r.group === grp));
+  const el = document.getElementById('recipes-list');
+  if (!list.length) { el.innerHTML = `<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>`; return; }
+  const guest = isGuest();
+  // For guests, only show shared recipes
+  if (guest) list = list.filter(r => shareConfig.sharedIds.includes(r.id));
+  if (!list.length && guest) {
+    el.innerHTML = '<div class="est"><i class="ti ti-eye-off"></i><p>Nenhuma receita compartilhada.</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(r => {
+    const p = calcAt(r, 1); const pct = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
+    const b = getBase(r); const shared = shareConfig.sharedIds.includes(r.id);
+    const mainPhoto = r.photos && r.photos[0];
+    return `<div class="rc ${shared ? 'shared' : ''}">
+      ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:140px;object-fit:cover">` : ''}
+      <div class="rn">${r.name}</div>
+      <div class="rm" style="margin-top:4px">
+        <span class="tag t${r.cat[0]}">${r.cat}</span>
+        ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
+        ${b && !guest ? `<span class="badge badge-teal"><i class="ti ti-star" style="font-size:10px"></i> ${b.name}</span>` : ''}
+        <span><i class="ti ti-clock"></i> ${fT(r.time)}</span>
+        ${!guest ? `<span class="pb ${pctClass(pct)}">${pct.toFixed(0)}% lucro</span>` : ''}
+        ${r.comment ? `<span><i class="ti ti-message"></i></span>` : ''}
+        ${r.formasEnabled && r.formas && r.formas.length ? `<span><i class="ti ti-cake"></i> ${r.formas.length}</span>` : ''}
+      </div>
+      <div class="racts">
+        <button class="rb" onclick="viewRecipe('${r.id}')"><i class="ti ti-eye"></i> Ver</button>
+        ${!guest ? `
+        <button class="rb" onclick="openEdit('${r.id}')"><i class="ti ti-edit"></i> Editar</button>
+        <button class="rb ${shared ? 'share-active' : ''}" onclick="toggleShare('${r.id}',this)">
+          <i class="ti ti-${shared ? 'share-3' : 'share'}"></i> ${shared ? 'Compartilhando' : 'Compartilhar'}
+        </button>
+        <button class="rb" style="color:#A32D2D" onclick="delRecipe('${r.id}')"><i class="ti ti-trash"></i></button>
+        ` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleShare(id, btn) {
+  const idx = shareConfig.sharedIds.indexOf(id);
+  if (idx >= 0) { shareConfig.sharedIds.splice(idx, 1); toast('Removida do compartilhamento'); }
+  else { shareConfig.sharedIds.push(id); toast('Marcada para compartilhar!'); }
+  btn.classList.toggle('share-active');
+  const shared = shareConfig.sharedIds.includes(id);
+  btn.innerHTML = `<i class="ti ti-${shared ? 'share-3' : 'share'}"></i> ${shared ? 'Compartilhando' : 'Compartilhar'}`;
+  renderHome();
+  await saveConfigToCloud();
+}
+
+// ═══════════════════════════════════════════
+// NEW RECIPE FLOW
+// ═══════════════════════════════════════════
+function openNewChoice() {
+  newMode = null; fotoB64 = null;
+  document.getElementById('foto-section').style.display = 'none';
+  document.getElementById('foto-prev').style.display = 'none';
+  document.getElementById('ai-bar').style.display = 'none';
+  document.getElementById('btn-ler').style.display = 'none';
+  document.getElementById('btn-choice-ok').style.display = 'none';
+  document.getElementById('nmc-manual').classList.remove('sel');
+  document.getElementById('nmc-foto').classList.remove('sel');
+  document.getElementById('modal-choice').style.display = 'flex';
+}
+
+function chooseMode(m) {
+  newMode = m;
+  document.getElementById('nmc-manual').classList.toggle('sel', m === 'manual');
+  document.getElementById('nmc-foto').classList.toggle('sel', m === 'foto');
+  document.getElementById('foto-section').style.display = m === 'foto' ? 'block' : 'none';
+  document.getElementById('btn-choice-ok').style.display = m === 'manual' ? 'inline-flex' : 'none';
+}
+
+function proceedChoice() {
+  if (newMode === 'manual') { cm('modal-choice'); openNewRecipe(document.getElementById('choice-cat').value, document.getElementById('choice-grp').value); }
+}
+
+function handleFoto(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    fotoB64 = ev.target.result.split(',')[1];
+    const p = document.getElementById('foto-prev');
+    p.innerHTML = `<img src="${ev.target.result}" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius-sm)">`;
+    p.style.display = 'flex';
+    document.getElementById('btn-ler').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function lerFoto() {
+  if (!fotoB64) return;
+  const cat = document.getElementById('choice-cat').value;
+  const grp = document.getElementById('choice-grp').value;
+  const bar = document.getElementById('ai-bar'), msg = document.getElementById('ai-msg'), dot = document.getElementById('ai-dot'), btn = document.getElementById('btn-ler');
+  bar.style.display = 'flex'; btn.disabled = true; msg.textContent = 'Claude lendo anotação...'; dot.className = 'ai-dot pulse';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 1200,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: fotoB64 } },
+          { type: 'text', text: `Leia esta foto de anotação/rascunho de receita culinária. Retorne APENAS JSON válido sem markdown:\n{"name":"string","time":minutos,"yield":porcoes,"unit":"porção","preparo":"passo a passo","ingredients":[{"name":"string","qty":numero,"unit":"g ou ml","price":0,"isBase":false}],"comment":"observações"}\nisBase=true apenas no ingrediente principal.` }
+        ] }]
+      })
+    });
+    const d = await r.json();
+    const txt = (d.content || []).find(c => c.type === 'text')?.text || '';
+    let parsed; try { parsed = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Foto não clara. Tente novamente.'); }
+    dot.className = 'ai-dot ok'; msg.textContent = 'Receita lida!';
+    setTimeout(() => { cm('modal-choice'); openNewRecipe(cat, grp, parsed); }, 700);
+  } catch (err) { dot.className = 'ai-dot err'; msg.textContent = 'Erro: ' + err.message; btn.disabled = false; }
+}
+
+// ═══════════════════════════════════════════
+// EDIT FORM
+// ═══════════════════════════════════════════
+function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
+  editId = null; curIngr = pre?.ingredients || []; curPhotos = []; curFormas = []; formasEnabled = false;
+  document.getElementById('edit-title').textContent = 'Nova receita';
+  document.getElementById('fn').value = pre?.name || '';
+  document.getElementById('fcat').value = cat;
+  document.getElementById('fgrp').value = grp || '';
+  document.getElementById('fyld').value = pre?.yield || 6;
+  document.getElementById('ftm').value = pre?.time || 60;
+  document.getElementById('funit').value = pre?.unit || 'porção';
+  document.getElementById('fmrg').value = 100; document.getElementById('fext').value = 0;
+  document.getElementById('fprep').value = pre?.preparo || '';
+  document.getElementById('fcomment').value = pre?.comment || '';
+  document.getElementById('recipe-photos-grid').innerHTML = '';
+  renderIngrTable(); renderFormas(); updateFormaToggle(); checkFormaTab(); st2(0);
+  document.getElementById('modal-edit').style.display = 'flex';
+}
+
+function openEdit(id) {
+  const r = recipes.find(x => x.id === id); if (!r) return;
+  editId = id; curIngr = JSON.parse(JSON.stringify(r.ingredients || []));
+  curPhotos = r.photos ? [...r.photos] : [];
+  curFormas = r.formas ? JSON.parse(JSON.stringify(r.formas)) : [];
+  formasEnabled = r.formasEnabled || false;
+  document.getElementById('edit-title').textContent = 'Editar receita';
+  document.getElementById('fn').value = r.name || '';
+  document.getElementById('fcat').value = r.cat || 'salgada';
+  document.getElementById('fgrp').value = r.group || '';
+  document.getElementById('fyld').value = r.yield_qty || r.yield || 6;
+  document.getElementById('ftm').value = r.time || 60;
+  document.getElementById('funit').value = r.unit || 'porção';
+  document.getElementById('fmrg').value = r.margin || 100;
+  document.getElementById('fext').value = r.extra || 0;
+  document.getElementById('fprep').value = r.preparo || '';
+  document.getElementById('fcomment').value = r.comment || '';
+  renderIngrTable(); renderFormas(); renderRecipePhotosGrid(); updateFormaToggle(); checkFormaTab(); st2(0);
+  document.getElementById('modal-edit').style.display = 'flex';
+}
+
+function checkFormaTab() {
+  const grp = document.getElementById('fgrp').value;
+  document.getElementById('tab-forma').style.display = ['Bolos', 'Pães'].includes(grp) ? 'inline-block' : 'none';
+}
+
+function st2(n) {
+  [0, 1, 2, 3, 4, 5, 6].forEach(i => { const el = document.getElementById('et' + i); if (el) el.style.display = i === n ? 'block' : 'none'; });
+  document.querySelectorAll('.tb').forEach((t, i) => t.classList.toggle('act', i === n));
+  if (n === 3) updCosts();
+}
+
+function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', price: 0, isBase: false }); renderIngrTable(); }
+function remIngr(i) { curIngr.splice(i, 1); renderIngrTable(); }
+function setBase(i) { curIngr.forEach((ig, j) => ig.isBase = (j === i)); renderIngrTable(); }
+
+function renderIngrTable() {
+  const tb = document.getElementById('ingr-body');
+  if (!curIngr.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</td></tr>`; return; }
+  tb.innerHTML = curIngr.map((ig, i) => {
+    const sub = (parseFloat(ig.qty || 0) * parseFloat(ig.price || 0)).toFixed(2);
+    return `<tr class="${ig.isBase ? 'ihl' : ''}">
+      <td style="text-align:center"><input type="radio" name="bir" ${ig.isBase ? 'checked' : ''} onchange="setBase(${i})" style="accent-color:var(--blue);width:18px;height:18px"></td>
+      <td>
+        <input value="${ig.name}" placeholder="Nome" oninput="curIngr[${i}].name=this.value" style="margin-bottom:3px">
+        <input value="${ig.obs||''}" placeholder="Obs: pode substituir por..." 
+          oninput="curIngr[${i}].obs=this.value"
+          style="font-size:11px;color:var(--text2);border-color:var(--border);padding:3px 5px;font-style:italic">
+      </td>
+      <td><input type="number" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;renderIngrTable()"></td>
+      <td><input value="${ig.unit}" placeholder="g" oninput="curIngr[${i}].unit=this.value"></td>
+      <td><input type="number" value="${(parseFloat(ig.price || 0) * 1000).toFixed(2)}" min="0" step=".01" oninput="curIngr[${i}].price=(parseFloat(this.value)||0)/1000;renderIngrTable()"></td>
+      <td style="text-align:right;color:var(--text2);font-size:11px;white-space:nowrap">${fR(sub)}</td>
+      <td><button class="db" onclick="remIngr(${i})"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function atualizarPrecos() {
+  const names = curIngr.map(ig => ig.name).filter(n => n && !n.toLowerCase().includes('água'));
+  if (!names.length) { toast('Adicione ingredientes primeiro'); return; }
+  const btn = document.getElementById('btn-upd');
+  const bar = document.getElementById('ai-preco-bar');
+  const msg = document.getElementById('ai-preco-msg');
+  btn.disabled = true; bar.style.display = 'flex'; msg.textContent = 'Buscando preços no ES...';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 800,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}` }]
+      })
+    });
+    const d = await r.json();
+    const txt = (d.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    let map; try { map = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Formato inválido'); }
+    let n = 0;
+    curIngr.forEach(ig => {
+      const k = Object.keys(map).find(k => ig.name.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(ig.name.toLowerCase()));
+      if (k && map[k] > 0) { ig.price = map[k] / 1000; n++; }
+    });
+    renderIngrTable(); updCosts(); msg.textContent = n + ' preços atualizados!';
+    setTimeout(() => { bar.style.display = 'none'; }, 2500);
+  } catch (err) { msg.textContent = 'Erro: ' + err.message; setTimeout(() => { bar.style.display = 'none'; }, 3000); }
+  finally { btn.disabled = false; }
+}
+
+function updCosts() {
+  const yld = parseFloat(document.getElementById('fyld').value || 1);
+  const mrg = parseFloat(document.getElementById('fmrg').value || 0);
+  const ext = parseFloat(document.getElementById('fext').value || 0);
+  const ic = totIC(curIngr); const tot = ic + ext; const sale = tot * (1 + mrg / 100);
+  const b = curIngr.find(i => i.isBase); const unit = document.getElementById('funit').value || 'porção';
+  const cp = document.getElementById('cost-prev');
+  if (cp) cp.innerHTML = `
+    <div class="cr"><span>Ingredientes</span><span>${fR(ic)}</span></div>
+    <div class="cr"><span>Embalagem/fixos</span><span>${fR(ext)}</span></div>
+    <div class="cr tot"><span>Custo total (${yld} ${unit})</span><span>${fR(tot)}</span></div>
+    ${b ? `<div class="cr" style="font-size:12px"><span>Por 100${b.unit || 'g'} de ${b.name}</span><span>${fR(tot / (parseFloat(b.qty || 1) / 100))}</span></div>` : ''}`;
+  const sp = document.getElementById('sale-prev');
+  if (sp) sp.innerHTML = `
+    <div class="cr sal"><span>Preço sugerido (${yld} ${unit})</span><span style="font-size:15px;font-weight:700">${fR(sale)}</span></div>
+    <div class="cr sal"><span>Por ${unit}</span><span>${fR(sale / yld)}</span></div>
+    <div class="cr" style="color:var(--teal)"><span><i class="ti ti-trending-up"></i> Lucro</span><span>${fR(sale - tot)}</span></div>`;
+}
+
+async function pedirComentario() {
+  const nome = document.getElementById('fn').value;
+  const bar = document.getElementById('ai-comment-bar'); bar.style.display = 'flex';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: `Para a receita "${nome || 'receita'}", escreva 3 dicas curtas em português: variação, armazenamento, acompanhamento. Responda direto.` }] })
+    });
+    const d = await r.json();
+    const txt = d.content?.find(c => c.type === 'text')?.text || '';
+    const campo = document.getElementById('fcomment');
+    campo.value = (campo.value ? campo.value + '\n\n' : '') + '💡 ' + txt;
+  } catch (err) { toast('Erro: ' + err.message); }
+  finally { bar.style.display = 'none'; }
+}
+
+function addRecipePhoto(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { curPhotos.push(ev.target.result); renderRecipePhotosGrid(); };
+  reader.readAsDataURL(file); e.target.value = '';
+}
+function remRecipePhoto(i) { curPhotos.splice(i, 1); renderRecipePhotosGrid(); }
+function renderRecipePhotosGrid() {
+  document.getElementById('recipe-photos-grid').innerHTML = curPhotos.map((p, i) => `<div class="photo-grid-item"><img src="${p}"><button class="photo-del" onclick="remRecipePhoto(${i})"><i class="ti ti-x" style="font-size:9px"></i></button></div>`).join('');
+}
+
+function toggleFormas() { formasEnabled = !formasEnabled; updateFormaToggle(); }
+function updateFormaToggle() {
+  const sw = document.getElementById('forma-toggle-sw');
+  const sec = document.getElementById('formas-section');
+  if (sw) sw.classList.toggle('on', formasEnabled);
+  if (sec) sec.classList.toggle('visible', formasEnabled);
+}
+function addForma() { curFormas.push({ id: genId(), nome: '', tamanho: '', qtdMassa: '', unMassa: 'g', img: null }); renderFormas(); }
+function remForma(i) { curFormas.splice(i, 1); renderFormas(); }
+function addFormaFoto(i, e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { curFormas[i].img = ev.target.result; renderFormas(); };
+  reader.readAsDataURL(file); e.target.value = '';
+}
+function renderFormas() {
+  const el = document.getElementById('formas-list'); if (!el) return;
+  if (!curFormas.length) { el.innerHTML = '<p class="text-sm" style="margin-bottom:10px">Nenhuma forma adicionada.</p>'; return; }
+  el.innerHTML = curFormas.map((f, i) => `
+    <div class="forma-card">
+      <div class="flex-row" style="margin-bottom:10px">
+        <div class="forma-img" onclick="document.getElementById('fimg${i}').click()">
+          ${f.img ? `<img src="${f.img}">` : `<i class="ti ti-cake"></i>`}
+        </div>
+        <input type="file" id="fimg${i}" accept="image/*" capture="environment" style="display:none" onchange="addFormaFoto(${i},event)">
+        <div style="flex:1;margin-left:8px">
+          <div class="fg" style="margin-bottom:6px"><label>Nome</label><input type="text" value="${f.nome}" placeholder="Ex: Redonda" oninput="curFormas[${i}].nome=this.value"></div>
+          <div class="fg" style="margin-bottom:0"><label>Tamanho</label><input type="text" value="${f.tamanho}" placeholder="Ex: 25cm" oninput="curFormas[${i}].tamanho=this.value"></div>
+        </div>
+        <button class="db" style="align-self:flex-start;margin-left:4px" onclick="remForma(${i})"><i class="ti ti-trash"></i></button>
+      </div>
+      <div class="fr">
+        <div class="fg" style="margin-bottom:0"><label>Qtd de massa</label><input type="number" value="${f.qtdMassa}" placeholder="Ex: 800" oninput="curFormas[${i}].qtdMassa=this.value" min="0"></div>
+        <div class="fg" style="margin-bottom:0"><label>Unidade</label><select onchange="curFormas[${i}].unMassa=this.value"><option value="g" ${f.unMassa === 'g' ? 'selected' : ''}>g</option><option value="kg" ${f.unMassa === 'kg' ? 'selected' : ''}>kg</option><option value="ml" ${f.unMassa === 'ml' ? 'selected' : ''}>ml</option><option value="L" ${f.unMassa === 'L' ? 'selected' : ''}>L</option></select></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// SAVE RECIPE
+// ═══════════════════════════════════════════
+async function saveRecipe() {
+  const name = document.getElementById('fn').value.trim();
+  if (!name) { toast('Informe o nome da receita'); st2(0); return; }
+  const data = {
+    id: editId || genId(), name,
+    cat: document.getElementById('fcat').value,
+    group: document.getElementById('fgrp').value,
+    unit: document.getElementById('funit').value,
+    yield_qty: parseFloat(document.getElementById('fyld').value) || 6,
+    yield: parseFloat(document.getElementById('fyld').value) || 6,
+    time: parseFloat(document.getElementById('ftm').value) || 60,
+    margin: parseFloat(document.getElementById('fmrg').value) || 100,
+    extra: parseFloat(document.getElementById('fext').value) || 0,
+    preparo: document.getElementById('fprep').value,
+    comment: document.getElementById('fcomment').value,
+    ingredients: curIngr, photos: curPhotos,
+    formas: curFormas, formasEnabled,
+    shared: shareConfig.sharedIds.includes(editId || ''),
+    createdAt: Date.now()
+  };
+  if (editId) { const idx = recipes.findIndex(r => r.id === editId); recipes[idx] = data; }
+  else recipes.unshift(data);
+  rmap[data.id] = data;
+  cm('modal-edit'); updateGroupFilter(); renderRecipes(); renderHome();
+  await saveToCloud(data);
+  toast('Receita salva na nuvem!');
+}
+
+async function delRecipe(id) {
+  if (!confirm('Excluir esta receita?')) return;
+  recipes = recipes.filter(r => r.id !== id);
+  shareConfig.sharedIds = shareConfig.sharedIds.filter(x => x !== id);
+  delete rmap[id]; delete viewState[id];
+  updateGroupFilter(); renderRecipes(); renderHome();
+  await deleteFromCloud(id);
+  toast('Excluída');
+}
+
+// ═══════════════════════════════════════════
+// VIEW RECIPE
+// ═══════════════════════════════════════════
+function viewRecipe(id) {
+  const r = recipes.find(x => x.id === id); if (!r) return;
+  rmap[id] = r;
+  const b = getBase(r);
+  if (!viewState[id]) viewState[id] = { mode: b ? 'base' : 'prop', baseVal: b ? parseFloat(b.qty) : 1, propMode: 'pct', pct: 100, fracN: 1, fracD: 1, mult: 1, helperN: 1, helperD: 1 };
+  document.getElementById('vt').textContent = r.name;
+  document.getElementById('veb').onclick = () => { cm('modal-view'); openEdit(id); };
+  renderViewBody(r);
+  document.getElementById('modal-view').style.display = 'flex';
+}
+
+function vs(id, key, val) {
+  if (!viewState[id]) viewState[id] = { mode: 'prop', baseVal: 1, propMode: 'pct', pct: 100, fracN: 1, fracD: 1, mult: 1, helperN: 1, helperD: 1 };
+  viewState[id][key] = val; rmap[id] = recipes.find(x => x.id === id);
+}
+
+function getRatio(r) {
+  const s = viewState[r.id]; if (!s) return 1;
+  const b = getBase(r);
+  if (s.mode === 'base' && b) {
+    const baseQty = parseFloat(b.qty || 1);
+    const inputVal = parseWeightInput(s.baseVal + (b.unit||'g'), b.unit||'g');
+    return (inputVal > 0 ? inputVal : parseFloat(s.baseVal)||1) / baseQty;
+  }
+  const pm = s.propMode;
+  if (pm === 'pct') return (parseFloat(s.pct) || 100) / 100;
+  if (pm === 'frac') { const n = parseFloat(s.fracN)||1, d = parseFloat(s.fracD)||1; return n/d; }
+  if (pm === 'mult') return parseFloat(s.mult) || 1;
+  return 1;
+}
+
+
+
+function applyReceitas(id, val) {
+  var frac = parseFractionInput(val);
+  if (frac > 0) {
+    vs(id, 'receitasVal', val);
+    vs(id, 'mult', frac);
+    vs(id, 'mode', 'prop');
+    vs(id, 'propMode', 'mult');
+    renderViewBody(rmap[id]);
+  }
+}
+
+function applyPct(id, val) {
+  var p = parseFloat(val) || 100;
+  vs(id, 'pct', p);
+  vs(id, 'mode', 'prop');
+  vs(id, 'propMode', 'pct');
+  vs(id, 'receitasVal', String(p / 100));
+  renderViewBody(rmap[id]);
+}
+
+function applyBaseWeight(id, unit, val) {
+  var parsed = parseWeightInput(val, unit);
+  if (!parsed) parsed = parseFloat(val) || 0;
+  if (parsed > 0) {
+    vs(id, 'baseVal', parsed);
+    vs(id, 'mode', 'base');
+    renderViewBody(rmap[id]);
+  }
+}
+
+function updateHelper(id) {
+  var n = parseFloat(document.getElementById('inp-hn-' + id)?.value) || 1;
+  var d = parseFloat(document.getElementById('inp-hd-' + id)?.value) || 1;
+  vs(id, 'helperN', n);
+  vs(id, 'helperD', d);
+  var pct = d > 0 ? ((n / d) * 100).toFixed(1) : '—';
+  var el = document.getElementById('helper-result-' + id);
+  if (el) el.textContent = pct + '%';
+}
+
+function useHelper(id) {
+  var n = parseFloat(document.getElementById('inp-hn-' + id)?.value) || 1;
+  var d = parseFloat(document.getElementById('inp-hd-' + id)?.value) || 1;
+  var pct = d > 0 ? (n / d) * 100 : 100;
+  applyPct(id, pct.toFixed(1));
+}
+
+function parseWeightInput(val, baseUnit) {
+  val = (val||'').toString().replace(',','.').trim().toLowerCase();
+  var kg = val.match(/^([\d.]+)\s*kg$/);
+  var g  = val.match(/^([\d.]+)\s*g$/);
+  var ml = val.match(/^([\d.]+)\s*ml$/);
+  var l  = val.match(/^([\d.]+)\s*l$/);
+  if (kg) return parseFloat(kg[1]) * 1000;
+  if (g)  return parseFloat(g[1]);
+  if (l)  return parseFloat(l[1]) * 1000;
+  if (ml) return parseFloat(ml[1]);
+  return parseFloat(val) || 0;
+}
+
+function parseFractionInput(val) {
+  val = (val||'').toString().replace(',','.').trim();
+  var frac = val.match(/^([\d.]+)\s*\/\s*([\d.]+)$/);
+  if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]);
+  return parseFloat(val) || 1;
+}
+
+function renderViewBody(r) {
+  const s = viewState[r.id]; const ratio = getRatio(r);
+  const p = calcAt(r, ratio); const b = getBase(r);
+  const pct2 = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
+  const helperPct = s.helperD > 0 ? ((s.helperN / s.helperD) * 100).toFixed(1) : '—';
+
+  document.getElementById('vb').innerHTML = `
+    ${r.photos && r.photos.length ? r.photos.map(ph => `<img src="${ph}" style="width:100%;border-radius:var(--radius);margin-bottom:6px;max-height:200px;object-fit:cover">`).join('') : ''}
+    <div class="flex-row" style="margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <span class="tag t${r.cat[0]}">${r.cat}</span>
+      ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
+      <span style="font-size:12px;color:var(--text2)"><i class="ti ti-clock"></i> ${fT(r.time)}</span>
+      <span class="pb ${pctClass(pct2)}">${pct2.toFixed(0)}% lucro</span>
+    </div>
+
+    ${b ? `
+  <div class="bclc">
+      <div class="bcl"><i class="ti ti-star"></i> Calcular por <strong>${b.name}</strong></div>
+      <div class="bcrow" style="gap:8px;flex-wrap:wrap">
+        <label style="font-size:13px;color:var(--blue)">Quantidade:</label>
+        <input type="text" id="inp-base-${r.id}"
+          value="${parseFloat(s.mode === 'base' ? s.baseVal : parseFloat(b.qty) * ratio).toFixed(0)}${b.unit||'g'}"
+          placeholder="500g · 1kg · 200ml"
+          style="width:130px;padding:8px 10px;border:1.5px solid var(--blue-mid);border-radius:var(--radius-sm);font-size:16px;font-weight:700;text-align:center;background:var(--surface);color:var(--text);font-family:inherit"
+          onchange="applyBaseWeight('${r.id}','${b.unit||'g'}',this.value)"
+          onblur="applyBaseWeight('${r.id}','${b.unit||'g'}',this.value)"
+          onkeydown="if(event.key==='Enter'){applyBaseWeight('${r.id}','${b.unit||'g'}',this.value);this.blur();}">
+        <span class="bcratio">× ${ratio.toFixed(3)}</span>
+      </div>
+      <div style="font-size:11px;color:var(--blue);opacity:.7;margin-top:4px">Digite e pressione Enter ou toque fora do campo</div>
+    </div>` : `<div class="warn-box"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Sem ingrediente principal — use proporção abaixo.</div>`}
+
+    <div class="prop-box">
+      <div class="prop-title"><i class="ti ti-adjustments-horizontal"></i> Calcular por proporção da receita</div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px"><i class="ti ti-copy"></i> Quantas receitas quero fazer?</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <input type="text" id="inp-receitas-${r.id}" value="${s.receitasVal||'1'}" placeholder="1 · 2 · 1/2 · 4/3"
+            style="width:120px;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-weight:700;text-align:center;background:var(--surface);color:var(--text);font-family:inherit"
+            onchange="applyReceitas('${r.id}',this.value)"
+            onblur="applyReceitas('${r.id}',this.value)"
+            onkeydown="if(event.key==='Enter'){applyReceitas('${r.id}',this.value);this.blur();}">
+          <span style="font-size:13px;color:var(--text2)">× receita base</span>
+          <span class="prbdg" id="badge-receitas-${r.id}">${ratio.toFixed(3)}×</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px">
+          Ex: <b>1</b> = inteira &nbsp;·&nbsp; <b>2</b> = dobro &nbsp;·&nbsp; <b>1/2</b> = metade &nbsp;·&nbsp; <b>4/3</b> = +1/3 &nbsp;·&nbsp; <b>1,5</b> = uma e meia
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px"><i class="ti ti-percent"></i> Ou informe a porcentagem:</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <input type="number" id="inp-pct-${r.id}" value="${s.pct||100}" min="1" step="5"
+            style="width:80px;padding:7px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;text-align:center;background:var(--surface);color:var(--text);font-family:inherit"
+            onchange="applyPct('${r.id}',this.value)"
+            onblur="applyPct('${r.id}',this.value)"
+            onkeydown="if(event.key==='Enter'){applyPct('${r.id}',this.value);this.blur();}">
+          <span style="font-size:14px;color:var(--text2)">% da receita</span>
+          <span class="prbdg" id="badge-pct-${r.id}">${ratio.toFixed(3)}×</span>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px"><i class="ti ti-calculator"></i> Converter fração em %:</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <input type="number" id="inp-hn-${r.id}" value="${s.helperN||1}" min="1" step="1"
+              style="width:54px;padding:6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)"
+              onchange="updateHelper('${r.id}')"
+              onblur="updateHelper('${r.id}')"
+              onkeydown="if(event.key==='Enter')updateHelper('${r.id}')">
+            <span style="font-size:20px;font-weight:700;color:var(--text2)">/</span>
+            <input type="number" id="inp-hd-${r.id}" value="${s.helperD||1}" min="1" step="1"
+              style="width:54px;padding:6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)"
+              onchange="updateHelper('${r.id}')"
+              onblur="updateHelper('${r.id}')"
+              onkeydown="if(event.key==='Enter')updateHelper('${r.id}')">
+            <span style="font-size:13px;color:var(--text2)">da receita =</span>
+            <span class="pct-result" id="helper-result-${r.id}">${helperPct}%</span>
+            <button class="use-pct" onclick="useHelper('${r.id}')">Usar</button>
+          </div>
+          <p style="font-size:11px;color:var(--text3);margin-top:5px">4/3 → 133% &nbsp;·&nbsp; 3/2 → 150% &nbsp;·&nbsp; 1/2 → 50%</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="g4" style="margin-bottom:12px">
+      <div class="met"><div class="ml">Custo</div><div class="mv" style="font-size:13px">${fR(p.cost)}</div></div>
+      <div class="met"><div class="ml">Por porção</div><div class="mv" style="font-size:13px">${fR(p.cost / Math.max(p.portions, .01))}</div></div>
+      <div class="met"><div class="ml">Venda</div><div class="mv coral" style="font-size:13px">${fR(p.sale)}</div></div>
+      <div class="met"><div class="ml">Lucro</div><div class="mv green" style="font-size:13px">${fR(p.luc)}</div></div>
+    </div>
+
+    ${p.scaled.length ? `
+    <div style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-list"></i> Ingredientes ajustados</div>
+      <div style="overflow-x:auto"><table class="it" style="min-width:300px">
+        <thead><tr><th>Ingrediente</th><th>Qtd</th><th>Un.</th><th style="text-align:right">Custo</th></tr></thead>
+        <tbody>${p.scaled.map(ig => { const q = parseFloat(ig.qty || 0); const sub = iCost(ig, q); return `<tr ${ig.isBase ? 'class="ihl"' : ''}>
+            <td style="font-weight:${ig.isBase ? 700 : 400}">
+              ${ig.isBase ? '⭐ ' : ''}${ig.name || '-'}
+              ${ig.obs ? `<div style="font-size:11px;color:var(--text2);font-style:italic;margin-top:2px"><i class="ti ti-info-circle" style="font-size:10px"></i> ${ig.obs}</div>` : ''}
+            </td>
+            <td>${q >= 100 ? q.toFixed(0) : q >= 10 ? q.toFixed(1) : q.toFixed(2)}</td>
+            <td>${ig.unit || ''}</td>
+            <td style="text-align:right">${sub > 0 ? fR(sub) : '—'}</td>
+          </tr>`; }).join('')}</tbody>
+      </table></div>
+    </div>` : ''}
+
+    ${r.preparo ? `<div style="margin-bottom:12px"><div class="st"><i class="ti ti-notes"></i> Modo de preparo</div><div style="font-size:13px;line-height:1.9">${r.preparo.replace(/\n/g, '<br>')}</div></div>` : ''}
+
+    ${r.formasEnabled && r.formas && r.formas.length ? `
+    <div style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-cake"></i> Formas</div>
+      ${r.formas.map(f => `<div class="forma-card" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div class="forma-img">${f.img ? `<img src="${f.img}">` : '<i class="ti ti-cake"></i>'}</div>
+        <div><div style="font-weight:700;font-size:13px">${f.nome || 'Forma'} ${f.tamanho ? `(${f.tamanho})` : ''}</div>${f.qtdMassa ? `<div style="font-size:12px;color:var(--text2)">Massa: <strong>${f.qtdMassa} ${f.unMassa}</strong></div>` : ''}</div>
+      </div>`).join('')}
+    </div>` : ''}
+
+    ${r.comment ? `<div style="margin-bottom:12px"><div class="st"><i class="ti ti-message"></i> Comentários</div><div style="font-size:13px;line-height:1.8;color:var(--text2)">${r.comment.replace(/\n/g, '<br>')}</div></div>` : ''}
+
+    <button class="btns" style="width:100%;justify-content:center;margin-top:4px" onclick="toggleShareFromView('${r.id}')">
+      <i class="ti ti-${shareConfig.sharedIds.includes(r.id) ? 'share-3' : 'share'}" id="siv-${r.id}"></i>
+      <span id="svt-${r.id}">${shareConfig.sharedIds.includes(r.id) ? 'Remover do compartilhamento' : 'Marcar para compartilhar'}</span>
+    </button>`;
+}
+
+async function toggleShareFromView(id) {
+  const idx = shareConfig.sharedIds.indexOf(id);
+  if (idx >= 0) shareConfig.sharedIds.splice(idx, 1); else shareConfig.sharedIds.push(id);
+  const shared = shareConfig.sharedIds.includes(id);
+  const icon = document.getElementById('siv-' + id);
+  const txt = document.getElementById('svt-' + id);
+  if (icon) icon.className = 'ti ti-' + (shared ? 'share-3' : 'share');
+  if (txt) txt.textContent = shared ? 'Remover do compartilhamento' : 'Marcar para compartilhar';
+  toast(shared ? 'Marcada para compartilhar!' : 'Removida');
+  renderHome(); renderRecipes();
+  await saveConfigToCloud();
+}
+
+// ═══════════════════════════════════════════
+// SHARE PAGE
+// ═══════════════════════════════════════════
+function renderSharePage() {
+  document.getElementById('page-share').innerHTML = `
+    <!-- CARDÁPIO LINK -->
+    <div style="background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);border-radius:var(--radius);padding:18px 16px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(184,151,42,.15)"></div>
+      <div style="font-size:11px;letter-spacing:.2em;color:#B8972A;font-weight:700;text-transform:uppercase;margin-bottom:4px">Sucrée Confeitaria</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">🎂 Cardápio de Pedidos</div>
+      <div style="font-size:12px;color:#C8B89A;margin-bottom:14px">Envie o link para seus clientes montarem o pedido</div>
+      <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:12px;color:#F5EDD0;word-break:break-all;border:1px solid rgba(184,151,42,.3)">
+        herberthg99-prog.github.io/minhas-receitas/cardapio.html
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="copiarLinkCardapio()" style="flex:1;padding:10px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+          <i class="ti ti-copy"></i> Copiar link
+        </button>
+        <button onclick="compartilharCardapioWhats()" style="flex:1;padding:10px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+          <i class="ti ti-brand-whatsapp"></i> WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <div class="share-info-box"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Marque receitas com o botão "Compartilhar" na lista. Configure a senha do convidado abaixo.</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-user"></i> Senha do Convidado</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">O convidado usa esta senha para acessar apenas as receitas marcadas.</p>
+      <div class="fg"><label>Nova senha do convidado</label><input type="password" id="sp1" placeholder="••••••"></div>
+      <div class="fg" style="margin-bottom:0"><label>Confirmar</label><input type="password" id="sp2" placeholder="••••••"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <button class="btnp" onclick="saveGuestPwd()"><i class="ti ti-check"></i> Salvar senha</button>
+        <span id="pws" style="font-size:12px;color:var(--teal);display:none"><i class="ti ti-check"></i> Salva!</span>
+        ${getGuestPwd() ? '<span style="font-size:12px;color:var(--teal)"><i class="ti ti-lock"></i> Senha já definida</span>' : '<span style="font-size:12px;color:var(--text3)">Ainda sem senha</span>'}
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-eye"></i> Receitas marcadas (${shareConfig.sharedIds.length})</div>
+      ${shareConfig.sharedIds.length
+        ? recipes.filter(r => shareConfig.sharedIds.includes(r.id)).map(r => `<div class="rci"><i class="ti ti-check" style="color:var(--teal)"></i><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span style="font-size:11px;color:var(--text2)">[${r.group}]</span>` : ''}<span>${r.name}</span></div>`).join('')
+        : '<p style="font-size:13px;color:var(--text2)">Nenhuma receita marcada. Vá em Receitas e toque em "Compartilhar".</p>'}
+    </div>
+    <button class="btnp full" onclick="openShareView()"><i class="ti ti-external-link"></i> Ver como convidado</button>`;
+}
+
+async function savePwd() {
+  const p = document.getElementById('sp1').value, p2 = document.getElementById('sp2').value;
+  if (!p || p !== p2) { toast(p ? 'Senhas não conferem' : 'Informe a senha'); return; }
+  shareConfig.pwd = p;
+  const s = document.getElementById('pws'); s.style.display = 'inline'; setTimeout(() => s.style.display = 'none', 2500);
+  toast('Senha salva!');
+  await saveConfigToCloud();
+}
+
+async function saveGuestPwd() {
+  const p = document.getElementById('sp1').value;
+  const p2 = document.getElementById('sp2').value;
+  if (!p) { toast('Informe a senha'); return; }
+  if (p !== p2) { toast('Senhas não conferem'); return; }
+  if (p.length < 4) { toast('Mínimo 4 caracteres'); return; }
+  setGuestPwd(p);
+  shareConfig.pwd = p;
+  const s = document.getElementById('pws');
+  if (s) { s.style.display = 'inline'; setTimeout(() => s.style.display = 'none', 2500); }
+  // Save to Supabase so any device can verify
+  try {
+    const uid = (USER_ID||'').trim();
+    await sb.from('config').upsert({
+      user_id: uid,
+      share_pwd: p
+    }, { onConflict: 'user_id' });
+    toast('Senha do convidado salva na nuvem!');
+  } catch(e) {
+    toast('Senha salva localmente');
+  }
+  renderSharePage();
+}
+
+function openShareView() {
+  const body = document.getElementById('gb');
+  if (!shareConfig.pwd) { body.innerHTML = `<div class="lock-screen"><i class="ti ti-lock-off"></i><h2>Sem senha</h2><p>Configure uma senha primeiro.</p></div>`; document.getElementById('modal-guest').style.display = 'flex'; return; }
+  body.innerHTML = `<div class="lock-screen"><i class="ti ti-lock"></i><h2>Acesso restrito</h2><p>Informe a senha para ver as receitas.</p><input type="password" id="gpi" placeholder="••••••" onkeydown="if(event.key==='Enter')checkGuest()"><button class="btnp" style="margin-top:10px" onclick="checkGuest()"><i class="ti ti-login"></i> Entrar</button><div class="lerr" id="ge" style="display:none">Senha incorreta</div></div>`;
+  document.getElementById('modal-guest').style.display = 'flex';
+}
+
+function checkGuest() {
+  if (document.getElementById('gpi').value !== shareConfig.pwd) { document.getElementById('ge').style.display = 'block'; return; }
+  const shared = recipes.filter(r => shareConfig.sharedIds.includes(r.id));
+  document.getElementById('gb').innerHTML = !shared.length ? '<div class="est"><i class="ti ti-eye-off"></i><p>Nenhuma receita compartilhada.</p></div>' :
+    `<p style="font-size:12px;color:var(--text2);margin-bottom:10px"><i class="ti ti-chef-hat"></i> ${shared.length} receita(s)</p>` +
+    shared.map(r => `<div class="card" style="margin-bottom:10px">
+      ${r.photos && r.photos[0] ? `<img src="${r.photos[0]}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:160px;object-fit:cover">` : ''}
+      <div class="rn">${r.name}</div>
+      <div class="rm" style="margin-bottom:8px"><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div>
+      ${(r.ingredients || []).length ? `<table class="it" style="margin-bottom:8px"><thead><tr><th>Ingrediente</th><th>Qtd</th><th>Un.</th></tr></thead><tbody>${r.ingredients.map(ig => `<tr ${ig.isBase ? 'style="font-weight:700"' : ''}><td>${ig.name}</td><td>${ig.qty}</td><td>${ig.unit}</td></tr>`).join('')}</tbody></table>` : ''}
+      ${r.preparo ? `<div style="font-size:12px;line-height:1.8;color:var(--text2);margin-bottom:6px">${r.preparo.replace(/\n/g, '<br>')}</div>` : ''}
+      ${r.comment ? `<div style="font-size:11px;font-style:italic;color:var(--text2);padding:8px 10px;background:var(--bg);border-radius:var(--radius-sm)">${r.comment.replace(/\n/g, '<br>')}</div>` : ''}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+async function loadPedidosFromCloud() {
+  try {
+    const uid = (USER_ID||'herberth_admin').trim();
+    const res = await sb.from('pedidos_confeitaria').select('*').eq('user_id', uid).order('created_at', {ascending: false});
+    if(res.error) throw res.error;
+    const cloudPedidos = (res.data||[]).map(p => ({
+      id: p.id,
+      cliente: p.cliente,
+      telefone: p.telefone,
+      data: p.data,
+      hora: p.hora,
+      retira: p.retira,
+      endereco: p.endereco,
+      aro: p.aro,
+      massa: p.massa,
+      recheio1: p.recheio1,
+      recheio2: p.recheio2,
+      cobertura: p.cobertura,
+      deco: p.deco,
+      tema: p.tema,
+      topo: p.topo,
+      flores: p.flores,
+      obsDeco: p.obs_deco,
+      inspiPhoto: p.inspi_photo,
+      valorBolo: p.valor_bolo,
+      valorTotal: p.valor_total,
+      sinal: p.sinal,
+      pagamento: p.pagamento,
+      status: p.status || 'pendente',
+      origem: p.origem,
+      createdAt: new Date(p.created_at).getTime()
+    }));
+    // Merge: cloud takes priority, keep local-only pedidos
+    const cloudIds = new Set(cloudPedidos.map(p=>p.id));
+    const localOnly = pedidos.filter(p => !cloudIds.has(p.id));
+    pedidos = [...cloudPedidos, ...localOnly];
+    savePedidos();
+  } catch(e) {
+    console.log('Pedidos cloud error:', e.message);
+  }
+}
+
+
+(async function () {
+  document.getElementById('loading-text').textContent = 'Conectando à nuvem...';
+  const ok = await loadFromCloud();
+  document.getElementById('loading-overlay').style.display = 'none';
+  updateGroupFilter();
+  renderHome();
+  renderRecipes();
+  if (!ok) toast('Modo offline - dados locais carregados', 3000);
+  else if (recipes.length > 0) toast(recipes.length + ' receita(s) carregada(s)!');
+
+  // Auto-sync every 2 minutes
+  setInterval(async () => {
+    try {
+      await loadFromCloud();
+      if(typeof loadPedidosFromCloud === 'function') await loadPedidosFromCloud();
+      updateGroupFilter();
+      const curPage = document.querySelector('.page.act')?.id;
+      if(curPage === 'page-home') renderHome();
+      if(curPage === 'page-receitas') renderRecipes();
+      if(curPage === 'page-confeitaria' && typeof _renderConfeitariaUI === 'function') _renderConfeitariaUI();
+      setSyncStatus('ok', 'sincronizado ✓');
+    } catch(e) { console.log('Auto-sync error:', e.message); }
+  }, 120000);
+
+  // Also sync pedidos from online orders
+  if(typeof loadPedidosFromCloud === 'function') {
+    await loadPedidosFromCloud();
+    if(typeof _renderConfeitariaUI === 'function') _renderConfeitariaUI();
+  }
+})();
+</script>
+<script>
+// Desregistrar TODOS os Service Workers e limpar cache
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+    console.log('SW desregistrados:', regs.length);
+  });
+  // Limpar todos os caches
+  if(window.caches){
+    caches.keys().then(keys=>{
+      keys.forEach(k=>caches.delete(k));
+      console.log('Caches limpos:', keys.length);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════
+// LOGIN / USUÁRIOS
+// ═══════════════════════════════════════════
+const ADMIN_PWD_KEY  = 'mr_admin_pwd';
+const GUEST_PWD_KEY  = 'mr_guest_pwd';
+const SESSION_KEY    = 'mr_session';
+const SESSION_ROLE   = 'mr_role'; // 'admin' or 'guest'
+
+let currentLoginRole = 'admin';
+
+function getAdminPwd() { return localStorage.getItem(ADMIN_PWD_KEY) || ''; }
+function getGuestPwd() { return localStorage.getItem(GUEST_PWD_KEY) || ''; }
+function setAdminPwd(p) { localStorage.setItem(ADMIN_PWD_KEY, p); }
+function setGuestPwd(p) { localStorage.setItem(GUEST_PWD_KEY, p); }
+function isLoggedIn() { return sessionStorage.getItem(SESSION_KEY) === 'ok'; }
+function getCurrentRole() { return sessionStorage.getItem(SESSION_ROLE) || 'admin'; }
+function setSession(role) {
+  sessionStorage.setItem(SESSION_KEY, 'ok');
+  sessionStorage.setItem(SESSION_ROLE, role);
+}
+
+function isGuest() { return getCurrentRole() === 'guest'; }
+
+function toggleLoginPwd() {
+  const inp = document.getElementById('login-pwd');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+function toggleLoginPwd2() {
+  const inp = document.getElementById('login-pwd2');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function selectUser(role) {
+  currentLoginRole = role;
+  const adminBtn = document.getElementById('btn-user-admin');
+  const guestBtn = document.getElementById('btn-user-guest');
+  const label    = document.getElementById('login-user-label');
+  const hint     = document.getElementById('login-hint');
+  const err      = document.getElementById('login-err');
+  const loginBtn = document.getElementById('login-btn-label');
+  const setup    = document.getElementById('login-setup-box');
+  const confirm  = document.getElementById('confirm-pwd-box');
+  const forgot   = document.getElementById('login-forgot');
+
+  document.getElementById('login-pwd').value = '';
+  err.textContent = '';
+
+  if (role === 'admin') {
+    adminBtn.style.background = 'var(--gold)';
+    adminBtn.style.color = '#fff';
+    adminBtn.style.borderColor = 'var(--gold)';
+    guestBtn.style.background = 'rgba(255,255,255,.05)';
+    guestBtn.style.color = 'rgba(200,163,91,.6)';
+    guestBtn.style.borderColor = 'rgba(200,163,91,.2)';
+    label.textContent = 'Senha do Administrador';
+    hint.textContent = 'Acesso completo ao app de receitas';
+
+    const hasPwd = !!getAdminPwd();
+    if (!hasPwd) {
+      setup.style.display = 'block';
+      confirm.style.display = 'block';
+      loginBtn.textContent = 'Criar senha e entrar';
+      forgot.style.display = 'none';
+    } else {
+      setup.style.display = 'none';
+      confirm.style.display = 'none';
+      loginBtn.textContent = 'Entrar como Admin';
+      forgot.style.display = 'inline-block';
+    }
+  } else {
+    guestBtn.style.background = 'rgba(255,255,255,.15)';
+    guestBtn.style.color = '#fff';
+    guestBtn.style.borderColor = 'rgba(200,163,91,.5)';
+    adminBtn.style.background = 'rgba(255,255,255,.05)';
+    adminBtn.style.color = 'rgba(200,163,91,.6)';
+    adminBtn.style.borderColor = 'rgba(200,163,91,.2)';
+    label.textContent = 'Senha de Convidado';
+    hint.textContent = 'Acesso apenas às receitas compartilhadas';
+    setup.style.display = 'none';
+    confirm.style.display = 'none';
+    loginBtn.textContent = 'Entrar como Convidado';
+    forgot.style.display = 'none';
+
+    if (!getGuestPwd()) {
+      err.textContent = 'Nenhuma senha de convidado definida ainda.';
+    }
+  }
+}
+
+function revelarApp() {
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('login-overlay').style.display = 'none';
+}
+async function doLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  const err = document.getElementById('login-err');
+  if (!pwd) { err.textContent = 'Digite a senha'; return; }
+
+  if (currentLoginRole === 'admin') {
+    const hasPwd = !!getAdminPwd();
+    if (!hasPwd) {
+      const pwd2 = document.getElementById('login-pwd2').value;
+      if (!pwd2) { err.textContent = 'Confirme a senha'; return; }
+      if (pwd !== pwd2) { err.textContent = 'As senhas não conferem'; return; }
+      if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
+      setAdminPwd(pwd);
+      setSession('admin');
+      revelarApp();
+      toast('Senha criada! Bem-vindo, Administrador!');
+    } else {
+      if (pwd !== getAdminPwd()) {
+        err.textContent = 'Senha incorreta';
+        shakeLoginBox();
+        document.getElementById('login-pwd').value = '';
+        return;
+      }
+      setSession('admin');
+      revelarApp();
+      toast('Bem-vindo, Administrador!');
+    }
+  } else {
+    // Guest login - check Supabase first, fallback to local
+    const loginBtn = document.getElementById('login-btn-label');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Verificando...';
+    try {
+      // Fetch all configs to find matching guest password
+      const { data: configs, error: cfgErr } = await sb.from('config').select('share_pwd').not('share_pwd', 'is', null).neq('share_pwd', '');
+      if(cfgErr) throw cfgErr;
+      let matched = false;
+      if (configs && configs.length > 0) {
+        matched = configs.some(c => c.share_pwd === pwd);
+      }
+      // Also check local as fallback
+      if (!matched) {
+        const localPwd = getGuestPwd();
+        matched = localPwd && pwd === localPwd;
+      }
+      if (!matched) {
+        err.textContent = 'Senha incorreta';
+        shakeLoginBox();
+        document.getElementById('login-pwd').value = '';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Entrar como Convidado';
+        return;
+      }
+      setSession('guest');
+      revelarApp();
+      // Load shared recipes from cloud
+      await loadFromCloud();
+      enterGuestMode();
+      toast('Bem-vindo, Convidado!');
+    } catch(e) {
+      // Fallback to local check
+      const localPwd = getGuestPwd();
+      if (!localPwd) { err.textContent = 'Sem conexão e sem senha local.'; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
+      if (pwd !== localPwd) { err.textContent = 'Senha incorreta'; shakeLoginBox(); document.getElementById('login-pwd').value=''; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
+      setSession('guest');
+      revelarApp();
+      enterGuestMode();
+      toast('Bem-vindo, Convidado!');
+    }
+  }
+}
+
+
+function doLogout() {
+  const role = getCurrentRole();
+  const msg = role === 'guest' ? 'Sair do modo convidado?' : 'Sair do app?';
+  if (!confirm(msg)) return;
+  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_ROLE);
+  location.reload();
+}
+function shakeLoginBox() {
+  const box = document.querySelector('.login-box');
+  box.style.animation = 'shake .4s';
+  setTimeout(() => box.style.animation = '', 400);
+}
+
+function forgotPwd() {
+  const ok = confirm('Isso vai redefinir a senha de administrador e apagar os dados locais. Continuar?');
+  if (!ok) return;
+  localStorage.removeItem(ADMIN_PWD_KEY);
+  localStorage.removeItem('mr_user_id');
+  localStorage.removeItem('mr_v4_recipes');
+  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_ROLE);
+  location.reload();
+}
+
+function enterGuestMode() {
+  // Hide admin-only elements
+  const bottomnav = document.querySelector('.bottomnav');
+  if (bottomnav) {
+    // Hide Nova and Share buttons for guests
+    const btns = bottomnav.querySelectorAll('.bni');
+    btns.forEach(btn => {
+      if (btn.textContent.includes('Nova') || btn.textContent.includes('Compartilhar')) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+  // Go to shared recipes view
+  loadGuestView();
+}
+
+function loadGuestView() {
+  const sharedIds = shareConfig.sharedIds || [];
+  const sharedRecipes = recipes.filter(r => sharedIds.includes(r.id));
+  if (!sharedRecipes.length) {
+    const page = document.getElementById('page-receitas');
+    page.innerHTML = '<div class="est"><i class="ti ti-book"></i><p>Nenhuma receita compartilhada ainda.</p></div>';
+  }
+  goPage('receitas');
+}
+
+
+// ═══════════════════════════════════════════
+// ESTOQUE
+// ═══════════════════════════════════════════
+let estoque = {}; // { ingredientName_lower: { name, price, unit, updatedAt, usedIn: [] } }
+
+function loadEstoque() {
+  try { estoque = JSON.parse(localStorage.getItem('mr_estoque') || '{}'); } catch(e) { estoque = {}; }
+}
+
+function saveEstoque() {
+  try { localStorage.setItem('mr_estoque', JSON.stringify(estoque)); } catch(e) {}
+}
+
+function syncEstoqueFromRecipes() {
+  // Collect all unique ingredients from all recipes
+  recipes.forEach(r => {
+    (r.ingredients || []).forEach(ig => {
+      if (!ig.name) return;
+      const key = ig.name.trim().toLowerCase();
+      if (!estoque[key]) {
+        estoque[key] = {
+          name: ig.name.trim(),
+          price: ig.price || 0,
+          unit: ig.unit || 'g',
+          updatedAt: null,
+          usedIn: []
+        };
+      } else {
+        // Update price if ingredient has one and estoque doesn't
+        if (ig.price > 0 && !estoque[key].price) {
+          estoque[key].price = ig.price;
+        }
+        // Update name with latest casing
+        estoque[key].name = ig.name.trim();
+      }
+      // Track which recipes use this ingredient
+      if (!estoque[key].usedIn) estoque[key].usedIn = [];
+      if (!estoque[key].usedIn.includes(r.name)) {
+        estoque[key].usedIn.push(r.name);
+      }
+    });
+  });
+  saveEstoque();
+}
+
+function applyEstoqueToRecipes() {
+  // Update all recipe ingredient prices from estoque
+  let updated = 0;
+  recipes.forEach(r => {
+    (r.ingredients || []).forEach(ig => {
+      if (!ig.name) return;
+      const key = ig.name.trim().toLowerCase();
+      if (estoque[key] && estoque[key].price > 0) {
+        ig.price = estoque[key].price;
+        updated++;
+      }
+    });
+  });
+  return updated;
+}
+
+function renderEstoque() {
+  syncEstoqueFromRecipes();
+  const el = document.getElementById('page-estoque');
+  const keys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
+  const total = keys.length;
+  const semPreco = keys.filter(k => !estoque[k].price || estoque[k].price === 0).length;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:16px;font-weight:700">${total} ingrediente(s)</div>
+        <div style="font-size:12px;color:var(--text2)">${semPreco} sem preço · <span id="sel-count">0</span> selecionado(s)</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btng" id="btn-upd-estoque" onclick="atualizarEstoqueIASelecionados()" style="font-size:12px;padding:8px 12px">
+          <i class="ti ti-refresh"></i> Atualizar selecionados (IA)
+        </button>
+        <button class="btns" onclick="addEstoqueManual()" style="font-size:12px;padding:8px 12px">
+          <i class="ti ti-plus"></i> Adicionar
+        </button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="rb" onclick="toggleSelectAll(true)" style="font-size:12px"><i class="ti ti-checkbox"></i> Selecionar todos</button>
+      <button class="rb" onclick="toggleSelectAll(false)" style="font-size:12px"><i class="ti ti-square"></i> Desmarcar todos</button>
+      <button class="rb" onclick="selectSemPreco()" style="font-size:12px"><i class="ti ti-alert-circle"></i> Sem preço</button>
+    </div>
+    <div id="ai-estoque-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span id="ai-estoque-msg">Buscando preços no ES...</span></div>
+    ${!keys.length ? '<div class="est"><i class="ti ti-package"></i><p>Nenhum ingrediente ainda.<br>Crie receitas para popular o estoque automaticamente.</p></div>' :
+      keys.map(k => renderEstoqueItem(k)).join('')
+    }`;
+}
+
+function renderEstoqueItem(key) {
+  const ig = estoque[key];
+  const priceKg = ig.price ? (ig.price * 1000).toFixed(2) : '';
+  const updStr = ig.updatedAt ? new Date(ig.updatedAt).toLocaleDateString('pt-BR') : null;
+  let estoqueSelected = window._estoqueSelected || new Set();
+  window._estoqueSelected = estoqueSelected;
+  const isChecked = estoqueSelected.has(key);
+  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':''}">
+    <div class="estoque-item-header">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <input type="checkbox" ${isChecked?'checked':''} onchange="toggleEstoqueSelect('${key}',this.checked)"
+          style="width:18px;height:18px;accent-color:var(--gold);margin-top:2px;flex-shrink:0;cursor:pointer">
+        <div>
+        <div class="estoque-item-name">${ig.name}</div>
+        <div class="estoque-item-meta">
+          <span>${ig.unit || 'g'}</span>
+          ${updStr ? `<span><i class="ti ti-clock" style="font-size:10px"></i> ${updStr}</span>` : '<span class="estoque-badge-new">Sem atualização</span>'}
+          ${ig.usedIn && ig.usedIn.length ? `<span class="estoque-badge">${ig.usedIn.length} receita(s)</span>` : ''}
+        </div>
+        ${ig.usedIn && ig.usedIn.length ? `<div class="estoque-item-recipes"><i class="ti ti-book" style="font-size:10px"></i> ${ig.usedIn.slice(0,3).join(', ')}${ig.usedIn.length > 3 ? '...' : ''}</div>` : ''}
+        </div>
+      </div>
+      <div class="estoque-item-price">${ig.price > 0 ? 'R$ ' + (ig.price * 1000).toFixed(2) + '/kg' : '—'}</div>
+    </div>
+    <div class="estoque-edit-row">
+      <input type="number" value="${priceKg}" placeholder="Preço por kg (R$)" min="0" step="0.01"
+        onchange="updateEstoquePrice('${key}', parseFloat(this.value)||0)"
+        onblur="updateEstoquePrice('${key}', parseFloat(this.value)||0)"
+        onkeydown="if(event.key==='Enter'){updateEstoquePrice('${key}', parseFloat(this.value)||0);this.blur()}">
+      <select onchange="updateEstoqueUnit('${key}', this.value)">
+        <option value="g" ${ig.unit==='g'?'selected':''}>g</option>
+        <option value="kg" ${ig.unit==='kg'?'selected':''}>kg</option>
+        <option value="ml" ${ig.unit==='ml'?'selected':''}>ml</option>
+        <option value="L" ${ig.unit==='L'?'selected':''}>L</option>
+        <option value="un" ${ig.unit==='un'?'selected':''}>un</option>
+      </select>
+      <button class="db" onclick="removeEstoque('${key}')" title="Remover"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>`;
+}
+
+function updateEstoquePrice(key, priceKg) {
+  if (!estoque[key]) return;
+  estoque[key].price = priceKg / 1000;
+  estoque[key].updatedAt = new Date().toISOString();
+  saveEstoque();
+  // Apply to all recipes
+  recipes.forEach(r => {
+    (r.ingredients || []).forEach(ig => {
+      if (ig.name && ig.name.trim().toLowerCase() === key) {
+        ig.price = priceKg / 1000;
+      }
+    });
+  });
+  // Re-render price display
+  const el = document.getElementById('page-estoque');
+  const itemEl = document.getElementById('est-item-' + key.replace(/[^a-z0-9]/g,'_'));
+  if (itemEl) itemEl.outerHTML = renderEstoqueItem(key);
+  toast('Preço atualizado em todas as receitas!');
+}
+
+function updateEstoqueUnit(key, unit) {
+  if (!estoque[key]) return;
+  estoque[key].unit = unit;
+  saveEstoque();
+}
+
+function removeEstoque(key) {
+  if (!confirm('Remover ' + estoque[key].name + ' do estoque?')) return;
+  delete estoque[key];
+  saveEstoque();
+  renderEstoque();
+}
+
+function addEstoqueManual() {
+  const nome = prompt('Nome do ingrediente:');
+  if (!nome || !nome.trim()) return;
+  const key = nome.trim().toLowerCase();
+  if (estoque[key]) { toast('Ingrediente já existe no estoque!'); return; }
+  estoque[key] = { name: nome.trim(), price: 0, unit: 'g', updatedAt: null, usedIn: [] };
+  saveEstoque();
+  renderEstoque();
+  toast('Ingrediente adicionado!');
+}
+
+async function atualizarEstoqueIA() {
+  const keys = Object.keys(estoque);
+  if (!keys.length) { toast('Estoque vazio'); return; }
+  const btn = document.getElementById('btn-upd-estoque');
+  const bar = document.getElementById('ai-estoque-bar');
+  const msg = document.getElementById('ai-estoque-msg');
+  btn.disabled = true;
+  bar.style.display = 'flex';
+  msg.textContent = 'Buscando preços no ES...';
+
+  const names = keys.map(k => estoque[k].name);
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 1000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para estes ingredientes: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_exato_do_ingrediente": preco_por_kg_em_reais}` }]
+      })
+    });
+    const d = await r.json();
+    const txt = (d.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    let map;
+    try { map = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Formato inválido'); }
+
+    let n = 0;
+    keys.forEach(key => {
+      const igName = estoque[key].name.toLowerCase();
+      const match = Object.keys(map).find(k =>
+        igName.includes(k.toLowerCase()) || k.toLowerCase().includes(igName)
+      );
+      if (match && map[match] > 0) {
+        const priceKg = map[match];
+        estoque[key].price = priceKg / 1000;
+        estoque[key].updatedAt = new Date().toISOString();
+        // Update all recipes
+        recipes.forEach(rec => {
+          (rec.ingredients || []).forEach(ig => {
+            if (ig.name && ig.name.trim().toLowerCase() === key) {
+              ig.price = priceKg / 1000;
+            }
+          });
+        });
+        n++;
+      }
+    });
+
+    saveEstoque();
+    msg.textContent = n + ' preços atualizados!';
+    setTimeout(() => { bar.style.display = 'none'; renderEstoque(); }, 2000);
+    toast(n + ' preços atualizados no estoque e nas receitas!');
+  } catch(err) {
+    msg.textContent = 'Erro: ' + err.message;
+    setTimeout(() => { bar.style.display = 'none'; }, 3000);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Also update atualizarPrecos in ingredient tab to sync with estoque
+const _origAtualizarPrecos = atualizarPrecos;
+async function atualizarPrecos() {
+  await _origAtualizarPrecos();
+  // After updating recipe prices, sync back to estoque
+  curIngr.forEach(ig => {
+    if (!ig.name || !ig.price) return;
+    const key = ig.name.trim().toLowerCase();
+    if (!estoque[key]) {
+      estoque[key] = { name: ig.name.trim(), price: ig.price, unit: ig.unit||'g', updatedAt: new Date().toISOString(), usedIn: [] };
+    } else {
+      estoque[key].price = ig.price;
+      estoque[key].updatedAt = new Date().toISOString();
+    }
+  });
+  saveEstoque();
+}
+
+loadEstoque();
+
+
+// ═══════════════════════════════════════════
+// CONFEITARIA — AGENDA DE PEDIDOS
+// ═══════════════════════════════════════════
+let pedidos = [];
+try { pedidos = JSON.parse(localStorage.getItem('mr_pedidos') || '[]'); } catch(e) {}
+let editPedidoId = null;
+let curPedido = {};
+
+function savePedidos() {
+  try { localStorage.setItem('mr_pedidos', JSON.stringify(pedidos)); } catch(e) {}
+}
+
+// ARO prices base (you can adjust)
+const ARO_PRICES = { 10: 80, 15: 120, 20: 180, 25: 250, 30: 350 };
+const ARO_INFO = {
+  10: '~6 fatias · ideal para mini bolos',
+  15: '~12 fatias · perfeito para pequenas celebrações',
+  20: '~20 fatias · o mais pedido para festas',
+  25: '~30 fatias · festas médias e grandes',
+  30: '~40 fatias · festas grandes e casamentos'
+};
+
+
+async function savePedidoToCloud(pedido) {
+  try {
+    const uid = (USER_ID||'herberth_admin').trim();
+    await sb.from('pedidos_confeitaria').upsert({
+      id: pedido.id,
+      user_id: uid,
+      cliente: pedido.cliente,
+      telefone: pedido.telefone,
+      data: pedido.data || null,
+      hora: pedido.hora || null,
+      retira: pedido.retira,
+      endereco: pedido.endereco || null,
+      aro: pedido.aro,
+      massa: pedido.massa,
+      recheio1: pedido.recheio1 || null,
+      recheio2: pedido.recheio2 || null,
+      cobertura: pedido.cobertura,
+      deco: pedido.deco,
+      tema: pedido.tema || null,
+      topo: pedido.topo || false,
+      flores: pedido.flores || false,
+      obs_deco: pedido.obsDeco || null,
+      inspi_photo: pedido.inspiPhoto || null,
+      valor_bolo: pedido.valorBolo || 0,
+      valor_total: pedido.valorTotal || 0,
+      sinal: pedido.sinal || 0,
+      pagamento: pedido.pagamento || null,
+      status: pedido.status || 'pendente',
+      origem: pedido.origem || 'manual'
+    }, {onConflict: 'id'});
+  } catch(e) {
+    console.log('Save pedido cloud error:', e.message);
+  }
+}
+
+async function deletePedidoFromCloud(id) {
+  try {
+    await sb.from('pedidos_confeitaria').delete().eq('id', id);
+  } catch(e) {}
+}
+
+async function updatePedidoStatusCloud(id, status) {
+  try {
+    await sb.from('pedidos_confeitaria').update({status}).eq('id', id);
+  } catch(e) {}
+}
+
+function renderConfeitaria() {
+  const el = document.getElementById('page-confeitaria');
+  // Load from cloud first
+  loadPedidosFromCloud().then(() => {
+    _renderConfeitariaUI();
+  });
+  _renderConfeitariaUI(); // show immediately with local data
+}
+
+function _renderConfeitariaUI() {
+  const el = document.getElementById('page-confeitaria');
+  const pendentes = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado');
+  const proximos = [...pendentes].sort((a,b) => new Date(a.data) - new Date(b.data));
+  const total_mes = pedidos.filter(p => {
+    const d = new Date(p.data);
+    const n = new Date();
+    return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear() && p.status !== 'cancelado';
+  }).reduce((a, p) => a + (parseFloat(p.valorTotal)||0), 0);
+
+  el.innerHTML = `
+    <div class="g4" style="margin-bottom:14px">
+      <div class="met"><div class="ml">Pedidos ativos</div><div class="mv blue">${pendentes.length}</div></div>
+      <div class="met"><div class="ml">Total do mês</div><div class="mv coral">R$${total_mes.toFixed(0)}</div></div>
+      <div class="met"><div class="ml">Entregues</div><div class="mv green">${pedidos.filter(p=>p.status==='entregue').length}</div></div>
+      <div class="met"><div class="ml">Cancelados</div><div class="mv">${pedidos.filter(p=>p.status==='cancelado').length}</div></div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="st" style="margin-bottom:0"><i class="ti ti-calendar"></i> Agenda de pedidos</div>
+      <button class="btnp" onclick="openNovoPedido()" style="padding:8px 14px;font-size:13px">
+        <i class="ti ti-plus"></i> Novo pedido
+      </button>
+    </div>
+
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="pm act" id="filter-todos" onclick="filterPedidos('todos')">Todos</button>
+      <button class="pm" id="filter-pendente" onclick="filterPedidos('pendente')">⏳ Pendente</button>
+      <button class="pm" id="filter-confirmado" onclick="filterPedidos('confirmado')">✅ Confirmado</button>
+      <button class="pm" id="filter-producao" onclick="filterPedidos('producao')">🎂 Produção</button>
+      <button class="pm" id="filter-pronto" onclick="filterPedidos('pronto')">🎉 Pronto</button>
+      <button class="pm" id="filter-entregue" onclick="filterPedidos('entregue')">✔️ Entregue</button>
+    </div>
+
+    <div id="pedidos-list">
+      ${renderPedidosList('todos')}
+    </div>`;
+}
+
+function renderPedidosList(filter) {
+  let list = [...pedidos].sort((a,b) => new Date(a.data) - new Date(b.data));
+  if (filter !== 'todos') list = list.filter(p => p.status === filter);
+  if (!list.length) return '<div class="est"><i class="ti ti-calendar"></i><p>Nenhum pedido' + (filter!=='todos'?' com este status':' ainda') + '.</p></div>';
+  return list.map(p => renderPedidoCard(p)).join('');
+}
+
+function filterPedidos(f) {
+  document.querySelectorAll('[id^="filter-"]').forEach(b => b.classList.remove('act'));
+  document.getElementById('filter-' + f)?.classList.add('act');
+  document.getElementById('pedidos-list').innerHTML = renderPedidosList(f);
+}
+
+function renderPedidoCard(p) {
+  const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  const statusLabel = {pendente:'⏳ Pendente',confirmado:'✅ Confirmado',producao:'🎂 Em produção',pronto:'🎉 Pronto',entregue:'✔️ Entregue',cancelado:'❌ Cancelado'}[p.status] || p.status;
+  const diasRestantes = p.data ? Math.ceil((new Date(p.data + 'T12:00:00') - new Date()) / (1000*60*60*24)) : null;
+  const urgente = diasRestantes !== null && diasRestantes <= 2 && p.status !== 'entregue' && p.status !== 'cancelado';
+  return `<div class="pedido-card status-${p.status} ${urgente?'':''}' onclick="viewPedido('${p.id}')" style="${urgente?'border:2px solid #C8A35B;':''}">
+    ${urgente ? `<div style="position:absolute;top:8px;right:8px;background:var(--gold);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">🔥 ${diasRestantes<=0?'HOJE!':diasRestantes+'d'}</div>` : ''}
+    <div style="font-size:15px;font-weight:700;margin-bottom:5px;padding-right:${urgente?60:0}px">${p.cliente || 'Sem nome'}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+      <span class="status-badge sb-${p.status}">${statusLabel}</span>
+      <span style="font-size:12px;color:var(--text2)"><i class="ti ti-calendar" style="font-size:11px"></i> ${dataFmt} ${p.hora ? '· ' + p.hora : ''}</span>
+      ${p.retira ? '<span style="font-size:11px;background:var(--teal-light);color:var(--teal);padding:1px 7px;border-radius:20px;font-weight:700">Retira</span>' : '<span style="font-size:11px;background:var(--blue-light);color:var(--blue);padding:1px 7px;border-radius:20px;font-weight:700">Entrego</span>'}
+    </div>
+    <div style="font-size:12px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap">
+      ${p.aro ? `<span>Aro ${p.aro}</span>` : ''}
+      ${p.massa ? `<span>${p.massa === 'amanteigada' ? '🧈 Amanteigada' : '🍰 Pão de Ló'}</span>` : ''}
+      ${p.recheio1 ? `<span>🎂 ${p.recheio1}</span>` : ''}
+      ${p.cobertura ? `<span>${p.cobertura === 'chantininho' ? '🍦 Chantininho' : '🧁 Buttercream'}</span>` : ''}
+      ${p.tema ? `<span>🎨 ${p.tema}</span>` : ''}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+      <div style="font-size:15px;font-weight:700;color:var(--gold)">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--teal);font-weight:700">${p.sinal > 0 ? 'Sinal: R$ '+parseFloat(p.sinal).toFixed(2) : ''}</div>
+      <div style="display:flex;gap:5px">
+        <button class="rb" onclick="event.stopPropagation();openEditPedido('${p.id}')" style="font-size:11px;padding:4px 8px"><i class="ti ti-edit"></i></button>
+        <button class="rb" style="font-size:11px;padding:4px 8px;color:#A32D2D" onclick="event.stopPropagation();delPedido('${p.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function stPedido(n) {
+  [0,1,2,3].forEach(i => {
+    const el = document.getElementById('pt'+i);
+    if(el) el.style.display = i===n?'block':'none';
+    const tb = document.querySelectorAll('#modal-pedido .tb')[i];
+    if(tb) tb.classList.toggle('act', i===n);
+  });
+  if(n===3) calcPedidoTotal();
+}
+
+function setPedidoRetira(val) {
+  curPedido.retira = val;
+  const sim = document.getElementById('btn-retira-sim');
+  const nao = document.getElementById('btn-retira-nao');
+  const addr = document.getElementById('entrega-addr-box');
+  if(val) {
+    sim.style.borderColor='var(--teal)';sim.style.background='var(--teal-light)';sim.style.color='var(--teal)';
+    nao.style.borderColor='var(--border)';nao.style.background='var(--bg)';nao.style.color='var(--text)';
+    addr.style.display='none';
+  } else {
+    nao.style.borderColor='var(--coral)';nao.style.background='var(--gold-light)';nao.style.color='var(--gold-dark)';
+    sim.style.borderColor='var(--border)';sim.style.background='var(--bg)';sim.style.color='var(--text)';
+    addr.style.display='block';
+  }
+}
+
+function setAro(aro) {
+  curPedido.aro = aro;
+  document.querySelectorAll('.aro-btn').forEach(b => b.classList.remove('sel'));
+  document.getElementById('aro-'+aro)?.classList.add('sel');
+  const infoBox = document.getElementById('aro-info-box');
+  if(infoBox) {
+    infoBox.style.display='flex';
+    infoBox.innerHTML = `<i class="ti ti-info-circle" style="flex-shrink:0"></i> <span>Aro ${aro}: ${ARO_INFO[aro]}</span>`;
+  }
+  // Auto-fill bolo price if empty
+  const valorInput = document.getElementById('p-valor-bolo');
+  if(valorInput && !valorInput.value) valorInput.value = ARO_PRICES[aro] || '';
+  calcPedidoTotal();
+}
+
+function setMassa(tipo) {
+  curPedido.massa = tipo;
+  document.querySelectorAll('.massa-btn').forEach(b => {
+    b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)';
+  });
+  const btn = document.getElementById('massa-'+tipo);
+  if(btn){btn.style.borderColor='var(--coral)';btn.style.background='var(--gold-light)';btn.style.color='var(--gold-dark)';}
+}
+
+function setCobertura(tipo) {
+  curPedido.cobertura = tipo;
+  document.querySelectorAll('.cob-btn').forEach(b => {
+    b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)';
+  });
+  const btn = document.getElementById('cob-'+tipo);
+  if(btn){btn.style.borderColor='var(--coral)';btn.style.background='var(--gold-light)';btn.style.color='var(--gold-dark)';}
+}
+
+function setFlores(val) {
+  curPedido.flores = val;
+  const sim=document.getElementById('btn-flores-sim'), nao=document.getElementById('btn-flores-nao');
+  if(val){
+    sim.style.borderColor='var(--teal)';sim.style.background='var(--teal-light)';sim.style.color='var(--teal)';
+    nao.style.borderColor='var(--border)';nao.style.background='var(--bg)';nao.style.color='var(--text)';
+  } else {
+    nao.style.borderColor='var(--coral)';nao.style.background='var(--gold-light)';nao.style.color='var(--gold-dark)';
+    sim.style.borderColor='var(--border)';sim.style.background='var(--bg)';sim.style.color='var(--text)';
+  }
+  calcPedidoTotal();
+}
+
+function setPapelaria(val) {
+  curPedido.papelaria = val;
+  const sim=document.getElementById('btn-papel-sim'), nao=document.getElementById('btn-papel-nao');
+  if(val){
+    sim.style.borderColor='var(--teal)';sim.style.background='var(--teal-light)';sim.style.color='var(--teal)';
+    nao.style.borderColor='var(--border)';nao.style.background='var(--bg)';nao.style.color='var(--text)';
+  } else {
+    nao.style.borderColor='var(--coral)';nao.style.background='var(--gold-light)';nao.style.color='var(--gold-dark)';
+    sim.style.borderColor='var(--border)';sim.style.background='var(--bg)';sim.style.color='var(--text)';
+  }
+  calcPedidoTotal();
+}
+
+function addInspiPhoto(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    curPedido.inspiPhoto = ev.target.result;
+    const prev = document.getElementById('p-inspi-preview');
+    if(prev) prev.innerHTML = `<img src="${ev.target.result}" style="width:100%;border-radius:var(--radius-sm);max-height:200px;object-fit:cover;margin-top:4px">
+      <button class="btns" onclick="curPedido.inspiPhoto=null;document.getElementById('p-inspi-preview').innerHTML=''" style="width:100%;justify-content:center;font-size:12px;margin-top:6px"><i class="ti ti-trash"></i> Remover foto</button>`;
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+function calcPedidoTotal() {
+  const valorBolo = parseFloat(document.getElementById('p-valor-bolo')?.value||0);
+  const flores = curPedido.flores ? 50 : 0;
+  const papelaria = curPedido.papelaria ? 35 : 0;
+  const total = valorBolo + flores + papelaria;
+  const sinal = parseFloat(document.getElementById('p-sinal')?.value||0);
+  const restante = total - sinal;
+  curPedido.valorTotal = total;
+
+  const box = document.getElementById('pedido-total-box');
+  if(!box) return;
+  box.innerHTML = `
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
+      <div class="total-row"><span>🎂 Valor do bolo</span><span>R$ ${valorBolo.toFixed(2)}</span></div>
+      ${flores>0?`<div class="total-row"><span>💐 Flores</span><span>R$ ${flores.toFixed(2)}</span></div>`:''}
+      ${papelaria>0?`<div class="total-row"><span>🎨 Papelaria</span><span>R$ ${papelaria.toFixed(2)}</span></div>`:''}
+      <div class="total-row grand"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
+      ${sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${sinal.toFixed(2)}</span></div>`:''}
+      ${restante>0&&sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>💳 Restante</span><span>R$ ${restante.toFixed(2)}</span></div>`:''}
+    </div>`;
+}
+
+function getRecheios() {
+  // Get all recipes from "Doces" or "Sobremesas" group to use as recheios
+  const recheios = recipes
+    .filter(r => r.cat === 'doce' || ['Bolos','Sobremesas','Biscoitos'].includes(r.group))
+    .map(r => r.name);
+  // Also allow any recipe to be a recheio
+  const todos = recipes.map(r => r.name);
+  return [...new Set([...recheios, ...todos])];
+}
+
+function populateRecheioSelects() {
+  const recheios = getRecheios();
+  const opts = recheios.map(r => `<option value="${r}">${r}</option>`).join('');
+  const sel1 = document.getElementById('p-recheio1');
+  const sel2 = document.getElementById('p-recheio2');
+  if(sel1) sel1.innerHTML = '<option value="">Selecione o recheio...</option>' + opts;
+  if(sel2) sel2.innerHTML = '<option value="">Nenhum / mesmo recheio</option>' + opts;
+  // Restore values if editing
+  if(curPedido.recheio1 && sel1) sel1.value = curPedido.recheio1;
+  if(curPedido.recheio2 && sel2) sel2.value = curPedido.recheio2;
+}
+
+function openNovoPedido() {
+  editPedidoId = null;
+  curPedido = { retira: true, flores: false, papelaria: false };
+  document.getElementById('pedido-title').textContent = 'Novo Pedido';
+  resetPedidoForm();
+  populateRecheioSelects();
+  stPedido(0);
+  document.getElementById('modal-pedido').style.display = 'flex';
+}
+
+function resetPedidoForm() {
+  ['p-cliente','p-data','p-hora','p-endereco','p-telefone','p-obs-cliente',
+   'p-tema','p-obs-deco','p-valor-bolo','p-sinal'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('p-inspi-preview').innerHTML = '';
+  document.getElementById('aro-info-box').style.display = 'none';
+  document.querySelectorAll('.aro-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.massa-btn,.cob-btn').forEach(b=>{
+    b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)';
+  });
+  document.getElementById('p-pagamento').value = '';
+  document.getElementById('p-status').value = 'pendente';
+  // Default: retira = true, flores = false, papelaria = false
+  setPedidoRetira(true);
+  setFlores(false);
+  setPapelaria(false);
+}
+
+function openEditPedido(id) {
+  const p = pedidos.find(x=>x.id===id);if(!p)return;
+  editPedidoId = id;
+  curPedido = {...p};
+  document.getElementById('pedido-title').textContent = 'Editar Pedido';
+  resetPedidoForm();
+  populateRecheioSelects();
+
+  // Restore values
+  if(p.cliente) document.getElementById('p-cliente').value = p.cliente;
+  if(p.data) document.getElementById('p-data').value = p.data;
+  if(p.hora) document.getElementById('p-hora').value = p.hora;
+  if(p.endereco) document.getElementById('p-endereco').value = p.endereco;
+  if(p.telefone) document.getElementById('p-telefone').value = p.telefone;
+  if(p.obsCliente) document.getElementById('p-obs-cliente').value = p.obsCliente;
+  if(p.tema) document.getElementById('p-tema').value = p.tema;
+  if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
+  if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
+  if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
+  if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
+  if(p.status) document.getElementById('p-status').value = p.status;
+  if(p.inspiPhoto) {
+    curPedido.inspiPhoto = p.inspiPhoto;
+    document.getElementById('p-inspi-preview').innerHTML = `<img src="${p.inspiPhoto}" style="width:100%;border-radius:var(--radius-sm);max-height:200px;object-fit:cover;margin-top:4px">`;
+  }
+  if(p.aro) setAro(p.aro);
+  if(p.massa) setMassa(p.massa);
+  if(p.cobertura) setCobertura(p.cobertura);
+  setPedidoRetira(p.retira !== false);
+  setFlores(p.flores === true);
+  setPapelaria(p.papelaria === true);
+
+  stPedido(0);
+  document.getElementById('modal-pedido').style.display = 'flex';
+}
+
+function savePedido() {
+  const cliente = document.getElementById('p-cliente').value.trim();
+  if(!cliente) { toast('Informe o nome do cliente'); stPedido(0); return; }
+  const valorBolo = parseFloat(document.getElementById('p-valor-bolo').value||0);
+  const flores = curPedido.flores ? 50 : 0;
+  const papelaria = curPedido.papelaria ? 35 : 0;
+  const total = valorBolo + flores + papelaria;
+
+  const pedido = {
+    id: editPedidoId || genId(),
+    cliente,
+    data: document.getElementById('p-data').value,
+    hora: document.getElementById('p-hora').value,
+    retira: curPedido.retira !== false,
+    endereco: document.getElementById('p-endereco').value,
+    telefone: document.getElementById('p-telefone').value,
+    obsCliente: document.getElementById('p-obs-cliente').value,
+    aro: curPedido.aro,
+    massa: curPedido.massa,
+    recheio1: document.getElementById('p-recheio1').value,
+    recheio2: document.getElementById('p-recheio2').value,
+    cobertura: curPedido.cobertura,
+    valorBolo,
+    tema: document.getElementById('p-tema').value,
+    inspiPhoto: curPedido.inspiPhoto || null,
+    flores: curPedido.flores === true,
+    papelaria: curPedido.papelaria === true,
+    obsDeco: document.getElementById('p-obs-deco').value,
+    sinal: parseFloat(document.getElementById('p-sinal').value||0),
+    pagamento: document.getElementById('p-pagamento').value,
+    status: document.getElementById('p-status').value || 'pendente',
+    valorTotal: total,
+    createdAt: Date.now()
+  };
+
+  if(editPedidoId) { const idx=pedidos.findIndex(p=>p.id===editPedidoId); pedidos[idx]=pedido; }
+  else pedidos.unshift(pedido);
+  savePedidos();
+  savePedidoToCloud(pedido);
+  cm('modal-pedido');
+  renderConfeitaria();
+  toast('Pedido salvo!');
+}
+
+function delPedido(id) {
+  if(!confirm('Excluir este pedido?')) return;
+  pedidos = pedidos.filter(p=>p.id!==id);
+  savePedidos();
+  deletePedidoFromCloud(id);
+  renderConfeitaria();
+  toast('Pedido excluído');
+}
+
+function viewPedido(id) {
+  const p = pedidos.find(x=>x.id===id);if(!p)return;
+  document.getElementById('pv-title').textContent = p.cliente || 'Pedido';
+  document.getElementById('pv-edit-btn').onclick = ()=>{cm('modal-pedido-view');openEditPedido(id)};
+  const dataFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  const statusLabel = {pendente:'⏳ Pendente',confirmado:'✅ Confirmado',producao:'🎂 Em produção',pronto:'🎉 Pronto',entregue:'✔️ Entregue',cancelado:'❌ Cancelado'}[p.status]||p.status;
+
+  document.getElementById('pv-body').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <span class="status-badge sb-${p.status}">${statusLabel}</span>
+      <span style="font-size:13px;color:var(--text2)"><i class="ti ti-calendar"></i> ${dataFmt} ${p.hora?'· '+p.hora:''}</span>
+      ${p.retira?'<span style="background:var(--teal-light);color:var(--teal);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">✅ Cliente retira</span>':'<span style="background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">🚗 Entrego</span>'}
+    </div>
+
+    ${p.telefone?`<div style="font-size:13px;margin-bottom:8px"><i class="ti ti-phone" style="font-size:12px"></i> ${p.telefone}</div>`:''}
+    ${p.endereco?`<div style="font-size:13px;margin-bottom:8px;color:var(--text2)"><i class="ti ti-map-pin" style="font-size:12px"></i> ${p.endereco}</div>`:''}
+    ${p.obsCliente?`<div style="font-size:13px;margin-bottom:12px;padding:9px 11px;background:var(--bg);border-radius:var(--radius-sm);font-style:italic">${p.obsCliente}</div>`:''}
+
+    <div class="st" style="margin-top:8px"><i class="ti ti-cake"></i> Detalhes do bolo</div>
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
+      ${p.aro?`<div class="total-row"><span>Tamanho</span><span><b>Aro ${p.aro}</b> · ${ARO_INFO[p.aro]||''}</span></div>`:''}
+      ${p.massa?`<div class="total-row"><span>Massa</span><span>${p.massa==='amanteigada'?'🧈 Amanteigada':'🍰 Pão de Ló'}</span></div>`:''}
+      ${p.recheio1?`<div class="total-row"><span>Recheio 1</span><span>${p.recheio1}</span></div>`:''}
+      ${p.recheio2?`<div class="total-row"><span>Recheio 2</span><span>${p.recheio2}</span></div>`:''}
+      ${p.cobertura?`<div class="total-row"><span>Cobertura</span><span>${p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream'}</span></div>`:''}
+    </div>
+
+    ${p.tema||p.flores||p.papelaria?`
+    <div class="st"><i class="ti ti-palette"></i> Decoração</div>
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
+      ${p.tema?`<div class="total-row"><span>Tema</span><span>${p.tema}</span></div>`:''}
+      ${p.flores?`<div class="total-row"><span>💐 Flores</span><span>R$ 50,00</span></div>`:''}
+      ${p.papelaria?`<div class="total-row"><span>🎨 Papelaria</span><span>R$ 35,00</span></div>`:''}
+      ${p.obsDeco?`<div style="font-size:12px;font-style:italic;color:var(--text2);margin-top:6px">${p.obsDeco}</div>`:''}
+    </div>`:''}
+
+    ${p.inspiPhoto?`<div style="margin-bottom:12px"><div class="st"><i class="ti ti-photo"></i> Inspiração</div><img src="${p.inspiPhoto}" style="width:100%;border-radius:var(--radius);max-height:220px;object-fit:cover"></div>`:''}
+
+    <div class="st"><i class="ti ti-currency-dollar"></i> Financeiro</div>
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
+      <div class="total-row"><span>🎂 Valor do bolo</span><span>R$ ${parseFloat(p.valorBolo||0).toFixed(2)}</span></div>
+      ${p.flores?`<div class="total-row"><span>💐 Flores</span><span>R$ 50,00</span></div>`:''}
+      ${p.papelaria?`<div class="total-row"><span>🎨 Papelaria</span><span>R$ 35,00</span></div>`:''}
+      <div class="total-row grand"><span>TOTAL</span><span>R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</span></div>
+      ${p.sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${parseFloat(p.sinal).toFixed(2)}</span></div>`:''}
+      ${p.sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>💳 Restante</span><span>R$ ${(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)}</span></div>`:''}
+      ${p.pagamento?`<div class="total-row" style="margin-top:6px"><span>Pagamento</span><span>${{pix:'PIX',dinheiro:'Dinheiro',cartao_credito:'Cartão Crédito',cartao_debito:'Cartão Débito'}[p.pagamento]||p.pagamento}</span></div>`:''}
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <select onchange="updatePedidoStatus('${p.id}',this.value)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
+        <option value="pendente" ${p.status==='pendente'?'selected':''}>⏳ Pendente</option>
+        <option value="confirmado" ${p.status==='confirmado'?'selected':''}>✅ Confirmado</option>
+        <option value="producao" ${p.status==='producao'?'selected':''}>🎂 Em produção</option>
+        <option value="pronto" ${p.status==='pronto'?'selected':''}>🎉 Pronto</option>
+        <option value="entregue" ${p.status==='entregue'?'selected':''}>✔️ Entregue</option>
+        <option value="cancelado" ${p.status==='cancelado'?'selected':''}>❌ Cancelado</option>
+      </select>
+    </div>`;
+
+  document.getElementById('modal-pedido-view').style.display = 'flex';
+}
+
+function updatePedidoStatus(id, status) {
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  p.status = status;
+  savePedidos();
+  updatePedidoStatusCloud(id, status);
+  toast('Status atualizado!');
+  renderConfeitaria();
+}
+
+
+function setPagamentoStatus(id, status) {
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  p.pagamentoStatus = status;
+  savePedidos();
+  savePedidoToCloud(p);
+  toast(status==='sinal'?'Sinal marcado como pago!':status==='total'?'Pagamento total confirmado!':'Pagar na entrega registrado!');
+  viewPedido(id);
+}
+
+function addComprovante(id, e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const p = pedidos.find(x=>x.id===id);
+    if(!p) return;
+    p.comprovante = ev.target.result;
+    savePedidos();
+    savePedidoToCloud(p);
+    toast('Comprovante salvo!');
+    viewPedido(id);
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+function abrirConfirmacao(id) {
+  window.open('confirmacao.html?id='+id, '_blank');
+}
+
+function enviarConfirmacaoWhats(id, tel) {
+  const link = 'https://herberthg99-prog.github.io/minhas-receitas/confirmacao.html?id='+id;
+  const texto = encodeURIComponent('🎂 *Confirmação do seu pedido — Sucrée Confeitaria*\n\nOlá! Segue o link com todos os detalhes do seu pedido:\n\n'+link+'\n\nQualquer dúvida é só nos chamar! 🤍');
+  const phone = tel ? tel.replace(/\D/g,'') : '';
+  const url = phone ? 'https://wa.me/55'+phone+'?text='+texto : 'https://wa.me/?text='+texto;
+  window.open(url,'_blank');
+}
+
+
+function copiarLinkCardapio() {
+  const link = 'https://herberthg99-prog.github.io/minhas-receitas/cardapio.html';
+  navigator.clipboard.writeText(link).then(() => {
+    toast('Link copiado!');
+  }).catch(() => {
+    // fallback
+    const el = document.createElement('textarea');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    toast('Link copiado!');
+  });
+}
+
+function compartilharCardapioWhats() {
+  const link = 'https://herberthg99-prog.github.io/minhas-receitas/cardapio.html';
+  const msg = encodeURIComponent(
+    '🎂 *Sucrée Confeitaria*\n\n' +
+    'Olá! Que alegria receber você por aqui! ✨\n\n' +
+    'Para tornar esse momento ainda mais especial, preparei um cardápio interativo onde você pode montar o bolo dos seus sonhos com toda a calma e carinho que você merece. 🍰\n\n' +
+    '👇 Acesse o link abaixo e personalize cada detalhe do seu bolo:\n\n' +
+    link + '\n\n' +
+    '🌸 Escolha o tamanho, a massa, os recheios, a cobertura e a decoração.\n\n' +
+    'Após finalizar, seu pedido chega diretamente para mim e entro em contato para confirmar todos os detalhes.\n\n' +
+    '💛 _Feito com amor e carinho em cada detalhe._\n\n' +
+    '— Sucrée Confeitaria'
+  );
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+
+
+// ═══════════════════════════════════════════
+// CONFIGURAÇÕES — TABELA DE PREÇOS
+// ═══════════════════════════════════════════
+let sucreeConfig = {
+  precos: {
+    10: {trad: 110, prem: 140},
+    15: {trad: 200, prem: 240},
+    20: {trad: 250, prem: 280},
+    25: {trad: 300, prem: 335},
+    30: {trad: 350, prem: 390}
+  },
+  buttercream: 50,
+  topoValor: 45,
+  floresValor: 50,
+  pixKey: '(27) 9 9521-3194',
+  minDias: 3,
+  sinalPct: 50
+};
+try {
+  const saved = JSON.parse(localStorage.getItem('mr_sucree_config') || 'null');
+  if(saved) sucreeConfig = {...sucreeConfig, ...saved};
+} catch(e) {}
+
+function saveConfig() {
+  localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
+}
+
+function renderConfigPage() {
+  const el = document.getElementById('page-config');
+  const p = sucreeConfig.precos;
+  el.innerHTML = `
+    <div class="st"><i class="ti ti-settings"></i> Configurações da Sucrée</div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-table"></i> Tabela de preços dos bolos</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Altere os valores e clique em Salvar. O cardápio dos clientes será atualizado automaticamente.</p>
+
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:var(--bg)">
+              <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2)">Aro</th>
+              <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2)">Fatias</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--teal)">Tradicional</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--gold)">Premium</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${[[10,'até 3'],[15,'até 10'],[20,'até 20'],[25,'até 30'],[30,'até 45']].map(([aro,fatias]) => `
+            <tr>
+              <td style="padding:8px;border-bottom:1px solid var(--border);font-weight:700">${aro} cm</td>
+              <td style="padding:8px;border-bottom:1px solid var(--border);color:var(--text2);font-size:12px">${fatias}</td>
+              <td style="padding:6px 8px;border-bottom:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+                  <span style="font-size:12px;color:var(--text2)">R$</span>
+                  <input type="number" value="${p[aro]?.trad||0}" min="0" step="1"
+                    id="preco-${aro}-trad"
+                    style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:right;font-family:inherit;background:var(--surface);color:var(--teal)"
+                    onchange="sucreeConfig.precos[${aro}].trad=parseFloat(this.value)||0">
+                </div>
+              </td>
+              <td style="padding:6px 8px;border-bottom:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end">
+                  <span style="font-size:12px;color:var(--text2)">R$</span>
+                  <input type="number" value="${p[aro]?.prem||0}" min="0" step="1"
+                    id="preco-${aro}-prem"
+                    style="width:70px;padding:5px 7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:right;font-family:inherit;background:var(--surface);color:var(--gold)"
+                    onchange="sucreeConfig.precos[${aro}].prem=parseFloat(this.value)||0">
+                </div>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-plus"></i> Adicionais e acréscimos</div>
+      <div class="fr" style="margin-bottom:10px">
+        <div class="fg" style="margin-bottom:0">
+          <label>Buttercream (acréscimo)</label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;color:var(--text2)">R$</span>
+            <input type="number" id="cfg-buttercream" value="${sucreeConfig.buttercream}" min="0" step="1"
+              style="flex:1;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+              onchange="sucreeConfig.buttercream=parseFloat(this.value)||0">
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Topo do bolo</label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;color:var(--text2)">R$</span>
+            <input type="number" id="cfg-topo" value="${sucreeConfig.topoValor}" min="0" step="1"
+              style="flex:1;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+              onchange="sucreeConfig.topoValor=parseFloat(this.value)||0">
+          </div>
+        </div>
+      </div>
+      <div class="fr">
+        <div class="fg" style="margin-bottom:0">
+          <label>Flores naturais</label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;color:var(--text2)">R$</span>
+            <input type="number" id="cfg-flores" value="${sucreeConfig.floresValor}" min="0" step="1"
+              style="flex:1;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+              onchange="sucreeConfig.floresValor=parseFloat(this.value)||0">
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Sinal mínimo (%)</label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="number" id="cfg-sinal" value="${sucreeConfig.sinalPct}" min="0" max="100" step="5"
+              style="flex:1;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+              onchange="sucreeConfig.sinalPct=parseFloat(this.value)||50">
+            <span style="font-size:13px;color:var(--text2)">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-info-circle"></i> Informações gerais</div>
+      <div class="fg">
+        <label>Chave PIX</label>
+        <input type="text" id="cfg-pix" value="${sucreeConfig.pixKey}"
+          style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%"
+          onchange="sucreeConfig.pixKey=this.value">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Mínimo de dias de antecedência</label>
+        <input type="number" id="cfg-dias" value="${sucreeConfig.minDias}" min="1"
+          style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%"
+          onchange="sucreeConfig.minDias=parseInt(this.value)||3">
+      </div>
+    </div>
+
+    <button class="btnp full" onclick="salvarConfig()"><i class="ti ti-device-floppy"></i> Salvar configurações</button>
+    <div style="margin-top:10px;text-align:center">
+      <button class="btns" style="font-size:12px" onclick="goPage('share')"><i class="ti ti-share"></i> Compartilhar cardápio</button>
+    </div>
+  `;
+}
+
+function salvarConfig() {
+  saveConfig();
+  // Update cardapio prices via localStorage so cardapio.html can read them
+  localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
+  toast('Configurações salvas! ✅');
+  // If cardapio is open in another tab, it will pick up on next load
+}
+
+
+window._estoqueSelected = new Set();
+
+function toggleEstoqueSelect(key, checked) {
+  if(checked) window._estoqueSelected.add(key);
+  else window._estoqueSelected.delete(key);
+  updateSelCount();
+  const item = document.getElementById('est-item-' + key.replace(/[^a-z0-9]/g,'_'));
+  if(item) item.style.borderColor = checked ? 'var(--coral)' : '';
+  if(item) item.style.borderWidth = checked ? '2px' : '';
+}
+
+function updateSelCount() {
+  const el = document.getElementById('sel-count');
+  if(el) el.textContent = window._estoqueSelected.size;
+}
+
+function toggleSelectAll(val) {
+  const keys = Object.keys(estoque);
+  window._estoqueSelected = val ? new Set(keys) : new Set();
+  renderEstoque();
+}
+
+function selectSemPreco() {
+  window._estoqueSelected = new Set(Object.keys(estoque).filter(k => !estoque[k].price || estoque[k].price === 0));
+  renderEstoque();
+  toast(window._estoqueSelected.size + ' ingrediente(s) sem preço selecionados');
+}
+
+async function atualizarEstoqueIASelecionados() {
+  const selected = [...window._estoqueSelected];
+  if(!selected.length) {
+    toast('Selecione pelo menos um ingrediente');
+    return;
+  }
+  const btn = document.getElementById('btn-upd-estoque');
+  const bar = document.getElementById('ai-estoque-bar');
+  const msg = document.getElementById('ai-estoque-msg');
+  btn.disabled = true; bar.style.display = 'flex';
+  msg.textContent = 'Buscando preços para ' + selected.length + ' ingrediente(s) no ES...';
+
+  const names = selected.map(k => estoque[k]?.name).filter(Boolean);
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 800,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}` }]
+      })
+    });
+    const d = await r.json();
+    const txt = (d.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    let map; try { map = JSON.parse(txt.replace(/\`\`\`json|\`\`\`/g, '').trim()); } catch { throw new Error('Formato inválido'); }
+    let n = 0;
+    selected.forEach(key => {
+      const igName = (estoque[key]?.name||'').toLowerCase();
+      const match = Object.keys(map).find(k => igName.includes(k.toLowerCase()) || k.toLowerCase().includes(igName));
+      if (match && map[match] > 0) {
+        const priceKg = map[match];
+        estoque[key].price = priceKg / 1000;
+        estoque[key].updatedAt = new Date().toISOString();
+        recipes.forEach(rec => {
+          (rec.ingredients || []).forEach(ig => {
+            if (ig.name && ig.name.trim().toLowerCase() === key) ig.price = priceKg / 1000;
+          });
+        });
+        n++;
+      }
+    });
+    saveEstoque();
+    msg.textContent = n + ' de ' + selected.length + ' preços atualizados!';
+    setTimeout(() => { bar.style.display = 'none'; renderEstoque(); }, 2000);
+    toast(n + ' preços atualizados no ES!');
+  } catch(err) {
+    msg.textContent = 'Erro: ' + err.message;
+    setTimeout(() => { bar.style.display = 'none'; }, 3000);
+  } finally { btn.disabled = false; }
+}
+
+
+function abrirMenuCardapio() {
+  document.getElementById('modal-cardapio-share').style.display = 'flex';
+}
+
+function abrirCardapioNovAba() {
+  window.open('https://herberthg99-prog.github.io/minhas-receitas/cardapio.html', '_blank');
+  cm('modal-cardapio-share');
+}
+
+</script>
+
+<!-- CONFEITARIA PEDIDO SHEET -->
+<div class="overlay" id="modal-pedido" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2 id="pedido-title">Novo Pedido</h2>
+    <button class="xb" onclick="cm('modal-pedido')"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="sheet-body">
+    <div class="tg">
+      <button class="tb act" onclick="stPedido(0)"><i class="ti ti-user"></i> Cliente</button>
+      <button class="tb" onclick="stPedido(1)"><i class="ti ti-cake"></i> Bolo</button>
+      <button class="tb" onclick="stPedido(2)"><i class="ti ti-palette"></i> Decoração</button>
+      <button class="tb" onclick="stPedido(3)"><i class="ti ti-currency-dollar"></i> Total</button>
+    </div>
+
+    <!-- TAB 0: CLIENTE -->
+    <div id="pt0">
+      <div class="fg"><label>Nome do cliente</label><input type="text" id="p-cliente" placeholder="Ex: Maria Silva"></div>
+      <div class="fr">
+        <div class="fg"><label>Data de entrega</label><input type="date" id="p-data"></div>
+        <div class="fg"><label>Horário de entrega</label><input type="time" id="p-hora"></div>
+      </div>
+      <div class="fg">
+        <label>Cliente retira?</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button id="btn-retira-sim" onclick="setPedidoRetira(true)"
+            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+            ✅ Sim, retira
+          </button>
+          <button id="btn-retira-nao" onclick="setPedidoRetira(false)"
+            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+            🚗 Não, entrego
+          </button>
+        </div>
+      </div>
+      <div id="entrega-addr-box" style="display:none">
+        <div class="fg"><label>Endereço de entrega</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro..."></div>
+      </div>
+      <div class="fg"><label>Telefone / WhatsApp</label><input type="tel" id="p-telefone" placeholder="(27) 99999-9999"></div>
+      <div class="fg"><label>Observações do cliente</label><textarea id="p-obs-cliente" placeholder="Alergias, preferências, informações extras..." style="min-height:60px"></textarea></div>
+    </div>
+
+    <!-- TAB 1: BOLO -->
+    <div id="pt1" style="display:none">
+      <div class="fg">
+        <label>Tamanho do bolo (Aro)</label>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px">
+          <button class="aro-btn" onclick="setAro(10)" id="aro-10">Aro 10</button>
+          <button class="aro-btn" onclick="setAro(15)" id="aro-15">Aro 15</button>
+          <button class="aro-btn" onclick="setAro(20)" id="aro-20">Aro 20</button>
+          <button class="aro-btn" onclick="setAro(25)" id="aro-25">Aro 25</button>
+          <button class="aro-btn" onclick="setAro(30)" id="aro-30">Aro 30</button>
+        </div>
+      </div>
+      <div id="aro-info-box" style="display:none" class="info-box" style="margin-top:4px"></div>
+
+      <div class="fg">
+        <label>Tipo de massa</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="massa-btn" onclick="setMassa('amanteigada')" id="massa-amanteigada"
+            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+            🧈 Amanteigada
+          </button>
+          <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo"
+            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+            🍰 Pão de Ló
+          </button>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Recheio 1</label>
+        <select id="p-recheio1" onchange="calcPedidoTotal()">
+          <option value="">Selecione o recheio...</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Recheio 2 (opcional)</label>
+        <select id="p-recheio2" onchange="calcPedidoTotal()">
+          <option value="">Nenhum / mesmo recheio</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Tipo de cobertura</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="cob-btn" onclick="setCobertura('chantininho')" id="cob-chantininho"
+            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+            🍦 Chantininho
+          </button>
+          <button class="cob-btn" onclick="setCobertura('buttercream')" id="cob-buttercream"
+            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+            🧁 Buttercream
+          </button>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Valor do bolo (R$)</label>
+        <input type="number" id="p-valor-bolo" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()">
+      </div>
+    </div>
+
+    <!-- TAB 2: DECORAÇÃO -->
+    <div id="pt2" style="display:none">
+      <div class="fg"><label>Tema do bolo</label><input type="text" id="p-tema" placeholder="Ex: Frozen, Safari, Floral..."></div>
+
+      <div class="fg">
+        <label>Foto de inspiração</label>
+        <div class="photo-zone" onclick="document.getElementById('p-inspi-input').click()" style="padding:16px">
+          <i class="ti ti-photo-search" style="font-size:28px;color:var(--gold);display:block;margin-bottom:6px"></i>
+          <p style="font-size:13px;color:var(--text2);font-weight:600">Toque para adicionar foto de inspiração</p>
+        </div>
+        <input type="file" id="p-inspi-input" accept="image/*" capture="environment" style="display:none" onchange="addInspiPhoto(event)">
+        <div id="p-inspi-preview" style="margin-top:8px"></div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:8px">Adicionais</label>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+            <div>
+              <div style="font-size:14px;font-weight:700">💐 Flores</div>
+              <div style="font-size:12px;color:var(--text2)">R$ 50,00</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button id="btn-flores-sim" onclick="setFlores(true)"
+                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+                Sim
+              </button>
+              <button id="btn-flores-nao" onclick="setFlores(false)"
+                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+                Não
+              </button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+            <div>
+              <div style="font-size:14px;font-weight:700">🎨 Papelaria</div>
+              <div style="font-size:12px;color:var(--text2)">R$ 35,00</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button id="btn-papel-sim" onclick="setPapelaria(true)"
+                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+                Sim
+              </button>
+              <button id="btn-papel-nao" onclick="setPapelaria(false)"
+                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+                Não
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label>Observações da decoração</label><textarea id="p-obs-deco" placeholder="Cores, detalhes especiais..." style="min-height:60px"></textarea></div>
+    </div>
+
+    <!-- TAB 3: TOTAL -->
+    <div id="pt3" style="display:none">
+      <div id="pedido-total-box"></div>
+      <div class="fg" style="margin-top:12px"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg"><label>Forma de pagamento</label>
+        <select id="p-pagamento">
+          <option value="">Selecione...</option>
+          <option value="pix">PIX</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao_credito">Cartão de Crédito</option>
+          <option value="cartao_debito">Cartão de Débito</option>
+        </select>
+      </div>
+      <div class="fg"><label>Status do pedido</label>
+        <select id="p-status">
+          <option value="pendente">⏳ Pendente</option>
+          <option value="confirmado">✅ Confirmado</option>
+          <option value="producao">🎂 Em produção</option>
+          <option value="pronto">🎉 Pronto</option>
+          <option value="entregue">✔️ Entregue</option>
+          <option value="cancelado">❌ Cancelado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btns" onclick="cm('modal-pedido')">Cancelar</button>
+    <button class="btnp" onclick="savePedido()"><i class="ti ti-device-floppy"></i> Salvar pedido</button>
+  </div>
+</div>
+</div>
+
+<!-- PEDIDO VIEW SHEET -->
+<div class="overlay" id="modal-pedido-view" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2 id="pv-title">Pedido</h2>
+    <div class="flex-row">
+      <button class="rb" id="pv-edit-btn" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
+      <button class="xb" onclick="cm('modal-pedido-view')"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="pv-body"></div>
+</div>
+</div>
+
+</body>
+</html>
