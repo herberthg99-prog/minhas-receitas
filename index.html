@@ -174,13 +174,13 @@ button{font-family:inherit;cursor:pointer}
 .user-id-box{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
 .login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 50%,#1A1208 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
-.login-box{background:rgba(26,18,8,.85);backdrop-filter:blur(20px);border-radius:20px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.5);text-align:center;border:1px solid rgba(200,163,91,.3)}
+.login-box{background:rgba(26,18,8,.85);backdrop-filter:blur(20px);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 60px rgba(0,0,0,.5);text-align:center;border:1px solid rgba(200,163,91,.3)}
 .login-logo{font-size:52px;margin-bottom:6px}
 .login-title{font-size:22px;font-weight:700;margin-bottom:4px;color:#F0E6CC}
-.login-sub{font-size:14px;color:#B8972A;margin-bottom:28px}
-.login-input{width:100%;padding:14px 16px;border:1.5px solid rgba(200,163,91,.3);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:12px;transition:border-color .2s}
+.login-sub{font-size:14px;color:#B8972A;margin-bottom:16px}
+.login-input{width:100%;padding:11px 14px;border:1.5px solid rgba(200,163,91,.3);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:10px;transition:border-color .2s}
 .login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.25)}
-.login-btn{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
+.login-btn{width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
 .login-err{font-size:13px;color:#FF8080;margin-top:4px;min-height:18px}
 .login-hint{font-size:12px;color:rgba(200,163,91,.6);margin-top:16px}
@@ -233,14 +233,14 @@ button{font-family:inherit;cursor:pointer}
   <div style="position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.15) 0%,transparent 65%);pointer-events:none"></div>
   <div style="position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.1) 0%,transparent 65%);pointer-events:none"></div>
   <div class="login-box">
-    <div style="margin-bottom:14px">
-      <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:160px;height:auto;filter:drop-shadow(0 2px 16px rgba(200,163,91,.5))">
+    <div style="margin-bottom:10px">
+      <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:130px;height:auto;filter:drop-shadow(0 2px 16px rgba(200,163,91,.5))">
     </div>
     <div class="login-title">Área Administrativa</div>
     <div class="login-sub">Sucrée Confeitaria</div>
 
     <!-- USER SELECTOR -->
-    <div id="user-selector" style="display:flex;gap:10px;margin-bottom:20px;width:100%">
+    <div id="user-selector" style="display:flex;gap:10px;margin-bottom:14px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
         style="flex:1;padding:12px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
         <span style="font-size:22px">👨‍🍳</span>
@@ -427,13 +427,13 @@ button{font-family:inherit;cursor:pointer}
 .user-id-box{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
 .login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 50%,#1A1208 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden}
-.login-box{background:rgba(26,18,8,.85);backdrop-filter:blur(20px);border-radius:20px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.5);text-align:center;border:1px solid rgba(200,163,91,.3)}
+.login-box{background:rgba(26,18,8,.85);backdrop-filter:blur(20px);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 60px rgba(0,0,0,.5);text-align:center;border:1px solid rgba(200,163,91,.3)}
 .login-logo{font-size:52px;margin-bottom:6px}
 .login-title{font-size:22px;font-weight:700;margin-bottom:4px;color:#F0E6CC}
-.login-sub{font-size:14px;color:#B8972A;margin-bottom:28px}
-.login-input{width:100%;padding:14px 16px;border:1.5px solid rgba(200,163,91,.3);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:12px;transition:border-color .2s}
+.login-sub{font-size:14px;color:#B8972A;margin-bottom:16px}
+.login-input{width:100%;padding:11px 14px;border:1.5px solid rgba(200,163,91,.3);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:10px;transition:border-color .2s}
 .login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.25)}
-.login-btn{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
+.login-btn{width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
 .login-err{font-size:13px;color:#FF8080;margin-top:4px;min-height:18px}
 .login-hint{font-size:12px;color:rgba(200,163,91,.6);margin-top:16px}
