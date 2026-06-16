@@ -1,4 +1,4 @@
-const CACHE = "receitas-v24";
+const CACHE = "receitas-v26";
 const ASSETS = ["/", "/index.html", "/manifest.json"];
 
 self.addEventListener("install", e => {
