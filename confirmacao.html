@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmação de Pedido — Sucrée</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap');
+:root{--gold:#B8972A;--gold-light:#F5EDD0;--gold-dark:#8A6E1A;--cream:#FAF8F3;--text:#2C2416;--text2:#7A6A4A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Lato',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;padding:20px}
+.page{max-width:600px;margin:0 auto}
+.card{background:#fff;border:1px solid #E8E0CC;border-radius:12px;padding:28px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+
+/* HEADER */
+.header-card{background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);color:#fff;text-align:center;padding:32px 24px;border-radius:16px;margin-bottom:16px;position:relative;overflow:hidden}
+.header-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(184,151,42,.15)}
+.header-card::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(184,151,42,.1)}
+.brand{font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);letter-spacing:.1em;margin-bottom:2px}
+.brand-sub{font-size:11px;letter-spacing:.3em;color:#B0A080;text-transform:uppercase}
+.conf-title{font-size:18px;color:#fff;margin-top:16px;font-weight:400;opacity:.9}
+.conf-num{font-family:'Playfair Display',serif;font-size:13px;color:var(--gold);margin-top:4px;letter-spacing:.05em}
+
+/* SECTION */
+.section-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-dark);border-bottom:1.5px solid var(--gold-light);padding-bottom:7px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #F0EAD8;font-size:14px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:var(--text2);font-weight:400}
+.info-val{font-weight:700;text-align:right;max-width:60%}
+
+/* TOTAL */
+.total-section{background:linear-gradient(135deg,var(--gold-light) 0%,#EDE0B8 100%);border:1.5px solid var(--gold);border-radius:12px;padding:20px}
+.total-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;color:var(--text2)}
+.total-grand{display:flex;justify-content:space-between;font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold-dark);padding:12px 0 8px;border-top:2px solid var(--gold);margin-top:8px}
+.sinal-info{background:#fff;border-radius:8px;padding:12px 14px;margin-top:10px;font-size:13px;color:var(--gold-dark)}
+
+/* INSPI PHOTO */
+.inspi-photo{width:100%;border-radius:8px;max-height:220px;object-fit:cover;margin-bottom:8px}
+
+/* FOOTER */
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--text2);line-height:1.8}
+.footer .pix{font-size:16px;font-weight:700;color:var(--gold-dark);margin:8px 0}
+.footer .thanks{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold-dark);margin-top:12px}
+
+/* STATUS BADGE */
+.status-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-top:8px}
+.sb-confirmado{background:#E1F5EE;color:#0F6E56}
+.sb-pendente{background:#FAEEDA;color:#8A6E1A}
+
+/* PRINT ACTIONS */
+.actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.btn-print{flex:1;padding:13px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit}
+.btn-share{flex:1;padding:13px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit}
+.btn-back{width:100%;padding:11px;background:none;border:1.5px solid var(--gold);color:var(--gold-dark);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px}
+
+@media print {
+  .actions,.btn-back,body>*:not(.page){display:none!important}
+  body{padding:0;background:#fff}
+  .card,.header-card{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div id="conf-content">
+    <div style="text-align:center;padding:40px;color:var(--text2)">Carregando pedido...</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
+
+function fR(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',')}
+function fD(d){return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}):'—'}
+
+const params = new URLSearchParams(window.location.search);
+const pedidoId = params.get('id');
+
+async function loadPedido() {
+  if(!pedidoId){renderError('ID do pedido não informado');return}
+  try {
+    const r = await fetch(SUPABASE_URL+'/rest/v1/pedidos_confeitaria?id=eq.'+pedidoId, {
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    const data = await r.json();
+    if(!data||!data.length){renderError('Pedido não encontrado');return}
+    renderPedido(data[0]);
+  } catch(e){renderError('Erro ao carregar: '+e.message)}
+}
+
+function renderError(msg) {
+  document.getElementById('conf-content').innerHTML = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:10px">⚠️</div><p style="color:var(--text2)">${msg}</p></div>`;
+}
+
+function renderPedido(p) {
+  const hasPrem = p.recheio1tipo==='prem'||p.recheio2tipo==='prem';
+  const precoBase = p.valor_bolo||0;
+  const plusButtercream = p.cobertura&&p.cobertura.toLowerCase().includes('buttercream')?50:0;
+  const plusTopo = p.topo?45:0;
+  const plusFlores = p.flores?50:0;
+  const total = p.valor_total||0;
+  const sinal = p.sinal||0;
+  const restante = total - sinal;
+  const statusLabel = {pendente:'⏳ Aguardando confirmação',confirmado:'✅ Confirmado',producao:'🎂 Em produção',pronto:'🎉 Pronto para entrega',entregue:'✔️ Entregue'}[p.status]||p.status;
+  const statusClass = {pendente:'sb-pendente',confirmado:'sb-confirmado',producao:'sb-confirmado',pronto:'sb-confirmado',entregue:'sb-confirmado'}[p.status]||'sb-pendente';
+  const numPedido = p.id.slice(-8).toUpperCase();
+  const dataFmt = fD(p.data);
+
+  document.title = `Pedido #${numPedido} — Sucrée Confeitaria`;
+
+  document.getElementById('conf-content').innerHTML = `
+    <div class="btn-back" onclick="history.back()" style="cursor:pointer;text-align:center">← Voltar</div>
+
+    <div class="actions">
+      <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+      <button class="btn-share" onclick="shareWhatsApp()">📱 Enviar no WhatsApp</button>
+    </div>
+
+    <div class="header-card">
+      <div class="brand">Sucrée</div>
+      <div class="brand-sub">Confeitaria</div>
+      <div class="conf-title">Confirmação de Pedido</div>
+      <div class="conf-num">Pedido #${numPedido}</div>
+      <div class="status-badge ${statusClass}">${statusLabel}</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">👤 Dados do Cliente</div>
+      <div class="info-row"><span class="info-label">Nome</span><span class="info-val">${p.cliente||'—'}</span></div>
+      <div class="info-row"><span class="info-label">WhatsApp</span><span class="info-val">${p.telefone||'—'}</span></div>
+      <div class="info-row"><span class="info-label">Data de entrega</span><span class="info-val">${dataFmt}</span></div>
+      ${p.hora?`<div class="info-row"><span class="info-label">Horário</span><span class="info-val">${p.hora}</span></div>`:''}
+      <div class="info-row"><span class="info-label">Retirada</span><span class="info-val">${p.retira?'✅ Cliente retira':'🚗 Entrega em domicílio'}</span></div>
+      ${!p.retira&&p.endereco?`<div class="info-row"><span class="info-label">Endereço</span><span class="info-val">${p.endereco}</span></div>`:''}
+    </div>
+
+    <div class="card">
+      <div class="section-label">🎂 Detalhes do Bolo</div>
+      ${p.aro?`<div class="info-row"><span class="info-label">Tamanho</span><span class="info-val">Aro ${p.aro} cm</span></div>`:''}
+      ${p.massa?`<div class="info-row"><span class="info-label">Massa</span><span class="info-val">${p.massa}</span></div>`:''}
+      ${p.recheio1?`<div class="info-row"><span class="info-label">Recheio 1</span><span class="info-val">${p.recheio1} ${p.recheio1tipo==='prem'?'⭐':''}</span></div>`:''}
+      ${p.recheio2?`<div class="info-row"><span class="info-label">Recheio 2</span><span class="info-val">${p.recheio2} ${p.recheio2tipo==='prem'?'⭐':''}</span></div>`:''}
+      ${p.cobertura?`<div class="info-row"><span class="info-label">Cobertura</span><span class="info-val">${p.cobertura}</span></div>`:''}
+      ${p.deco?`<div class="info-row"><span class="info-label">Decoração</span><span class="info-val">${p.deco==='tematico'?'Temático':'Espatulado'}${p.tema?' — '+p.tema:''}</span></div>`:''}
+      ${p.topo?`<div class="info-row"><span class="info-label">🪄 Topo do Bolo</span><span class="info-val">Incluso</span></div>`:''}
+      ${p.flores?`<div class="info-row"><span class="info-label">💐 Flores Naturais</span><span class="info-val">Sim</span></div>`:''}
+      ${p.obs_deco?`<div class="info-row"><span class="info-label">Observações</span><span class="info-val">${p.obs_deco}</span></div>`:''}
+    </div>
+
+    ${p.inspi_photo?`<div class="card"><div class="section-label">📸 Referência / Inspiração</div><img src="${p.inspi_photo}" class="inspi-photo" alt="Inspiração"></div>`:''}
+
+    <div class="total-section">
+      <div class="section-label" style="border-bottom-color:var(--gold)">💰 Resumo Financeiro</div>
+      <div class="total-row"><span>Bolo Aro ${p.aro||'—'} ${hasPrem?'(premium)':'(tradicional)'}</span><span>${fR(precoBase)}</span></div>
+      ${plusButtercream?`<div class="total-row"><span>Buttercream (acréscimo)</span><span>${fR(plusButtercream)}</span></div>`:''}
+      ${plusTopo?`<div class="total-row"><span>🪄 Topo do Bolo</span><span>${fR(plusTopo)}</span></div>`:''}
+      ${plusFlores?`<div class="total-row"><span>💐 Flores Naturais</span><span>${fR(plusFlores)}</span></div>`:''}
+      <div class="total-grand"><span>Total</span><span>${fR(total)}</span></div>
+      <div class="sinal-info">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span>✅ Sinal (50%)</span><strong>${fR(sinal)}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>💳 Restante na entrega</span><strong>${fR(restante)}</strong>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gold-light);font-size:12px;color:var(--gold-dark)">
+          💳 PIX para sinal: <strong>(27) 9 9521-3194</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card footer">
+      <div class="thanks">Obrigada por escolher a Sucrée! 🤍</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text2)">Feito com amor e carinho em cada detalhe.<br>Pedidos com mínimo 3 dias de antecedência.</div>
+    </div>`;
+}
+
+function shareWhatsApp() {
+  const p = document.getElementById('conf-content');
+  const link = window.location.href;
+  const texto = encodeURIComponent('🎂 *Sua confirmação de pedido — Sucrée Confeitaria*\n\nAcesse o link para ver todos os detalhes do seu pedido:\n'+link+'\n\nAgradecemos sua confiança! 🤍');
+  window.open('https://wa.me/?text='+texto,'_blank');
+}
+
+loadPedido();
+</script>
+</body>
+</html>
