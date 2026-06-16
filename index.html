@@ -1612,9 +1612,9 @@ function selectUser(role) {
   }
 }
 
-async function showApp() {
+function showApp() {
   document.getElementById('app').style.display = 'flex';
-  showApp();
+  document.getElementById('login-overlay').style.display = 'none';
 }
 function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
