@@ -465,7 +465,7 @@ button{font-family:inherit;cursor:pointer}
     <div class="regras">
       <p>📅 <span>Pedidos com <strong>mínimo 3 dias</strong> de antecedência</span></p>
       <p>💰 <span>Sinal de <strong>50%</strong> para confirmar encomenda</span></p>
-      <p>📱 <span>PIX: <strong>(27) 9 9521-3194</strong></span></p>
+      <p>📱 <span>PIX: <strong id="pix-regras">carregando...</strong></span></p>
     </div>
   </div>
 
@@ -485,7 +485,7 @@ button{font-family:inherit;cursor:pointer}
       <i class="ti ti-upload"></i> <span id="comp-btn-txt">Adicionar comprovante (foto ou PDF)</span>
     </button>
     <input type="file" id="comp-file-cliente" accept="image/*,application/pdf" style="display:none" onchange="addCompCliente(event)">
-    <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">PIX: (27) 9 9521-3194 · Sinal de 50%</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">PIX: <span id="pix-comp"></span> · Sinal de 50%</div>
   </div>
   <button class="btn-back" onclick="prevStep(5)"><i class="ti ti-arrow-left"></i> Voltar e ajustar</button>
   <button class="btn-next" onclick="enviarPedido()" id="btn-enviar"><i class="ti ti-send"></i> Confirmar pedido</button>
@@ -497,7 +497,7 @@ button{font-family:inherit;cursor:pointer}
     <span class="success-icon">✅</span>
     <h2>Pedido enviado! 🎉</h2>
     <p>Seu pedido foi recebido pela Sucrée Confeitaria. Entraremos em contato pelo WhatsApp para confirmar e enviar os dados para o pagamento do sinal.</p>
-    <div class="pix-box">💳 PIX para sinal (50%)<br><span style="font-size:17px;letter-spacing:.05em">(27) 9 9521-3194</span></div>
+    <div class="pix-box">💳 PIX para sinal (50%)<br><span style="font-size:17px;letter-spacing:.05em" id="pix-sucesso"></span></div>
     <p style="font-size:13px;color:var(--text3)">Obrigada por escolher a Sucrée! Com amor e carinho em cada detalhe. 🤍</p>
   </div>
 </div>
@@ -509,8 +509,6 @@ button{font-family:inherit;cursor:pointer}
   <div class="papel">
     <div class="papel-header">
       <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" class="papel-logo" alt="Sucrée">
-      <div class="papel-marca">Sucrée</div>
-      <div class="papel-sub-marca">CONFEITARIA</div>
       <div class="papel-divider"><span>✦</span></div>
     </div>
     <div class="papel-body" id="papel-body"></div>
@@ -539,6 +537,18 @@ try {
 }
 
 let pedidoFinalParaPapel = null;
+
+// PIX dinâmico — puxa do app principal se disponível
+function getPix() {
+  try {
+    const cfg = localStorage.getItem('sucree_config');
+    if(cfg) {
+      const c = JSON.parse(cfg);
+      if(c.pix) return c.pix;
+    }
+  } catch(e) {}
+  return '(27) 9 9521-3194'; // padrão
+}
 
 function savePedidoLocal() { try { localStorage.setItem('sucree_pedido_em_andamento', JSON.stringify(pedido)); } catch(e) {} }
 function clearPedidoLocal() { try { localStorage.removeItem('sucree_pedido_em_andamento'); } catch(e) {} }
@@ -801,7 +811,7 @@ function renderResumo() {
     ${plusTopo?`<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''}
     ${plusFlores?`<div class="resumo-row"><span>💐 Flores Naturais</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}
     <div class="resumo-total"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
-    <div class="sinal-box">💰 Sinal para confirmar (50%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: (27) 9 9521-3194</div>
+    <div class="sinal-box">💰 Sinal para confirmar (50%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: ${getPix()}</div>
   `;
 }
 
@@ -827,6 +837,7 @@ function abrirPapelTimbrado(p, calc) {
     ${p.flores?'<div class="papel-row"><span class="pk">💐 Flores Naturais</span><span class="pv">Sim</span></div>':''}
     <div style="background:#FFF8E6;border:1px solid #C8A35B55;border-radius:6px;padding:8px 10px;font-size:11px;color:#7a5c00;margin:10px 0;text-align:center">⚠️ Imagens de tema são apenas referência. O resultado pode variar mantendo a essência escolhida.</div>
     ${p.obsDeco?`<div class="papel-secao">📝 Observações</div><div style="background:#fdf8f0;border-left:3px solid #C8A35B;padding:8px 10px;font-size:12px;color:#555;font-style:italic">${p.obsDeco}</div>`:''}
+    ${p.inspiPhoto?`<div class="papel-secao">📸 Foto de inspiração</div><div style="text-align:center;margin:8px 0"><img src="${p.inspiPhoto}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:cover"><div style="font-size:10px;color:#999;margin-top:4px;font-style:italic">⚠️ Apenas referência visual</div></div>`:''}
     <div class="papel-secao">🚚 Entrega / Retirada</div>
     ${p.retira?`<div style="background:#F0FBF6;border:1px solid #2A9D7A;border-radius:6px;padding:10px;font-size:12px;color:#2A9D7A;font-weight:700">📍 Retirada — Av. Maruípe, 235 · Ed. Orion AP102 · Santa Cecília · Vitória-ES</div>`:
     `<div class="papel-row"><span class="pk">Endereço</span><span class="pv">${p.endereco||'—'}</span></div>`}
@@ -836,7 +847,7 @@ function abrirPapelTimbrado(p, calc) {
     ${calc.plusTopo?`<div class="papel-row"><span class="pk">Topo do Bolo</span><span class="pv">R$ ${calc.plusTopo.toFixed(2)}</span></div>`:''}
     ${calc.plusFlores?`<div class="papel-row"><span class="pk">Flores Naturais</span><span class="pv">R$ ${calc.plusFlores.toFixed(2)}</span></div>`:''}
     <div class="papel-total"><span class="papel-total-label">TOTAL DO PEDIDO</span><span class="papel-total-valor">R$ ${calc.total.toFixed(2)}</span></div>
-    <div style="background:#f9f9f9;border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#555;text-align:center">💳 Sinal (50%): <strong>R$ ${calc.sinal.toFixed(2)}</strong> · PIX: (27) 9 9521-3194</div>
+    <div style="background:#f9f9f9;border-radius:6px;padding:10px;margin-top:10px;font-size:12px;color:#555;text-align:center">💳 Sinal (50%): <strong>R$ ${calc.sinal.toFixed(2)}</strong> · PIX: ${getPix()}</div>
   `;
   document.getElementById('papel-overlay').style.display='flex';
 }
@@ -848,7 +859,7 @@ async function compartilharPedido() {
   const calc = calcTotal();
   const recheioNomes = p.recheios.map(r=>r.nome+(r.tipo==='prem'?' ⭐':'')).join(' + ');
   const dataFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR') : '—';
-  const texto = `🎂 *Sucrée Confeitaria*\n\n✨ *Resumo do seu pedido:*\n\nCliente: ${p.nome||'—'}\nBolo: Aro ${p.aro}cm · ${p.massaNome}\nRecheio(s): ${recheioNomes}\nCobertura: ${p.coberturaNome}\nDecoração: ${p.deco==='tematico'?'Temático'+(p.tema?' — '+p.tema:''):'Espatulado'}\n${p.flores?'💐 Flores Naturais: Sim\n':''}\nData: ${dataFmt} ${p.hora?'às '+p.hora:''}\nEntrega: ${p.retira?'Retirada no local':'Entrega no endereço'}\n\n💰 *Total: R$ ${calc.total.toFixed(2)}*\n💳 Sinal (50%): R$ ${calc.sinal.toFixed(2)}\n📱 PIX: (27) 9 9521-3194\n\n_Feito com amor em cada detalhe_ 🤍\n_Sucrée Confeitaria · Vitória-ES_`;
+  const texto = `🎂 *Sucrée Confeitaria*\n\n✨ *Resumo do seu pedido:*\n\nCliente: ${p.nome||'—'}\nBolo: Aro ${p.aro}cm · ${p.massaNome}\nRecheio(s): ${recheioNomes}\nCobertura: ${p.coberturaNome}\nDecoração: ${p.deco==='tematico'?'Temático'+(p.tema?' — '+p.tema:''):'Espatulado'}\n${p.flores?'💐 Flores Naturais: Sim\n':''}\nData: ${dataFmt} ${p.hora?'às '+p.hora:''}\nEntrega: ${p.retira?'Retirada no local':'Entrega no endereço'}\n\n💰 *Total: R$ ${calc.total.toFixed(2)}*\n💳 Sinal (50%): R$ ${calc.sinal.toFixed(2)}\n📱 PIX: ${getPix()}\n\n_Feito com amor em cada detalhe_ 🤍\n_Sucrée Confeitaria · Vitória-ES_`;
   try {
     if(navigator.share) { await navigator.share({title:'Pedido Sucrée',text:texto}); }
     else { await navigator.clipboard.writeText(texto); toast('✅ Copiado! Cole no WhatsApp do cliente.', 3000); }
@@ -919,6 +930,9 @@ async function enviarPedido() {
 // Init
 setRetira(pedido.retira!==false);
 updateProgress(0);
+// Preencher PIX dinâmico
+const _pix = getPix();
+['pix-regras','pix-comp','pix-sucesso'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=_pix; });
 if(pedido.aro){
   setTamanho(pedido.aro,pedido.precoTrad,pedido.precoPrem);
   document.getElementById('ajuda-tamanho-box').style.display='none';
