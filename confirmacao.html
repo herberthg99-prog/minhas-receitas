@@ -3,188 +3,375 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Confirmação de Pedido — Sucrée</title>
+<title>Confirmação do Pedido – Sucrée Confeitaria</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap');
-:root{--gold:#C8A35B;--gold-light:#F5EDD0;--gold-dark:#7A6030;--cream:#FAF8F3;--text:#2C2416;--text2:#7A6A4A}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Lato',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;padding:20px}
-.page{max-width:600px;margin:0 auto}
-.card{background:#fff;border:1px solid #E8E0CC;border-radius:12px;padding:28px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
 
-/* HEADER */
-.header-card{background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);color:#fff;text-align:center;padding:32px 24px;border-radius:16px;margin-bottom:16px;position:relative;overflow:hidden}
-.header-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(184,151,42,.15)}
-.header-card::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(184,151,42,.1)}
-.brand{font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);letter-spacing:.1em;margin-bottom:2px}
-.brand-sub{font-size:11px;letter-spacing:.3em;color:#B0A080;text-transform:uppercase}
-.conf-title{font-size:18px;color:#fff;margin-top:16px;font-weight:400;opacity:.9}
-.conf-num{font-family:'Playfair Display',serif;font-size:13px;color:var(--gold);margin-top:4px;letter-spacing:.05em}
+  *{box-sizing:border-box;margin:0;padding:0}
 
-/* SECTION */
-.section-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-dark);border-bottom:1.5px solid var(--gold-light);padding-bottom:7px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
-.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #F0EAD8;font-size:14px}
-.info-row:last-child{border-bottom:none}
-.info-label{color:var(--text2);font-weight:400}
-.info-val{font-weight:700;text-align:right;max-width:60%}
+  body {
+    font-family:'Lato',sans-serif;
+    background:#1a0e00;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-height:100vh;
+    padding:20px 16px;
+  }
 
-/* TOTAL */
-.total-section{background:linear-gradient(135deg,var(--gold-light) 0%,#EDE0B8 100%);border:1.5px solid var(--gold);border-radius:12px;padding:20px}
-.total-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;color:var(--text2)}
-.total-grand{display:flex;justify-content:space-between;font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold-dark);padding:12px 0 8px;border-top:2px solid var(--gold);margin-top:8px}
-.sinal-info{background:#fff;border-radius:8px;padding:12px 14px;margin-top:10px;font-size:13px;color:var(--gold-dark)}
+  .screen-actions {
+    width:100%;
+    max-width:480px;
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
 
-/* INSPI PHOTO */
-.inspi-photo{width:100%;border-radius:8px;max-height:220px;object-fit:cover;margin-bottom:8px}
+  .btn-action {
+    flex:1;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-family:'Lato',sans-serif;
+    font-size:14px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .btn-share { background:#c9a84c; color:#1a0800; }
+  .btn-print { background:#3a2800; color:#c9a84c; border:1px solid #c9a84c44; }
+  .btn-back { background:#2a1800; color:#b89040; border:1px solid #b8904044; }
 
-/* FOOTER */
-.footer{text-align:center;padding:20px;font-size:12px;color:var(--text2);line-height:1.8}
-.footer .pix{font-size:16px;font-weight:700;color:var(--gold-dark);margin:8px 0}
-.footer .thanks{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold-dark);margin-top:12px}
+  /* PAPEL TIMBRADO */
+  .papel {
+    width:100%;
+    max-width:480px;
+    background:#fff;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 8px 40px rgba(0,0,0,0.5);
+  }
 
-/* STATUS BADGE */
-.status-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-top:8px}
-.sb-confirmado{background:#E1F5EE;color:#0F6E56}
-.sb-pendente{background:#FAEEDA;color:#7A6030}
+  .papel-header {
+    background: linear-gradient(135deg, #2c1800 0%, #3d2200 50%, #2c1800 100%);
+    padding:28px 24px 20px;
+    text-align:center;
+    position:relative;
+  }
+  .papel-header::after {
+    content:'';
+    position:absolute;
+    bottom:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+  }
 
-/* PRINT ACTIONS */
-.actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.btn-print{flex:1;padding:13px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit}
-.btn-share{flex:1;padding:13px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit}
-.btn-back{width:100%;padding:11px;background:none;border:1.5px solid var(--gold);color:var(--gold-dark);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:16px}
+  .logo-papel {
+    width:80px;
+    height:80px;
+    margin:0 auto 12px;
+  }
 
-@media print {
-  .actions,.btn-back,body>*:not(.page){display:none!important}
-  body{padding:0;background:#fff}
-  .card,.header-card{box-shadow:none;border:1px solid #ddd}
-}
+  .marca-nome {
+    font-family:'Playfair Display',serif;
+    font-size:28px;
+    color:#c9a84c;
+    letter-spacing:3px;
+    line-height:1;
+  }
+
+  .marca-sub {
+    font-size:10px;
+    letter-spacing:4px;
+    color:#b89040aa;
+    margin-top:4px;
+  }
+
+  .divider-gold {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:14px 24px 0;
+  }
+  .divider-gold::before,.divider-gold::after {
+    content:'';flex:1;height:0.5px;background:#c9a84c66;
+  }
+  .divider-gold span { color:#c9a84c; font-size:10px; }
+
+  .papel-body { padding:20px 24px; }
+
+  .pedido-titulo {
+    font-family:'Playfair Display',serif;
+    font-size:16px;
+    color:#2c1800;
+    text-align:center;
+    margin-bottom:4px;
+  }
+
+  .pedido-num {
+    text-align:center;
+    font-size:11px;
+    color:#888;
+    margin-bottom:16px;
+    letter-spacing:1px;
+  }
+
+  .info-row {
+    display:flex;
+    justify-content:space-between;
+    padding:7px 0;
+    border-bottom:0.5px solid #eee;
+    font-size:13px;
+  }
+  .info-row .label { color:#888; font-weight:400; }
+  .info-row .value { color:#2c1800; font-weight:700; text-align:right; max-width:60%; }
+
+  .secao-titulo {
+    font-family:'Playfair Display',serif;
+    font-size:13px;
+    color:#2c1800;
+    margin:18px 0 8px;
+    padding-bottom:4px;
+    border-bottom:1px solid #c9a84c44;
+    letter-spacing:0.5px;
+  }
+
+  .item-linha {
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    padding:4px 0;
+    color:#444;
+  }
+  .item-linha .item-nome { color:#333; }
+  .item-linha .item-val { color:#2c1800; font-weight:700; }
+
+  .obs-box {
+    background:#fdf8f0;
+    border-left:3px solid #c9a84c;
+    border-radius:0 6px 6px 0;
+    padding:8px 12px;
+    font-size:12px;
+    color:#555;
+    margin-top:8px;
+    font-style:italic;
+  }
+
+  .inspiracao-aviso {
+    background:#fff8e6;
+    border:1px solid #c9a84c55;
+    border-radius:6px;
+    padding:8px 12px;
+    font-size:11px;
+    color:#7a5c00;
+    margin-top:8px;
+    text-align:center;
+  }
+
+  .total-box {
+    background: linear-gradient(135deg, #2c1800, #3d2200);
+    border-radius:8px;
+    padding:14px 18px;
+    margin-top:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .total-label { color:#c9a84caa; font-size:12px; letter-spacing:1px; }
+  .total-valor { color:#c9a84c; font-size:22px; font-family:'Playfair Display',serif; font-weight:700; }
+
+  .entrega-box {
+    margin-top:14px;
+    background:#f9f9f9;
+    border-radius:8px;
+    padding:12px 14px;
+  }
+
+  .entrega-tipo {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:#2c1800;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+
+  .entrega-endereco {
+    font-size:11px;
+    color:#555;
+    line-height:1.6;
+  }
+
+  .maps-link {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:6px;
+    color:#c9a84c;
+    font-size:11px;
+    font-weight:700;
+    text-decoration:none;
+  }
+
+  .papel-footer {
+    background:#2c1800;
+    padding:14px 24px;
+    text-align:center;
+  }
+  .footer-msg {
+    font-size:11px;
+    color:#c9a84c88;
+    font-style:italic;
+    line-height:1.6;
+  }
+  .footer-contato {
+    font-size:10px;
+    color:#c9a84c55;
+    margin-top:6px;
+    letter-spacing:0.5px;
+  }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .screen-actions { display:none; }
+    .papel { box-shadow:none; border-radius:0; max-width:100%; }
+  }
 </style>
 </head>
 <body>
-<div class="page">
-  <div id="conf-content">
-    <div style="text-align:center;padding:40px;color:var(--text2)">Carregando pedido...</div>
+
+<div class="screen-actions">
+  <button class="btn-action btn-back" onclick="history.back()">← Voltar</button>
+  <button class="btn-action btn-share" onclick="compartilhar()">📤 Enviar</button>
+  <button class="btn-action btn-print" onclick="window.print()">🖨️ Imprimir</button>
+</div>
+
+<div class="papel" id="papel-pedido">
+
+  <div class="papel-header">
+    <!-- Logo SVG inline -->
+    <svg class="logo-papel" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="38" rx="26" ry="32" fill="none" stroke="#c9a84c" stroke-width="1.5"/>
+      <text x="40" y="30" text-anchor="middle" font-family="serif" font-size="24" fill="#c9a84c" font-style="italic">S</text>
+      <!-- fouet/batedor -->
+      <line x1="40" y1="32" x2="40" y2="58" stroke="#c9a84c" stroke-width="1.2"/>
+      <ellipse cx="40" cy="52" rx="5" ry="7" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+      <line x1="37" y1="46" x2="43" y2="52" stroke="#c9a84c" stroke-width="0.6"/>
+      <line x1="43" y1="46" x2="37" y2="52" stroke="#c9a84c" stroke-width="0.6"/>
+    </svg>
+
+    <div class="marca-nome">Sucrée</div>
+    <div class="marca-sub">CONFEITARIA</div>
+    <div class="divider-gold"><span>✦</span></div>
   </div>
+
+  <div class="papel-body" id="corpo-pedido">
+    <!-- Preenchido via JS -->
+  </div>
+
+  <div class="papel-footer">
+    <div class="footer-msg">Feito com amor e dedicação em cada detalhe ✨</div>
+    <div class="footer-contato">Sucrée Confeitaria · Vitória - ES</div>
+  </div>
+
 </div>
 
 <script>
-const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
+// Lê dados do localStorage
+const pedido = JSON.parse(localStorage.getItem('pedido_sucree') || '{}');
 
-function fR(v){return'R$ '+parseFloat(v||0).toFixed(2).replace('.',',')}
-function fD(d){return d?new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}):'—'}
-
-const params = new URLSearchParams(window.location.search);
-const pedidoId = params.get('id');
-
-async function loadPedido() {
-  if(!pedidoId){renderError('ID do pedido não informado');return}
-  try {
-    const r = await fetch(SUPABASE_URL+'/rest/v1/pedidos_confeitaria?id=eq.'+pedidoId, {
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
-    });
-    const data = await r.json();
-    if(!data||!data.length){renderError('Pedido não encontrado');return}
-    renderPedido(data[0]);
-  } catch(e){renderError('Erro ao carregar: '+e.message)}
+function numPedido() {
+  const d = new Date();
+  return `#${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(Math.floor(Math.random()*999)+1).padStart(3,'0')}`;
 }
 
-function renderError(msg) {
-  document.getElementById('conf-content').innerHTML = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:40px;margin-bottom:10px">⚠️</div><p style="color:var(--text2)">${msg}</p></div>`;
+function formatarData(data) {
+  if (!data) return '–';
+  const [y,m,d] = data.split('-');
+  return `${d}/${m}/${y}`;
 }
 
-function renderPedido(p) {
-  const hasPrem = p.recheio1tipo==='prem'||p.recheio2tipo==='prem';
-  const precoBase = p.valor_bolo||0;
-  const plusButtercream = p.cobertura&&p.cobertura.toLowerCase().includes('buttercream')?50:0;
-  const plusTopo = p.topo?45:0;
-  const plusFlores = p.flores?50:0;
-  const total = p.valor_total||0;
-  const sinal = p.sinal||0;
-  const restante = total - sinal;
-  const statusLabel = {pendente:'⏳ Aguardando confirmação',confirmado:'✅ Confirmado',producao:'🎂 Em produção',pronto:'🎉 Pronto para entrega',entregue:'✔️ Entregue'}[p.status]||p.status;
-  const statusClass = {pendente:'sb-pendente',confirmado:'sb-confirmado',producao:'sb-confirmado',pronto:'sb-confirmado',entregue:'sb-confirmado'}[p.status]||'sb-pendente';
-  const numPedido = p.id.slice(-8).toUpperCase();
-  const dataFmt = fD(p.data);
+function formatarMoeda(v) {
+  return 'R$ ' + parseFloat(v||0).toFixed(2).replace('.',',');
+}
 
-  document.title = `Pedido #${numPedido} — Sucrée Confeitaria`;
+function renderizar() {
+  const corpo = document.getElementById('corpo-pedido');
+  const num = numPedido();
+  const dataHoje = new Date().toLocaleDateString('pt-BR');
+  const isRetirada = pedido.entrega === 'retirar';
 
-  document.getElementById('conf-content').innerHTML = `
-    <div class="btn-back" onclick="history.back()" style="cursor:pointer;text-align:center">← Voltar</div>
-
-    <div class="actions">
-      <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-      <button class="btn-share" onclick="shareWhatsApp()">📱 Enviar no WhatsApp</button>
-    </div>
-
-    <div class="header-card">
-      <div class="brand">Sucrée</div>
-      <div class="brand-sub">Confeitaria</div>
-      <div class="conf-title">Confirmação de Pedido</div>
-      <div class="conf-num">Pedido #${numPedido}</div>
-      <div class="status-badge ${statusClass}">${statusLabel}</div>
-    </div>
-
-    <div class="card">
-      <div class="section-label">👤 Dados do Cliente</div>
-      <div class="info-row"><span class="info-label">Nome</span><span class="info-val">${p.cliente||'—'}</span></div>
-      <div class="info-row"><span class="info-label">WhatsApp</span><span class="info-val">${p.telefone||'—'}</span></div>
-      <div class="info-row"><span class="info-label">Data de entrega</span><span class="info-val">${dataFmt}</span></div>
-      ${p.hora?`<div class="info-row"><span class="info-label">Horário</span><span class="info-val">${p.hora}</span></div>`:''}
-      <div class="info-row"><span class="info-label">Retirada</span><span class="info-val">${p.retira?'✅ Cliente retira':'🚗 Entrega em domicílio'}</span></div>
-      ${!p.retira&&p.endereco?`<div class="info-row"><span class="info-label">Endereço</span><span class="info-val">${p.endereco}</span></div>`:''}
-    </div>
-
-    <div class="card">
-      <div class="section-label">🎂 Detalhes do Bolo</div>
-      ${p.aro?`<div class="info-row"><span class="info-label">Tamanho</span><span class="info-val">Aro ${p.aro} cm</span></div>`:''}
-      ${p.massa?`<div class="info-row"><span class="info-label">Massa</span><span class="info-val">${p.massa}</span></div>`:''}
-      ${p.recheio1?`<div class="info-row"><span class="info-label">Recheio 1</span><span class="info-val">${p.recheio1} ${p.recheio1tipo==='prem'?'⭐':''}</span></div>`:''}
-      ${p.recheio2?`<div class="info-row"><span class="info-label">Recheio 2</span><span class="info-val">${p.recheio2} ${p.recheio2tipo==='prem'?'⭐':''}</span></div>`:''}
-      ${p.cobertura?`<div class="info-row"><span class="info-label">Cobertura</span><span class="info-val">${p.cobertura}</span></div>`:''}
-      ${p.deco?`<div class="info-row"><span class="info-label">Decoração</span><span class="info-val">${p.deco==='tematico'?'Temático':'Espatulado'}${p.tema?' — '+p.tema:''}</span></div>`:''}
-      ${p.topo?`<div class="info-row"><span class="info-label">🪄 Topo do Bolo</span><span class="info-val">Incluso</span></div>`:''}
-      ${p.flores?`<div class="info-row"><span class="info-label">💐 Flores Naturais</span><span class="info-val">Sim</span></div>`:''}
-      ${p.obs_deco?`<div class="info-row"><span class="info-label">Observações</span><span class="info-val">${p.obs_deco}</span></div>`:''}
-    </div>
-
-    ${p.inspi_photo?`<div class="card"><div class="section-label">📸 Referência / Inspiração</div><img src="${p.inspi_photo}" class="inspi-photo" alt="Inspiração"></div>`:''}
-
-    <div class="total-section">
-      <div class="section-label" style="border-bottom-color:var(--gold)">💰 Resumo Financeiro</div>
-      <div class="total-row"><span>Bolo Aro ${p.aro||'—'} ${hasPrem?'(premium)':'(tradicional)'}</span><span>${fR(precoBase)}</span></div>
-      ${plusButtercream?`<div class="total-row"><span>Buttercream (acréscimo)</span><span>${fR(plusButtercream)}</span></div>`:''}
-      ${plusTopo?`<div class="total-row"><span>🪄 Topo do Bolo</span><span>${fR(plusTopo)}</span></div>`:''}
-      ${plusFlores?`<div class="total-row"><span>💐 Flores Naturais</span><span>${fR(plusFlores)}</span></div>`:''}
-      <div class="total-grand"><span>Total</span><span>${fR(total)}</span></div>
-      <div class="sinal-info">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span>✅ Sinal (50%)</span><strong>${fR(sinal)}</strong>
-        </div>
-        <div style="display:flex;justify-content:space-between">
-          <span>💳 Restante na entrega</span><strong>${fR(restante)}</strong>
-        </div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gold-light);font-size:12px;color:var(--gold-dark)">
-          💳 PIX para sinal: <strong>(27) 9 9521-3194</strong>
-        </div>
+  const enderecoHTML = isRetirada ? `
+    <div class="entrega-box">
+      <div class="entrega-tipo">📍 Retirada no local</div>
+      <div class="entrega-endereco">
+        Avenida Maruípe, nº 235<br>
+        Edifício Orion, AP 102 – Bloco A<br>
+        Bairro Santa Cecília<br>
+        Vitória – ES · CEP 29.043-270
       </div>
+      <a class="maps-link" href="https://www.google.com/maps/place/20%C2%B018'14.5%22S+40%C2%B019'22.7%22W/@-20.3040226,-40.325544,17z" target="_blank">
+        📌 Ver no Google Maps
+      </a>
+    </div>` : `
+    <div class="entrega-box">
+      <div class="entrega-tipo">🛵 Entrega no endereço</div>
+      <div class="entrega-endereco">${pedido.enderecoCliente || 'A combinar'}</div>
+    </div>`;
+
+  corpo.innerHTML = `
+    <div class="pedido-titulo">Resumo do Pedido</div>
+    <div class="pedido-num">${num} · ${dataHoje}</div>
+
+    <div class="info-row"><span class="label">Cliente</span><span class="value">${pedido.nomeCliente||'–'}</span></div>
+    <div class="info-row"><span class="label">Telefone</span><span class="value">${pedido.telefone||'–'}</span></div>
+    <div class="info-row"><span class="label">Data de entrega</span><span class="value">${formatarData(pedido.dataEntrega)}</span></div>
+    <div class="info-row"><span class="label">Horário</span><span class="value">${pedido.horario||'–'}</span></div>
+
+    <div class="secao-titulo">🎂 Bolo</div>
+    <div class="item-linha"><span class="item-nome">Tamanho</span><span class="item-val">${pedido.tamanho||'–'}</span></div>
+    <div class="item-linha"><span class="item-nome">Porções estimadas</span><span class="item-val">${pedido.porcoes||'–'}</span></div>
+    <div class="item-linha"><span class="item-nome">Recheio</span><span class="item-val">${pedido.recheio||'–'}</span></div>
+    <div class="item-linha"><span class="item-nome">Cobertura</span><span class="item-val">${pedido.cobertura||'–'}</span></div>
+    <div class="item-linha"><span class="item-nome">Tema / Decoração</span><span class="item-val">${pedido.tema||'–'}</span></div>
+    ${pedido.andaresExtra ? `<div class="item-linha"><span class="item-nome">Andar extra</span><span class="item-val">${pedido.andaresExtra}</span></div>` : ''}
+    ${pedido.topo ? `<div class="item-linha"><span class="item-nome">Topo de bolo</span><span class="item-val">${pedido.topo}</span></div>` : ''}
+
+    <div class="inspiracao-aviso">
+      ⚠️ As imagens de tema são apenas referência visual. O resultado final pode apresentar variações no estilo e acabamento.
     </div>
 
-    <div class="card footer">
-      <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:130px;height:auto;margin-bottom:10px;opacity:.85">
-      <div class="thanks">Obrigada por escolher a Sucrée! 🤍</div>
-      <div style="margin-top:8px;font-size:12px;color:var(--text2)">Feito com amor e carinho em cada detalhe.<br>Pedidos com mínimo 3 dias de antecedência.</div>
-    </div>`;
+    ${pedido.observacoes ? `
+    <div class="secao-titulo">📝 Observações</div>
+    <div class="obs-box">${pedido.observacoes}</div>
+    ` : ''}
+
+    <div class="secao-titulo">🚚 Entrega / Retirada</div>
+    ${enderecoHTML}
+
+    <div class="total-box">
+      <span class="total-label">TOTAL DO PEDIDO</span>
+      <span class="total-valor">${formatarMoeda(pedido.valor)}</span>
+    </div>
+  `;
 }
 
-function shareWhatsApp() {
-  const p = document.getElementById('conf-content');
-  const link = window.location.href;
-  const texto = encodeURIComponent('🎂 *Sua confirmação de pedido — Sucrée Confeitaria*\n\nAcesse o link para ver todos os detalhes do seu pedido:\n'+link+'\n\nAgradecemos sua confiança! 🤍');
-  window.open('https://wa.me/?text='+texto,'_blank');
+async function compartilhar() {
+  try {
+    const texto = `🎂 *Sucrée Confeitaria*\n\n✨ *Resumo do seu pedido:*\n\nCliente: ${pedido.nomeCliente||'–'}\nBolo: ${pedido.tamanho||'–'} · ${pedido.recheio||'–'}\nCobertura: ${pedido.cobertura||'–'}\nTema: ${pedido.tema||'–'}\nData: ${pedido.dataEntrega||'–'}\n\nEntrega: ${pedido.entrega === 'retirar' ? 'Retirada – Av. Maruípe, 235, AP 102, Santa Cecília, Vitória-ES' : 'Entrega no endereço'}\n\n💰 *Total: R$ ${parseFloat(pedido.valor||0).toFixed(2).replace('.',',')}*\n\n_Feito com amor em cada detalhe_ 🤍`;
+    if (navigator.share) {
+      await navigator.share({ title: 'Pedido Sucrée', text: texto });
+    } else {
+      await navigator.clipboard.writeText(texto);
+      alert('Resumo copiado! Cole no WhatsApp do cliente.');
+    }
+  } catch(e) {}
 }
 
-loadPedido();
+renderizar();
 </script>
 </body>
 </html>
