@@ -1612,7 +1612,7 @@ function selectUser(role) {
   }
 }
 
-function showApp() {
+function revelarApp() {
   document.getElementById('app').style.display = 'flex';
   document.getElementById('login-overlay').style.display = 'none';
 }
@@ -1630,7 +1630,7 @@ function doLogin() {
       if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
       setAdminPwd(pwd);
       setSession('admin');
-      showApp();
+      revelarApp();
       toast('Senha criada! Bem-vindo, Administrador!');
     } else {
       if (pwd !== getAdminPwd()) {
@@ -1640,7 +1640,7 @@ function doLogin() {
         return;
       }
       setSession('admin');
-      showApp();
+      revelarApp();
       toast('Bem-vindo, Administrador!');
     }
   } else {
@@ -1670,7 +1670,7 @@ function doLogin() {
         return;
       }
       setSession('guest');
-      showApp();
+      revelarApp();
       // Load shared recipes from cloud
       await loadFromCloud();
       enterGuestMode();
@@ -1681,7 +1681,7 @@ function doLogin() {
       if (!localPwd) { err.textContent = 'Sem conexão e sem senha local.'; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       if (pwd !== localPwd) { err.textContent = 'Senha incorreta'; shakeLoginBox(); document.getElementById('login-pwd').value=''; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       setSession('guest');
-      showApp();
+      revelarApp();
       enterGuestMode();
       toast('Bem-vindo, Convidado!');
     }
