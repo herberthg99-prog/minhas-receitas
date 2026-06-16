@@ -1312,7 +1312,7 @@ function renderSharePage() {
       <div style="font-size:16px;font-weight:700;margin-bottom:4px">🎂 Cardápio de Pedidos</div>
       <div style="font-size:12px;color:#C8B89A;margin-bottom:14px">Envie o link para seus clientes montarem o pedido</div>
       <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:12px;color:#F5EDD0;word-break:break-all;border:1px solid rgba(184,151,42,.3)">
-        cozinha-herberth.netlify.app/cardapio.html
+        herberthg99-prog.github.io/minhas-receitas/cardapio.html
       </div>
       <div style="display:flex;gap:8px">
         <button onclick="copiarLinkCardapio()" style="flex:1;padding:10px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
@@ -2489,7 +2489,7 @@ function abrirConfirmacao(id) {
 }
 
 function enviarConfirmacaoWhats(id, tel) {
-  const link = 'https://cozinha-herberth.netlify.app/confirmacao.html?id='+id;
+  const link = 'https://herberthg99-prog.github.io/minhas-receitas/confirmacao.html?id='+id;
   const texto = encodeURIComponent('🎂 *Confirmação do seu pedido — Sucrée Confeitaria*\n\nOlá! Segue o link com todos os detalhes do seu pedido:\n\n'+link+'\n\nQualquer dúvida é só nos chamar! 🤍');
   const phone = tel ? tel.replace(/\D/g,'') : '';
   const url = phone ? 'https://wa.me/55'+phone+'?text='+texto : 'https://wa.me/?text='+texto;
@@ -2498,7 +2498,7 @@ function enviarConfirmacaoWhats(id, tel) {
 
 
 function copiarLinkCardapio() {
-  const link = 'https://cozinha-herberth.netlify.app/cardapio.html';
+  const link = 'https://herberthg99-prog.github.io/minhas-receitas/cardapio.html';
   navigator.clipboard.writeText(link).then(() => {
     toast('Link copiado!');
   }).catch(() => {
@@ -2514,7 +2514,7 @@ function copiarLinkCardapio() {
 }
 
 function compartilharCardapioWhats() {
-  const link = 'https://cozinha-herberth.netlify.app/cardapio.html';
+  const link = 'https://herberthg99-prog.github.io/minhas-receitas/cardapio.html';
   const msg = encodeURIComponent(
     '🎂 *Sucrée Confeitaria*\n\n' +
     'Olá! Que alegria receber você por aqui! ✨\n\n' +
