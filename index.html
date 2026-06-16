@@ -1615,7 +1615,7 @@ function revelarApp() {
   document.getElementById('app').style.display = 'flex';
   document.getElementById('login-overlay').style.display = 'none';
 }
-function doLogin() {
+async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   const err = document.getElementById('login-err');
   if (!pwd) { err.textContent = 'Digite a senha'; return; }
