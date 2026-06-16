@@ -1515,11 +1515,10 @@ async function loadPedidosFromCloud() {
 })();
 </script>
 <script>
+// Desregistrar Service Worker antigo que causava conflito
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("sw.js")
-      .then(()=>console.log("SW registrado"))
-      .catch(e=>console.log("SW erro",e));
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
   });
 }
 
