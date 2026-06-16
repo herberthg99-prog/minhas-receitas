@@ -309,7 +309,42 @@ button{font-family:inherit;cursor:pointer}
   <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
   <button class="bni" style="color:var(--coral)" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--coral)"></i><span style="color:var(--coral)">Nova</span></button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
-  <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
+  <button class="bni" onclick="abrirMenuCardapio()" id="nav-cardapio"><i class="ti ti-send"></i><span>Cardápio</span></button>
+</div>
+
+<!-- CARDAPIO SHARE BOTTOM SHEET -->
+<div class="overlay" id="modal-cardapio-share" style="display:none" onclick="if(event.target===this)cm('modal-cardapio-share')">
+<div class="sheet" style="border-radius:18px 18px 0 0">
+  <div class="sheet-handle"></div>
+  <div style="background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);padding:20px 20px 24px;text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(184,151,42,.12)"></div>
+    <div style="position:absolute;bottom:-20px;left:-20px;width:70px;height:70px;border-radius:50%;background:rgba(184,151,42,.08)"></div>
+    <div style="font-size:32px;margin-bottom:6px">🎂</div>
+    <div style="font-family:Georgia,serif;font-size:22px;color:#B8972A;font-weight:700;letter-spacing:.08em;margin-bottom:2px">Sucrée</div>
+    <div style="font-size:10px;letter-spacing:.25em;color:#9A8060;text-transform:uppercase;margin-bottom:10px">Confeitaria</div>
+    <div style="font-size:13px;color:#C8B89A">Compartilhe o cardápio com seus clientes</div>
+  </div>
+  <div style="padding:16px">
+    <div style="background:#F5F4F1;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <i class="ti ti-link" style="color:#B8972A;flex-shrink:0"></i>
+      <span style="font-size:11px;color:var(--text2);word-break:break-all;flex:1">herberthg99-prog.github.io/minhas-receitas/cardapio.html</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="compartilharCardapioWhats()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-brand-whatsapp" style="font-size:20px"></i> Enviar pelo WhatsApp
+      </button>
+      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-copy" style="font-size:20px"></i> Copiar link
+      </button>
+      <button onclick="abrirCardapioNovAba()" style="width:100%;padding:14px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="ti ti-external-link" style="font-size:20px"></i> Abrir cardápio
+      </button>
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <button onclick="cm('modal-cardapio-share')" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;font-family:inherit;padding:8px">Fechar</button>
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- LOADING -->
@@ -2759,6 +2794,16 @@ async function atualizarEstoqueIASelecionados() {
     msg.textContent = 'Erro: ' + err.message;
     setTimeout(() => { bar.style.display = 'none'; }, 3000);
   } finally { btn.disabled = false; }
+}
+
+
+function abrirMenuCardapio() {
+  document.getElementById('modal-cardapio-share').style.display = 'flex';
+}
+
+function abrirCardapioNovAba() {
+  window.open('https://herberthg99-prog.github.io/minhas-receitas/cardapio.html', '_blank');
+  cm('modal-cardapio-share');
 }
 
 </script>
