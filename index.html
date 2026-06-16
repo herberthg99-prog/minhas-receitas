@@ -233,52 +233,63 @@ button{font-family:inherit;cursor:pointer}
   <div style="position:absolute;top:-80px;right:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.14) 0%,transparent 65%);pointer-events:none"></div>
   <div style="position:absolute;bottom:-60px;left:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.1) 0%,transparent 65%);pointer-events:none"></div>
   <div class="login-box">
-    <div style="margin-bottom:8px">
-      <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:110px;height:auto;filter:drop-shadow(0 2px 14px rgba(200,163,91,.5))">
-    </div>
-    <div class="login-title">Área Administrativa</div>
-    <div class="login-sub">Sucrée Confeitaria</div>
 
-    <!-- USER SELECTOR -->
-    <div id="user-selector" style="display:flex;gap:8px;margin-bottom:10px;width:100%">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
+      style="width:120px;height:auto;filter:drop-shadow(0 2px 14px rgba(200,163,91,.5));margin-bottom:10px">
+
+    <div style="font-size:18px;font-weight:700;color:#F0E6CC;margin-bottom:4px">Área Administrativa</div>
+    <div style="font-size:13px;color:#B8972A;margin-bottom:16px">Sucrée Confeitaria</div>
+
+    <!-- SELETOR ADMIN / CONVIDADO -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
-        style="flex:1;padding:8px 6px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
-        <span style="font-size:20px">👨‍🍳</span>
-        <span>Administrador</span>
+        style="flex:1;padding:9px 6px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <span style="font-size:18px">👨‍🍳</span><span>Administrador</span>
       </button>
       <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:8px 6px;border-radius:var(--radius-sm);border:2px solid rgba(200,163,91,.3);background:rgba(255,255,255,.07);color:rgba(200,163,91,.8);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
-        <span style="font-size:20px">👤</span>
-        <span>Convidado</span>
+        style="flex:1;padding:9px 6px;border-radius:8px;border:2px solid rgba(200,163,91,.3);background:rgba(255,255,255,.07);color:rgba(200,163,91,.8);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <span style="font-size:18px">👤</span><span>Convidado</span>
       </button>
     </div>
 
-    <div id="login-setup-box" class="login-setup" style="display:none">
-      <p>👋 Primeira vez? Crie sua senha de administrador:</p>
-      <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
+    <!-- SETUP (primeira vez) -->
+    <div id="login-setup-box" style="display:none;background:rgba(255,255,255,.06);border:1px solid rgba(200,163,91,.2);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:rgba(200,163,91,.8);text-align:left">
+      <strong>Primeira vez?</strong> Crie sua senha de administrador.
     </div>
 
-    <div id="login-user-label" style="font-size:12px;font-weight:700;color:rgba(200,163,91,.8);margin-bottom:8px;text-align:left;width:100%">Senha do Administrador</div>
+    <!-- LABEL SENHA -->
+    <div id="login-user-label" style="font-size:11px;font-weight:700;color:rgba(200,163,91,.8);margin-bottom:6px;text-align:left;width:100%">SENHA DO ADMINISTRADOR</div>
 
-    <div class="pwd-toggle">
-      <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
+    <!-- CAMPO SENHA -->
+    <div style="position:relative;margin-bottom:10px">
+      <input type="password" id="login-pwd" placeholder="••••••"
+        style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;outline:none"
         onkeydown="if(event.key==='Enter')doLogin()"
         oninput="document.getElementById('login-err').textContent=''">
-      <button onclick="toggleLoginPwd()" id="pwd-eye"><i class="ti ti-eye"></i></button>
+      <button onclick="toggleLoginPwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(200,163,91,.6);font-size:18px;cursor:pointer;padding:4px">
+        <i class="ti ti-eye"></i>
+      </button>
     </div>
 
-    <div id="confirm-pwd-box" style="display:none">
-      <div class="pwd-toggle">
-        <input class="login-input" type="password" id="login-pwd2" placeholder="Confirmar senha"
-          onkeydown="if(event.key==='Enter')doLogin()">
-        <button onclick="toggleLoginPwd2()"><i class="ti ti-eye"></i></button>
-      </div>
+    <!-- CONFIRMAR SENHA (primeira vez) -->
+    <div id="confirm-pwd-box" style="display:none;position:relative;margin-bottom:10px">
+      <input type="password" id="login-pwd2" placeholder="Confirmar senha"
+        style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;outline:none"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="toggleLoginPwd2()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(200,163,91,.6);font-size:18px;cursor:pointer;padding:4px">
+        <i class="ti ti-eye"></i>
+      </button>
     </div>
 
-    <button class="login-btn" onclick="doLogin()" id="login-btn-label">Entrar</button>
-    <div class="login-err" id="login-err"></div>
-    <span class="login-forgot" id="login-forgot" onclick="forgotPwd()" style="display:none">Esqueci minha senha</span>
-    <div class="login-hint" id="login-hint">Acesso completo ao app de receitas</div>
+    <!-- BOTÃO ENTRAR -->
+    <button id="login-btn-label" onclick="doLogin()"
+      style="width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px">
+      Entrar
+    </button>
+
+    <div id="login-err" style="font-size:13px;color:#FF8080;min-height:18px;margin-bottom:4px"></div>
+    <span id="login-forgot" onclick="forgotPwd()" style="display:none;font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
+    <div id="login-hint" style="font-size:11px;color:rgba(200,163,91,.5);margin-top:8px">Acesso completo ao app de receitas</div>
   </div>
 </div>
 
