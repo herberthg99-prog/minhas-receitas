@@ -26,7 +26,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 button{font-family:inherit;cursor:pointer}
-.app{display:flex;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--surface)}
+.app{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--surface)}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
 .logo{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px}
 .logo i{color:var(--gold);font-size:22px}
@@ -279,7 +279,7 @@ button{font-family:inherit;cursor:pointer}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
 button{font-family:inherit;cursor:pointer}
-.app{display:flex;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--surface)}
+.app{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--surface)}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
 .logo{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px}
 .logo i{color:var(--gold);font-size:22px}
@@ -1827,6 +1827,11 @@ function selectUser(role) {
   }
 }
 
+
+function showApp() {
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('login-overlay').style.display = 'none';
+}
 async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   const err = document.getElementById('login-err');
@@ -1841,7 +1846,7 @@ async function doLogin() {
       if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
       setAdminPwd(pwd);
       setSession('admin');
-      document.getElementById('login-overlay').style.display = 'none';
+      showApp();
       toast('Senha criada! Bem-vindo, Administrador!');
     } else {
       if (pwd !== getAdminPwd()) {
@@ -1851,7 +1856,7 @@ async function doLogin() {
         return;
       }
       setSession('admin');
-      document.getElementById('login-overlay').style.display = 'none';
+      showApp();
       toast('Bem-vindo, Administrador!');
     }
   } else {
@@ -1881,7 +1886,7 @@ async function doLogin() {
         return;
       }
       setSession('guest');
-      document.getElementById('login-overlay').style.display = 'none';
+      showApp();
       // Load shared recipes from cloud
       await loadFromCloud();
       enterGuestMode();
@@ -1892,7 +1897,7 @@ async function doLogin() {
       if (!localPwd) { err.textContent = 'Sem conexão e sem senha local.'; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       if (pwd !== localPwd) { err.textContent = 'Senha incorreta'; shakeLoginBox(); document.getElementById('login-pwd').value=''; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       setSession('guest');
-      document.getElementById('login-overlay').style.display = 'none';
+      showApp();
       enterGuestMode();
       toast('Bem-vindo, Convidado!');
     }
