@@ -1514,6 +1514,51 @@ async function loadPedidosFromCloud() {
 })();
 </script>
 <script>
+
+function imprimirPedidoCozinha(id) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  const num = '#' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2,'0') + String(new Date().getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*999)+1).padStart(3,'0');
+  const win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups para imprimir'); return; }
+  const custo = parseFloat(p.custoEstimado||0) || (parseFloat(p.valorBolo||0)*0.35);
+  const lucro = parseFloat(p.valorTotal||0) - custo;
+  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;padding:20px;color:#1a1a1a;max-width:480px;margin:0 auto}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{width:110px;height:auto;margin-bottom:6px}.hdr h1{font-size:18px;color:#2C1800}.num{font-size:11px;color:#888}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right}.inspi{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:6px}.aviso{background:#FFF8E6;border:1px solid #C8A35B55;border-radius:6px;padding:7px 10px;font-size:11px;color:#7a5c00;text-align:center;margin-top:6px}.obs{background:#f9f9f9;border-left:3px solid #C8A35B;padding:7px 10px;font-size:12px;color:#555;font-style:italic;border-radius:0 6px 6px 0;margin-top:6px}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
+  let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Pedido — '+p.cliente+'</title><style>'+css+'</style></head><body>';
+  html += '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"><h1>Pedido para Cozinha</h1><div class="num">'+num+' · '+new Date().toLocaleDateString('pt-BR')+'</div></div>';
+  html += '<div class="sec"><div class="st">👤 Cliente</div>';
+  html += '<div class="row"><span class="key">Nome</span><span class="val">'+(p.cliente||'—')+'</span></div>';
+  html += '<div class="row"><span class="key">Entrega</span><span class="val">'+dataFmt+(p.hora?' às '+p.hora:'')+'</span></div>';
+  html += '<div class="row"><span class="key">Retirada</span><span class="val">'+(p.retira?'✅ Retira':'🚗 Entrego')+'</span></div>';
+  if(p.endereco) html += '<div class="row"><span class="key">Endereço</span><span class="val">'+p.endereco+'</span></div>';
+  if(p.telefone) html += '<div class="row"><span class="key">Telefone</span><span class="val">'+p.telefone+'</span></div>';
+  html += '</div><div class="sec"><div class="st">🎂 Bolo</div>';
+  if(p.aro) html += '<div class="row"><span class="key">Tamanho</span><span class="val">Aro '+p.aro+' cm</span></div>';
+  if(p.massa) html += '<div class="row"><span class="key">Massa</span><span class="val">'+(p.massa==='amanteigada'?'🧈 Amanteigada':'🍰 Pão de Ló')+'</span></div>';
+  if(p.recheio1) html += '<div class="row"><span class="key">Recheio 1</span><span class="val">'+p.recheio1+'</span></div>';
+  if(p.recheio2) html += '<div class="row"><span class="key">Recheio 2</span><span class="val">'+p.recheio2+'</span></div>';
+  if(p.cobertura) html += '<div class="row"><span class="key">Cobertura</span><span class="val">'+(p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream')+'</span></div>';
+  html += '</div>';
+  if(p.tema||p.flores||p.obsDeco){
+    html += '<div class="sec"><div class="st">🎨 Decoração</div>';
+    if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>';
+    if(p.flores) html += '<div class="row"><span class="key">Flores</span><span class="val">✅ Sim</span></div>';
+    if(p.papelaria) html += '<div class="row"><span class="key">Papelaria</span><span class="val">✅ Sim</span></div>';
+    if(p.obsDeco) html += '<div class="obs">'+p.obsDeco+'</div>';
+    html += '</div>';
+  }
+  if(p.inspiPhoto) html += '<div class="sec"><div class="st">📸 Foto de inspiração</div><img src="'+p.inspiPhoto+'" class="inspi"><div class="aviso">⚠️ Imagem é apenas referência visual.</div></div>';
+  if(p.obsCliente) html += '<div class="sec"><div class="st">📝 Obs. do cliente</div><div class="obs">'+p.obsCliente+'</div></div>';
+  html += '<div class="tbox"><span style="font-size:11px;letter-spacing:1px">TOTAL</span><span style="font-size:19px;font-weight:700">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</span></div>';
+  if(p.sinal>0) html += '<div style="text-align:center;margin-top:6px;font-size:12px;color:#555">✅ Sinal: R$ '+parseFloat(p.sinal).toFixed(2)+' · A receber: R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)+'</div>';
+  html += '<div style="background:#f9f9f9;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:#555">💸 Custo est: <strong>R$ '+custo.toFixed(2)+'</strong> &nbsp;·&nbsp; 📈 Lucro: <strong style="color:#0F6E56">R$ '+lucro.toFixed(2)+'</strong></div>';
+  html += '<div class="ftr">Sucrée Confeitaria · Vitória – ES<br><strong style="color:#2C1800">✅ CONFIRMADO PARA PRODUÇÃO</strong><br>'+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>';
+  html += '<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt></body></html>';
+  win.document.write(html);
+  win.document.close();
+}
+
 if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(s=>s.unregister()));if(window.caches)caches.keys().then(k=>k.forEach(c=>caches.delete(c)));}
 
 // ═══════════════════════════════════════════
@@ -2073,22 +2118,41 @@ function renderConfeitaria() {
   _renderConfeitariaUI(); // show immediately with local data
 }
 
+function calcMetricasConfeitaria() {
+  const hoje = new Date();
+  const mes = pedidos.filter(p => {
+    if (!p.data) return false;
+    const d = new Date(p.data + 'T12:00:00');
+    return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear() && p.status!=='cancelado';
+  });
+  const totalVendas = mes.reduce((a,p)=>a+(parseFloat(p.valorTotal)||0),0);
+  const custoEstimado = mes.reduce((a,p)=>a+(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)),0);
+  const lucroEstimado = totalVendas - custoEstimado;
+  const totalRecebido = mes.reduce((a,p)=>a+(parseFloat(p.sinal)||0),0);
+  const totalAReceber = mes.reduce((a,p)=>{
+    if(p.status==='entregue') return a;
+    return a+Math.max(0,(parseFloat(p.valorTotal)||0)-(parseFloat(p.sinal)||0));
+  },0);
+  return {totalVendas,custoEstimado,lucroEstimado,totalRecebido,totalAReceber};
+}
+
 function _renderConfeitariaUI() {
   const el = document.getElementById('page-confeitaria');
+  const m = calcMetricasConfeitaria();
   const pendentes = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado');
-  const proximos = [...pendentes].sort((a,b) => new Date(a.data) - new Date(b.data));
-  const total_mes = pedidos.filter(p => {
-    const d = new Date(p.data);
-    const n = new Date();
-    return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear() && p.status !== 'cancelado';
-  }).reduce((a, p) => a + (parseFloat(p.valorTotal)||0), 0);
 
   el.innerHTML = `
-    <div class="g4" style="margin-bottom:14px">
+    <div class="g4" style="margin-bottom:6px">
       <div class="met"><div class="ml">Pedidos ativos</div><div class="mv blue">${pendentes.length}</div></div>
-      <div class="met"><div class="ml">Total do mês</div><div class="mv coral">R$${total_mes.toFixed(0)}</div></div>
+      <div class="met"><div class="ml">Total do mês</div><div class="mv coral">R$${m.totalVendas.toFixed(0)}</div></div>
       <div class="met"><div class="ml">Entregues</div><div class="mv green">${pedidos.filter(p=>p.status==='entregue').length}</div></div>
       <div class="met"><div class="ml">Cancelados</div><div class="mv">${pedidos.filter(p=>p.status==='cancelado').length}</div></div>
+    </div>
+    <div class="g4" style="margin-bottom:14px">
+      <div class="met" style="border-top:2px solid #C8503A44"><div class="ml" style="font-size:10px">💸 Custo est.</div><div class="mv" style="font-size:13px;color:#C8503A">R$${m.custoEstimado.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">📈 Lucro est.</div><div class="mv green" style="font-size:13px">R$${m.lucroEstimado.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">✅ Recebido</div><div class="mv green" style="font-size:13px">R$${m.totalRecebido.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #C8A35B44"><div class="ml" style="font-size:10px">⏳ A receber</div><div class="mv coral" style="font-size:13px">R$${m.totalAReceber.toFixed(0)}</div></div>
     </div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -2146,8 +2210,14 @@ function renderPedidoCard(p) {
       ${p.tema ? `<span>🎨 ${p.tema}</span>` : ''}
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
-      <div style="font-size:15px;font-weight:700;color:var(--gold)">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</div>
-      <div style="font-size:12px;color:var(--teal);font-weight:700">${p.sinal > 0 ? 'Sinal: R$ '+parseFloat(p.sinal).toFixed(2) : ''}</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--gold)">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--text3)">📈 Lucro est: R$ ${(parseFloat(p.valorTotal||0)-(parseFloat(p.custoEstimado||0)||parseFloat(p.valorBolo||0)*0.35)).toFixed(0)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--teal);font-weight:700">${p.sinal > 0 ? '✅ R$ '+parseFloat(p.sinal).toFixed(2) : ''}</div>
+        <div style="font-size:11px;color:var(--gold)">${p.sinal > 0 && p.status !== 'entregue' ? '⏳ R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2) : ''}</div>
+      </div>
       <div style="display:flex;gap:5px">
         <button class="rb" onclick="event.stopPropagation();openEditPedido('${p.id}')" style="font-size:11px;padding:4px 8px"><i class="ti ti-edit"></i></button>
         <button class="rb" style="font-size:11px;padding:4px 8px;color:#A32D2D" onclick="event.stopPropagation();delPedido('${p.id}')"><i class="ti ti-trash"></i></button>
@@ -2256,12 +2326,16 @@ function addInspiPhoto(e) {
 
 function calcPedidoTotal() {
   const valorBolo = parseFloat(document.getElementById('p-valor-bolo')?.value||0);
+  const custoInput = parseFloat(document.getElementById('p-custo')?.value||0);
+  const custo = custoInput > 0 ? custoInput : valorBolo * 0.35;
   const flores = curPedido.flores ? 50 : 0;
   const papelaria = curPedido.papelaria ? 35 : 0;
   const total = valorBolo + flores + papelaria;
+  const lucro = total - custo;
   const sinal = parseFloat(document.getElementById('p-sinal')?.value||0);
   const restante = total - sinal;
   curPedido.valorTotal = total;
+  curPedido.custoEstimado = custo;
 
   const box = document.getElementById('pedido-total-box');
   if(!box) return;
@@ -2271,8 +2345,10 @@ function calcPedidoTotal() {
       ${flores>0?`<div class="total-row"><span>💐 Flores</span><span>R$ ${flores.toFixed(2)}</span></div>`:''}
       ${papelaria>0?`<div class="total-row"><span>🎨 Papelaria</span><span>R$ ${papelaria.toFixed(2)}</span></div>`:''}
       <div class="total-row grand"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
+      <div class="total-row" style="color:#C8503A"><span>💸 Custo estimado</span><span>R$ ${custo.toFixed(2)}</span></div>
+      <div class="total-row" style="color:var(--teal);font-weight:700"><span>📈 Lucro estimado</span><span>R$ ${lucro.toFixed(2)}</span></div>
       ${sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${sinal.toFixed(2)}</span></div>`:''}
-      ${restante>0&&sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>💳 Restante</span><span>R$ ${restante.toFixed(2)}</span></div>`:''}
+      ${restante>0&&sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>⏳ A receber</span><span>R$ ${restante.toFixed(2)}</span></div>`:''}
     </div>`;
 }
 
@@ -2310,7 +2386,7 @@ function openNovoPedido() {
 
 function resetPedidoForm() {
   ['p-cliente','p-data','p-hora','p-endereco','p-telefone','p-obs-cliente',
-   'p-tema','p-obs-deco','p-valor-bolo','p-sinal'].forEach(id => {
+   'p-tema','p-obs-deco','p-valor-bolo','p-custo','p-sinal'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -2387,6 +2463,7 @@ function savePedido() {
     recheio2: document.getElementById('p-recheio2').value,
     cobertura: curPedido.cobertura,
     valorBolo,
+    custoEstimado: parseFloat(document.getElementById('p-custo')?.value||0) || (valorBolo * 0.35),
     tema: document.getElementById('p-tema').value,
     inspiPhoto: curPedido.inspiPhoto || null,
     flores: curPedido.flores === true,
@@ -2466,6 +2543,13 @@ function viewPedido(id) {
       ${p.pagamento?`<div class="total-row" style="margin-top:6px"><span>Pagamento</span><span>${{pix:'PIX',dinheiro:'Dinheiro',cartao_credito:'Cartão Crédito',cartao_debito:'Cartão Débito'}[p.pagamento]||p.pagamento}</span></div>`:''}
     </div>
 
+    <div style="padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:10px">
+      <div class="total-row" style="color:#C8503A"><span>💸 Custo estimado</span><span>R$ ${(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)).toFixed(2)}</span></div>
+      <div class="total-row" style="color:var(--teal);font-weight:700;border-bottom:none"><span>📈 Lucro estimado</span><span>R$ ${(parseFloat(p.valorTotal||0)-(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35))).toFixed(2)}</span></div>
+    </div>
+    <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
+      <i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha
+    </button>
     <div style="display:flex;gap:8px;margin-top:4px">
       <select onchange="updatePedidoStatus('${p.id}',this.value)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
         <option value="pendente" ${p.status==='pendente'?'selected':''}>⏳ Pendente</option>
@@ -2968,7 +3052,8 @@ function abrirCardapioNovAba() {
     <!-- TAB 3: TOTAL -->
     <div id="pt3" style="display:none">
       <div id="pedido-total-box"></div>
-      <div class="fg" style="margin-top:12px"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg" style="margin-top:12px"><label>Custo estimado do bolo (R$)</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
       <div class="fg"><label>Forma de pagamento</label>
         <select id="p-pagamento">
           <option value="">Selecione...</option>
