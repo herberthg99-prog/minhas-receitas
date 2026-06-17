@@ -14,6 +14,7 @@ let editId = null, curIngr = [], curPhotos = [], curFormas = [], formasEnabled =
 let newMode = null, fotoB64 = null, viewState = {}, rmap = {};
 let syncPending = false;
 window._currentSubGrp = ''; // active sub-aba group filter
+window._currentCat = ''; // active category filter
 
 // ═══════ UTILS ═══════
 function genId() { return 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -252,7 +253,8 @@ async function syncNow() {
 
 // ═══════ RENDER RECIPES COM SUB-ABAS ═══════
 function setCatFilter(val) {
-  document.getElementById('fc').value = val;
+  window._currentCat = val || '';
+  var fc = document.getElementById('fc'); if(fc) fc.value = val;
   ['all','doce','salgada'].forEach(function(k) {
     var btn = document.getElementById('cat-' + k);
     if (!btn) return;
@@ -302,14 +304,14 @@ function setSubAba(grp) {
 }
 function renderRecipes() {
   var q   = (document.getElementById('si').value || '').toLowerCase();
-  var cat = document.getElementById('fc').value;
-  var grp = window._currentSubGrp || ''; // use module var, not hidden select
+  var cat = window._currentCat || '';
+  var grp = window._currentSubGrp || '';
   var el  = document.getElementById('recipes-list');
   var guest = isGuest();
 
   // DEBUG: show active filter
   var dbg = document.getElementById('filter-debug');
-  if (dbg) dbg.textContent = 'cat=' + cat + ' grp="' + grp + '"';
+  if (dbg) dbg.textContent = 'cat=' + cat + ' grp=' + (grp||'(todos)');
 
   var list = recipes.filter(function(r) {
     return (!q || (r.name||'').toLowerCase().includes(q))
