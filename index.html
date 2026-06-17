@@ -13,20 +13,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --gold:#C8A35B;--coral:#C8A35B;--coral-light:#F7F0E0;--coral-dark:#7A6030;
-  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#9FE1CB;
-  --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#B5D4F4;
-  --amber-light:#FAEEDA;--amber-dark:#633806;
-  --green-light:#EAF3DE;--green-dark:#27500A;
-  --red-light:#FCEBEB;--red-dark:#791F1F;
-  --bg:#F0EBE0;--surface:rgba(255,255,255,0.88);--border:rgba(0,0,0,0.12);
-  --text:#1a1a1a;--text2:#666;--text3:#999;
-  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.1);
+  --gold:#C8A35B;--coral:#C8A35B;--coral-light:rgba(200,163,91,.15);--coral-dark:#C8A35B;
+  --teal:#0F6E56;--teal-light:rgba(15,110,86,.2);--teal-mid:#9FE1CB;
+  --blue:#4A90D9;--blue-light:rgba(74,144,217,.15);--blue-mid:rgba(74,144,217,.4);
+  --amber-light:rgba(200,163,91,.12);--amber-dark:#C8A35B;
+  --green-light:rgba(15,110,86,.15);--green-dark:#9FE1CB;
+  --red-light:rgba(200,83,58,.15);--red-dark:#FF8080;
+  --bg:#1A1208;--surface:rgba(44,30,10,0.95);--border:rgba(200,163,91,0.2);
+  --text:#F0E6CC;--text2:rgba(200,163,91,0.8);--text3:rgba(200,163,91,0.45);
+  --radius:10px;--radius-sm:7px;--shadow:0 2px 12px rgba(0,0,0,.4);
+  --gold-light:rgba(200,163,91,.12);--gold-dark:#C8A35B;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1A1208;color:var(--text);font-size:15px;min-height:100vh}
 button{font-family:inherit;cursor:pointer}
-.app{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:var(--surface)}
+.app{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:#1A1208}
 .topbar{background:linear-gradient(135deg,#2C1E0A,#3D2A0E)!important;border-bottom:1.5px solid rgba(200,163,91,.4)!important;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
 .logo{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px}
 .logo i{color:var(--gold);font-size:22px}
@@ -46,7 +47,7 @@ button{font-family:inherit;cursor:pointer}
 .ml{font-size:11px;color:var(--text2);margin-bottom:3px}.mv{font-size:17px;font-weight:700}
 .mv.coral{color:var(--gold)}.mv.green{color:var(--teal)}.mv.blue{color:var(--blue)}
 .st{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.05em}
-.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);position:relative}
+.rc{background:linear-gradient(135deg,#2C1E0A 0%,#3D2A0E 100%);border:1.5px solid rgba(200,163,91,.35);border-radius:14px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);position:relative;overflow:hidden}
 .rc.shared{border-left:3px solid var(--blue)}
 .rn{font-size:14px;font-weight:700;margin-bottom:5px}
 .rm{font-size:11px;color:var(--text2);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
@@ -71,7 +72,7 @@ button{font-family:inherit;cursor:pointer}
 .btns{background:none;color:var(--text);border:1px solid var(--border);padding:11px 16px;border-radius:var(--radius-sm);font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .btns:active{background:var(--bg)}
 .btng{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal-mid);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px}
-.srow{display:flex;gap:8px;margin-bottom:12px}
+.srow{display:flex;gap:8px;margin-bottom:12px;padding:12px 0 4px}
 .srow input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit}
 .srow select{padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;max-width:110px}
 .tg{display:flex;gap:3px;margin-bottom:14px;background:var(--bg);padding:3px;border-radius:var(--radius-sm);overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -207,7 +208,7 @@ button{font-family:inherit;cursor:pointer}
 
 .aro-btn{padding:8px 4px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;text-align:center}
 .aro-btn.sel{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
-.pedido-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);cursor:pointer;position:relative}
+.pedido-card{background:linear-gradient(135deg,#2C1E0A,#3D2A0E);border:1.5px solid rgba(200,163,91,.3);border-radius:12px;padding:13px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);cursor:pointer;position:relative}
 .pedido-card:hover{border-color:var(--border)}
 .pedido-card.status-confirmado{border-left:3px solid var(--teal)}
 .pedido-card.status-producao{border-left:3px solid var(--coral)}
@@ -316,8 +317,8 @@ button{font-family:inherit;cursor:pointer}
 </div>
 <div class="content">
   <div class="page act" id="page-home"></div>
-  <div class="page" id="page-receitas">
-    <div class="srow">
+  <div class="page" id="page-receitas" style="background:#1A1208">
+    <div class="srow" style="padding:14px 0 8px">
       <input type="text" placeholder="Buscar..." id="si" oninput="renderRecipes()">
       <select id="fc" onchange="renderRecipes()"><option value="">Todas</option><option value="doce">Doces</option><option value="salgada">Salgadas</option></select>
       <select id="fg2" onchange="renderRecipes()"><option value="">Grupos</option></select>
@@ -827,12 +828,12 @@ function renderHome() {
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">
         \${[...recipes].reverse().slice(0, 3).map(r => \`
-          <div style="background:#fff;border:1px solid rgba(200,163,91,.2);border-radius:12px;overflow:hidden;display:flex;align-items:center;gap:0;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05)" onclick="viewRecipe('\${r.id}')">
+          <div style="background:linear-gradient(135deg,rgba(44,28,8,.95),rgba(36,22,6,.98));border:1px solid rgba(200,163,91,.3);border-radius:12px;overflow:hidden;display:flex;align-items:center;gap:0;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.4)" onclick="viewRecipe('\${r.id}')">
             \${r.photos && r.photos[0]
               ? \`<img src="\${r.photos[0]}" style="width:70px;height:70px;object-fit:cover;flex-shrink:0">\`
-              : \`<div style="width:70px;height:70px;background:linear-gradient(135deg,#FFF8E6,#F0E6CC);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px">🍰</div>\`}
+              : \`<div style="width:70px;height:70px;background:linear-gradient(135deg,rgba(44,28,8,.9),rgba(61,42,14,.8));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px">🍰</div>\`}
             <div style="flex:1;padding:10px 12px;min-width:0">
-              <div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${r.name}</div>
+              <div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:#F0E6CC;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${r.name}</div>
               <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
                 <span class="tag t\${r.cat[0]}">\${r.cat}</span>
                 \${r.group ? \`<span style="font-size:10px;color:var(--text2)">\${r.group}</span>\` : ''}
@@ -870,7 +871,7 @@ function renderRecipes() {
       ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:140px;object-fit:cover">` : ''}
       <div class="rn">${r.name}</div>
       <div class="rm" style="margin-top:4px">
-        <span class="tag t${r.cat[0]}">${r.cat}</span>
+        <span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>
         ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
         ${b && !guest ? `<span class="badge badge-teal"><i class="ti ti-star" style="font-size:10px"></i> ${b.name}</span>` : ''}
         <span><i class="ti ti-clock"></i> ${fT(r.time)}</span>
@@ -1342,7 +1343,7 @@ function renderViewBody(r) {
   document.getElementById('vb').innerHTML = `
     ${r.photos && r.photos.length ? r.photos.map(ph => `<img src="${ph}" style="width:100%;border-radius:var(--radius);margin-bottom:6px;max-height:200px;object-fit:cover">`).join('') : ''}
     <div class="flex-row" style="margin-bottom:10px;flex-wrap:wrap;gap:6px">
-      <span class="tag t${r.cat[0]}">${r.cat}</span>
+      <span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>
       ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
       <span style="font-size:12px;color:var(--text2)"><i class="ti ti-clock"></i> ${fT(r.time)}</span>
       <span class="pb ${pctClass(pct2)}">${pct2.toFixed(0)}% lucro</span>
@@ -1540,7 +1541,7 @@ function renderSharePage() {
     <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-eye"></i> Receitas marcadas (${shareConfig.sharedIds.length})</div>
       ${shareConfig.sharedIds.length
-        ? recipes.filter(r => shareConfig.sharedIds.includes(r.id)).map(r => `<div class="rci"><i class="ti ti-check" style="color:var(--teal)"></i><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span style="font-size:11px;color:var(--text2)">[${r.group}]</span>` : ''}<span>${r.name}</span></div>`).join('')
+        ? recipes.filter(r => shareConfig.sharedIds.includes(r.id)).map(r => `<div class="rci"><i class="ti ti-check" style="color:var(--teal)"></i><span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>${r.group ? `<span style="font-size:11px;color:var(--text2)">[${r.group}]</span>` : ''}<span>${r.name}</span></div>`).join('')
         : '<p style="font-size:13px;color:var(--text2)">Nenhuma receita marcada. Vá em Receitas e toque em "Compartilhar".</p>'}
     </div>
     <button class="btnp full" onclick="openShareView()"><i class="ti ti-external-link"></i> Ver como convidado</button>`;
@@ -1594,7 +1595,7 @@ function checkGuest() {
     shared.map(r => `<div class="card" style="margin-bottom:10px">
       ${r.photos && r.photos[0] ? `<img src="${r.photos[0]}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:160px;object-fit:cover">` : ''}
       <div class="rn">${r.name}</div>
-      <div class="rm" style="margin-bottom:8px"><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div>
+      <div class="rm" style="margin-bottom:8px"><span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div>
       ${(r.ingredients || []).length ? `<table class="it" style="margin-bottom:8px"><thead><tr><th>Ingrediente</th><th>Qtd</th><th>Un.</th></tr></thead><tbody>${r.ingredients.map(ig => `<tr ${ig.isBase ? 'style="font-weight:700"' : ''}><td>${ig.name}</td><td>${ig.qty}</td><td>${ig.unit}</td></tr>`).join('')}</tbody></table>` : ''}
       ${r.preparo ? `<div style="font-size:12px;line-height:1.8;color:var(--text2);margin-bottom:6px">${r.preparo.replace(/\n/g, '<br>')}</div>` : ''}
       ${r.comment ? `<div style="font-size:11px;font-style:italic;color:var(--text2);padding:8px 10px;background:var(--bg);border-radius:var(--radius-sm)">${r.comment.replace(/\n/g, '<br>')}</div>` : ''}
