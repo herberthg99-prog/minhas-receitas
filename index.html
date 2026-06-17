@@ -224,6 +224,14 @@ button{font-family:inherit;cursor:pointer}
 .total-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:0.5px solid var(--border)}
 .total-row.grand{font-size:17px;font-weight:700;color:var(--gold);border-bottom:none;border-top:1.5px solid var(--border);margin-top:6px;padding-top:8px}
 .total-row.saldo{font-size:14px;font-weight:700;color:var(--teal)}
+
+/* MODO TELA CHEIA RECEITA */
+.sheet-fullscreen{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;max-height:100vh!important;border-radius:0!important;z-index:9999}
+.sheet-fullscreen .sheet-body{font-size:16px!important}
+.sheet-fullscreen .sheet-body table{font-size:15px!important}
+.sheet-fullscreen .sheet-body .mv{font-size:22px!important}
+.sheet-fullscreen .passo-letra{font-size:22px!important}
+.sheet-fullscreen .passo-texto{font-size:16px!important;line-height:2!important}
 </style>
 </head>
 <body>
@@ -508,6 +516,7 @@ button{font-family:inherit;cursor:pointer}
     <div class="flex-row">
       <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
       <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:var(--teal)"><i class="ti ti-printer"></i> Imprimir</button>
+      <button class="rb" onclick="toggleFullReceita()" id="btn-full" title="Tela cheia" style="font-size:12px;color:#7A6030;background:#FFF8E6;border-color:#C8A35B"><i class="ti ti-maximize" id="ico-full"></i></button>
       <button class="xb" onclick="cm('modal-view')"><i class="ti ti-x"></i></button>
     </div>
   </div>
@@ -3049,6 +3058,24 @@ function imprimirReceita() {
 
   win.document.write(html);
   win.document.close();
+}
+
+
+// ═══ TELA CHEIA RECEITA ═══
+let _receitaFull = false;
+function toggleFullReceita() {
+  _receitaFull = !_receitaFull;
+  const sheet = document.querySelector('#modal-view .sheet');
+  const ico = document.getElementById('ico-full');
+  if (_receitaFull) {
+    sheet.classList.add('sheet-fullscreen');
+    if (ico) ico.className = 'ti ti-minimize';
+    document.getElementById('modal-view').style.justifyContent = 'flex-start';
+  } else {
+    sheet.classList.remove('sheet-fullscreen');
+    if (ico) ico.className = 'ti ti-maximize';
+    document.getElementById('modal-view').style.justifyContent = 'flex-end';
+  }
 }
 
 </script>
