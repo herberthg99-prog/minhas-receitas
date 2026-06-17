@@ -467,7 +467,7 @@ async function atualizarEstoqueIA() {
 }
 
 // Also update atualizarPrecos in ingredient tab to sync with estoque
-const _origAtualizarPrecos = atualizarPrecos;
+let _origAtualizarPrecos = atualizarPrecos;
 async function atualizarPrecos() {
   await _origAtualizarPrecos();
   // After updating recipe prices, sync back to estoque
