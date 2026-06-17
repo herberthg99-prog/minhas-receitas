@@ -307,6 +307,10 @@ function renderRecipes() {
   var el  = document.getElementById('recipes-list');
   var guest = isGuest();
 
+  // DEBUG: show active filter
+  var dbg = document.getElementById('filter-debug');
+  if (dbg) dbg.textContent = 'cat=' + cat + ' grp="' + grp + '"';
+
   var list = recipes.filter(function(r) {
     return (!q || (r.name||'').toLowerCase().includes(q))
         && (!cat || r.cat === cat)
