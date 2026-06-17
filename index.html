@@ -744,106 +744,79 @@ function renderHome() {
   const tot = recipes.length;
   const dc = recipes.filter(r => r.cat === 'doce').length;
   const sl = recipes.filter(r => r.cat === 'salgada').length;
-  const avg = tot ? recipes.reduce((a, r) => a + calcAt(r,1).luc, 0) / tot : 0;
-
-  // Pedidos do mês
+  const pedidosAtivos = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado').length;
   const hoje = new Date();
+  const hora = hoje.getHours();
+  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
   const pedidosMes = pedidos.filter(p => {
     if (!p.data) return false;
     const d = new Date(p.data + 'T12:00:00');
-    return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear() && p.status!=='cancelado';
+    return d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear() && p.status !== 'cancelado';
   });
-  const totalMes = pedidosMes.reduce((a,p)=>a+(parseFloat(p.valorTotal)||0),0);
-  const pedidosAtivos = pedidos.filter(p=>p.status!=='entregue'&&p.status!=='cancelado').length;
-  const proximoPedido = [...pedidos].filter(p=>p.data&&p.status!=='entregue'&&p.status!=='cancelado')
-    .sort((a,b)=>new Date(a.data)-new Date(b.data))[0];
-  const hora = hoje.getHours();
-  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  const totalMes = pedidosMes.reduce((a,p) => a + (parseFloat(p.valorTotal)||0), 0);
+  const proximoPedido = [...pedidos]
+    .filter(p => p.data && p.status !== 'entregue' && p.status !== 'cancelado')
+    .sort((a,b) => new Date(a.data) - new Date(b.data))[0];
 
-  document.getElementById('page-home').innerHTML = `
+  // Banner boas-vindas
+  let html = '<div style="background:linear-gradient(135deg,#1A1208 0%,#2C1E0A 60%,#3D2A0E 100%);border-radius:16px;padding:22px 20px 18px;margin-bottom:16px;position:relative;overflow:hidden">'
+    + '<div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.18) 0%,transparent 70%)"></div>'
+    + '<div style="position:relative;z-index:1">'
+    + '<div style="font-size:12px;color:#B8972A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">' + saudacao + ', Herberth</div>'
+    + '<div style="font-family:Georgia,serif;font-size:22px;color:#F0E6CC;font-weight:700;margin-bottom:6px">Sucrée Confeitaria</div>'
+    + '<div style="font-size:12px;color:rgba(200,163,91,.7);margin-bottom:16px">Seu ateliê de sabores exclusivos</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center"><div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Receitas</div><div style="font-size:22px;font-weight:800;color:#F0E6CC">' + tot + '</div></div>'
+    + '<div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center"><div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Pedidos ativos</div><div style="font-size:22px;font-weight:800;color:#F0E6CC">' + pedidosAtivos + '</div></div>'
+    + '<div style="background:rgba(15,110,86,.2);border:1px solid rgba(15,110,86,.4);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center"><div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Vendas/mês</div><div style="font-size:20px;font-weight:800;color:#9FE1CB">R$' + totalMes.toFixed(0) + '</div></div>'
+    + '</div></div></div>';
 
-    <div style="background:linear-gradient(135deg,#1A1208 0%,#2C1E0A 60%,#3D2A0E 100%);border-radius:16px;padding:22px 20px 18px;margin-bottom:16px;position:relative;overflow:hidden">
-      <div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.18) 0%,transparent 70%)"></div>
-      <div style="position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.12) 0%,transparent 70%)"></div>
-      <div style="position:relative;z-index:1">
-        <div style="font-size:12px;color:#B8972A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">${saudacao}, Herberth 👋</div>
-        <div style="font-family:Georgia,serif;font-size:22px;color:#F0E6CC;font-weight:700;margin-bottom:6px">Sucrée Confeitaria</div>
-        <div style="font-size:12px;color:rgba(200,163,91,.7);margin-bottom:16px">Seu ateliê de sabores exclusivos ✨</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center">
-            <div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Receitas</div>
-            <div style="font-size:22px;font-weight:800;color:#F0E6CC">${tot}</div>
-          </div>
-          <div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center">
-            <div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Pedidos ativos</div>
-            <div style="font-size:22px;font-weight:800;color:#F0E6CC">${pedidosAtivos}</div>
-          </div>
-          <div style="background:rgba(15,110,86,.2);border:1px solid rgba(15,110,86,.4);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center">
-            <div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Vendas/mês</div>
-            <div style="font-size:20px;font-weight:800;color:#9FE1CB">R$${totalMes.toFixed(0)}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+  // Próximo pedido
+  if (proximoPedido) {
+    const dataFmt = new Date(proximoPedido.data + 'T12:00:00').toLocaleDateString('pt-BR');
+    html += '<div style="background:linear-gradient(135deg,#FFF8E6,#FFF3D0);border:1.5px solid rgba(200,163,91,.4);border-radius:14px;padding:14px 16px;margin-bottom:16px;cursor:pointer" onclick="goPage('confeitaria')">'
+      + '<div style="font-size:10px;font-weight:800;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Proximo pedido</div>'
+      + '<div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#2C1800;margin-bottom:4px">' + (proximoPedido.cliente||'—') + '</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#7A6030">'
+      + '<span>' + dataFmt + (proximoPedido.hora ? ' as ' + proximoPedido.hora : '') + '</span>'
+      + (proximoPedido.aro ? '<span>Aro ' + proximoPedido.aro + '</span>' : '')
+      + '<span style="font-weight:700;color:#0F6E56">R$ ' + parseFloat(proximoPedido.valorTotal||0).toFixed(2) + '</span>'
+      + '</div></div>';
+  }
 
-    ${proximoPedido ? `
-    <div style="background:linear-gradient(135deg,#FFF8E6,#FFF3D0);border:1.5px solid rgba(200,163,91,.4);border-radius:14px;padding:14px 16px;margin-bottom:16px;cursor:pointer" onclick="goPage('confeitaria')">
-      <div style="font-size:10px;font-weight:800;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">🔔 Próximo pedido</div>
-      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#2C1800;margin-bottom:4px">\${proximoPedido.cliente}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#7A6030">
-        <span>📅 \${new Date(proximoPedido.data+'T12:00:00').toLocaleDateString('pt-BR')}\${proximoPedido.hora?' às '+proximoPedido.hora:''}</span>
-        \${proximoPedido.aro?'<span>🎂 Aro '+proximoPedido.aro+'</span>':''}
-        <span style="font-weight:700;color:#0F6E56">R$ \${parseFloat(proximoPedido.valorTotal||0).toFixed(2)}</span>
-      </div>
-    </div>` : ''}
+  // Ações rápidas
+  html += '<div style="margin-bottom:16px">'
+    + '<div style="font-size:11px;font-weight:800;color:rgba(200,163,91,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Acesso rápido</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    + '<button onclick="openNewChoice()" style="background:linear-gradient(135deg,#C8A35B,#B8872A);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(200,163,91,.3)"><div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plus" style="font-size:20px;color:#fff"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Nova Receita</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Criar ou importar</div></div></button>'
+    + '<button onclick="goPage('confeitaria')" style="background:linear-gradient(135deg,#0F6E56,#0A5240);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-cake" style="font-size:20px;color:#fff"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Agenda</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Ver pedidos</div></div></button>'
+    + '<button onclick="abrirMenuCardapio()" style="background:linear-gradient(135deg,#2C2416,#3D2A0E);border:1px solid rgba(200,163,91,.3);border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:rgba(200,163,91,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-send" style="font-size:20px;color:#C8A35B"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Cardapio</div><div style="font-size:10px;color:#B8972A">Enviar para clientes</div></div></button>'
+    + '<button onclick="window.open('inspiracao.html','_blank')" style="background:linear-gradient(135deg,#1A1230,#2C1E4A);border:1px solid rgba(200,163,91,.2);border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:rgba(200,163,91,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-wand" style="font-size:20px;color:#C8A35B"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Inspiracao</div><div style="font-size:10px;color:#B8972A">Gerar tema de bolo</div></div></button>'
+    + '</div></div>';
 
-    <div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Acesso rápido</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <button onclick="openNewChoice()" style="background:linear-gradient(135deg,#C8A35B,#B8872A);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(200,163,91,.3)">
-          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plus" style="font-size:20px;color:#fff"></i></div>
-          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Nova Receita</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Criar ou importar</div></div>
-        </button>
-        <button onclick="goPage('confeitaria')" style="background:linear-gradient(135deg,#0F6E56,#0A5240);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(15,110,86,.3)">
-          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-cake" style="font-size:20px;color:#fff"></i></div>
-          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Agenda</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Ver pedidos</div></div>
-        </button>
-        <button onclick="abrirMenuCardapio()" style="background:linear-gradient(135deg,#2C2416,#4A3A1A);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;background:rgba(200,163,91,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-send" style="font-size:20px;color:#C8A35B"></i></div>
-          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Cardápio</div><div style="font-size:10px;color:#B8972A">Enviar para clientes</div></div>
-        </button>
-        <button onclick="window.open('inspiracao.html','_blank')" style="background:linear-gradient(135deg,#2C1E4A,#1A1230);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;background:rgba(200,163,91,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-wand" style="font-size:20px;color:#C8A35B"></i></div>
-          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Inspiração</div><div style="font-size:10px;color:#B8972A">Gerar tema de bolo</div></div>
-        </button>
-      </div>
-    </div>
+  // Receitas recentes
+  const recentes = [...recipes].reverse().slice(0, 3);
+  html += '<div>'
+    + '<div style="font-size:11px;font-weight:800;color:rgba(200,163,91,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center"><span>Receitas recentes</span><button onclick="goPage('receitas')" style="background:none;border:none;color:#C8A35B;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver todas</button></div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px">';
 
-    <div>
-      <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-        <span>Receitas recentes</span>
-        <button onclick="goPage('receitas')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver todas →</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        \${[...recipes].reverse().slice(0, 3).map(r => `
-          <div style="background:linear-gradient(135deg,rgba(44,28,8,.95),rgba(36,22,6,.98));border:1px solid rgba(200,163,91,.3);border-radius:12px;overflow:hidden;display:flex;align-items:center;gap:0;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.4)" onclick="viewRecipe('\${r.id}')">
-            \${r.photos && r.photos[0]
-              ? `<img src="\${r.photos[0]}" style="width:70px;height:70px;object-fit:cover;flex-shrink:0">`
-              : `<div style="width:70px;height:70px;background:linear-gradient(135deg,rgba(44,28,8,.9),rgba(61,42,14,.8));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px">🍰</div>`}
-            <div style="flex:1;padding:10px 12px;min-width:0">
-              <div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:#F0E6CC;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${r.name}</div>
-              <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-                <span class="tag t\${r.cat[0]}">\${r.cat}</span>
-                \${r.group ? `<span style="font-size:10px;color:var(--text2)">\${r.group}</span>` : ''}
-                <span style="font-size:10px;color:var(--text3)">\${fT(r.time)}</span>
-              </div>
-            </div>
-            <button onclick="event.stopPropagation();const r2=recipes.find(x=>x.id==='\${r.id}');if(r2)abrirModoCoZinha(r2)" style="background:none;border:none;color:rgba(200,163,91,.5);padding:12px;cursor:pointer;font-size:18px;flex-shrink:0"><i class="ti ti-maximize"></i></button>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
+  recentes.forEach(r => {
+    const foto = (r.photos && r.photos[0])
+      ? '<img src="' + r.photos[0] + '" style="width:70px;height:70px;object-fit:cover;flex-shrink:0">'
+      : '<div style="width:70px;height:70px;background:linear-gradient(135deg,#2C1E0A,#3D2A0E);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;color:#C8A35B"><i class="ti ti-chef-hat"></i></div>';
+    html += '<div style="background:linear-gradient(135deg,#2C1E0A,#3D2A0E);border:1px solid rgba(200,163,91,.25);border-radius:12px;overflow:hidden;display:flex;align-items:center;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.3)" onclick="viewRecipe('' + r.id + '')">'
+      + foto
+      + '<div style="flex:1;padding:10px 12px;min-width:0">'
+      + '<div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:#F0E6CC;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.name + '</div>'
+      + '<div style="display:flex;gap:5px;align-items:center"><span class="tag t' + r.cat[0] + '">' + r.cat + '</span>'
+      + (r.group ? '<span style="font-size:10px;color:rgba(200,163,91,.6)">' + r.group + '</span>' : '')
+      + '<span style="font-size:10px;color:rgba(200,163,91,.5)">' + fT(r.time) + '</span></div></div>'
+      + '<button onclick="event.stopPropagation();const r2=recipes.find(x=>x.id==='' + r.id + '');if(r2)abrirModoCoZinha(r2)" style="background:none;border:none;color:rgba(200,163,91,.4);padding:12px;cursor:pointer;font-size:18px;flex-shrink:0"><i class="ti ti-maximize"></i></button>'
+      + '</div>';
+  });
+
+  html += '</div></div>';
+  document.getElementById('page-home').innerHTML = html;
 }
 
 
