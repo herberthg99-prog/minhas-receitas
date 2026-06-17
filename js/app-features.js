@@ -66,16 +66,18 @@ function selectUser(role) {
     hint.textContent = 'Acesso completo ao app de receitas';
 
     const hasPwd = !!getAdminPwd();
+    // Even without local pwd, cloud might have it - show login form
+    setup.style.display = hasPwd ? 'none' : 'block';
+    confirm.style.display = hasPwd ? 'none' : 'block';
+    loginBtn.textContent = hasPwd ? 'Entrar como Admin' : 'Criar senha e entrar';
+    forgot.style.display = hasPwd ? 'inline-block' : 'none';
     if (!hasPwd) {
-      setup.style.display = 'block';
-      confirm.style.display = 'block';
-      loginBtn.textContent = 'Criar senha e entrar';
-      forgot.style.display = 'none';
-    } else {
-      setup.style.display = 'none';
+      // Show hint that cloud will be checked
+      hint.textContent = 'Se já tem senha em outro dispositivo, digite ela aqui.';
+      setup.innerHTML = '<p>👋 Primeira vez neste dispositivo?</p><span style="font-size:12px;color:var(--text2)">Se já criou senha em outro dispositivo, basta digitar ela. Se for a primeira vez, crie uma senha nova.</span>';
+      // Show just pwd field, hide confirm
       confirm.style.display = 'none';
-      loginBtn.textContent = 'Entrar como Admin';
-      forgot.style.display = 'inline-block';
+      loginBtn.textContent = 'Entrar / Criar senha';
     }
   } else {
     guestBtn.style.background = 'var(--blue)';
@@ -108,26 +110,78 @@ async function doLogin() {
   if (!pwd) { err.textContent = 'Digite a senha'; return; }
 
   if (currentLoginRole === 'admin') {
-    const hasPwd = !!getAdminPwd();
-    if (!hasPwd) {
-      const pwd2 = document.getElementById('login-pwd2').value;
-      if (!pwd2) { err.textContent = 'Confirme a senha'; return; }
-      if (pwd !== pwd2) { err.textContent = 'As senhas não conferem'; return; }
-      if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
-      setAdminPwd(pwd);
-      setSession('admin');
-      revelarApp();
-      toast('Senha criada! Bem-vindo, Administrador!');
-    } else {
-      if (pwd !== getAdminPwd()) {
+    const loginBtn = document.getElementById('login-btn-label');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Verificando...';
+
+    // Always check Supabase first for admin password
+    try {
+      const { data: cfgs } = await sb.from('config')
+        .select('admin_pwd')
+        .eq('user_id', USER_ID)
+        .limit(1);
+
+      const cloudPwd = cfgs && cfgs.length > 0 ? (cfgs[0].admin_pwd || '') : '';
+      const localPwd = getAdminPwd();
+
+      // No password anywhere = first time setup
+      const hasPwd = !!(cloudPwd || localPwd);
+
+      if (!hasPwd) {
+        const pwd2 = document.getElementById('login-pwd2').value;
+        if (!pwd2) { err.textContent = 'Confirme a senha'; loginBtn.disabled=false; loginBtn.textContent='Criar senha e entrar'; return; }
+        if (pwd !== pwd2) { err.textContent = 'As senhas não conferem'; loginBtn.disabled=false; loginBtn.textContent='Criar senha e entrar'; return; }
+        if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; loginBtn.disabled=false; loginBtn.textContent='Criar senha e entrar'; return; }
+        // Save to both local and cloud
+        setAdminPwd(pwd);
+        await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: pwd }, { onConflict: 'user_id' });
+        setSession('admin');
+        revelarApp();
+        toast('Senha criada! Bem-vindo, Administrador!');
+        return;
+      }
+
+      // Verify against cloud first, then local
+      const matched = (cloudPwd && pwd === cloudPwd) || (localPwd && pwd === localPwd);
+      if (!matched) {
         err.textContent = 'Senha incorreta';
         shakeLoginBox();
         document.getElementById('login-pwd').value = '';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Entrar como Admin';
+        return;
+      }
+
+      // Sync: save cloud pwd locally too
+      if (cloudPwd && cloudPwd !== localPwd) setAdminPwd(cloudPwd);
+      if (localPwd && !cloudPwd) {
+        // Upload local pwd to cloud
+        await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: localPwd }, { onConflict: 'user_id' });
+      }
+
+      setSession('admin');
+      revelarApp();
+      toast('Bem-vindo, Administrador!');
+    } catch(e) {
+      // Fallback to local
+      const localPwd = getAdminPwd();
+      if (!localPwd) {
+        err.textContent = 'Sem conexão. Tente novamente.';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Entrar como Admin';
+        return;
+      }
+      if (pwd !== localPwd) {
+        err.textContent = 'Senha incorreta';
+        shakeLoginBox();
+        document.getElementById('login-pwd').value = '';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Entrar como Admin';
         return;
       }
       setSession('admin');
       revelarApp();
-      toast('Bem-vindo, Administrador!');
+      toast('Bem-vindo! (modo offline)');
     }
   } else {
     // Guest login - check Supabase first, fallback to local
@@ -189,9 +243,14 @@ function shakeLoginBox() {
   setTimeout(() => box.style.animation = '', 400);
 }
 
-function forgotPwd() {
-  const ok = confirm('Isso vai redefinir a senha de administrador e apagar os dados locais. Continuar?');
+async function forgotPwd() {
+  const ok = confirm('Isso vai redefinir a senha de administrador em TODOS os dispositivos. Continuar?');
   if (!ok) return;
+  // Clear cloud
+  try {
+    await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: null }, { onConflict: 'user_id' });
+  } catch(e) {}
+  // Clear local
   localStorage.removeItem(ADMIN_PWD_KEY);
   localStorage.removeItem('mr_user_id');
   localStorage.removeItem('mr_v4_recipes');
@@ -1685,4 +1744,3 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
-
