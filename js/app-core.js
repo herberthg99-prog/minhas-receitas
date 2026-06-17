@@ -250,7 +250,7 @@ function buildSubAbas(cat) {
   var html = '<button class="sub-aba act" id="sub-all" onclick="setSubAba(\'\')">Todas</button>';
   recipeGroups.forEach(function(g) {
     var safeId = g.replace(/[^a-zA-Z0-9]/g,'_');
-    html += '<button class="sub-aba" id="sub-' + safeId + '" onclick="setSubAba('' + g + '')">' + g + '</button>';
+    html += '<button class="sub-aba" id="sub-' + safeId + '" onclick="setSubAba(\'' + g + '\')">'+g+'</button>';
   });
   container.innerHTML = html;
 }
