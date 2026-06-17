@@ -3070,18 +3070,106 @@ function imprimirReceita() {
 // ═══ TELA CHEIA RECEITA ═══
 let _receitaFull = false;
 function toggleFullReceita() {
-  _receitaFull = !_receitaFull;
-  const sheet = document.querySelector('#modal-view .sheet');
-  const ico = document.getElementById('ico-full');
-  if (_receitaFull) {
-    sheet.classList.add('sheet-fullscreen');
-    if (ico) ico.className = 'ti ti-minimize';
-    document.getElementById('modal-view').style.justifyContent = 'flex-start';
-  } else {
-    sheet.classList.remove('sheet-fullscreen');
-    if (ico) ico.className = 'ti ti-maximize';
-    document.getElementById('modal-view').style.justifyContent = 'flex-end';
+  const vt = document.getElementById('vt');
+  const id = vt ? vt.dataset.rid : null;
+  if (!id) return;
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  abrirModoCoZinha(r);
+}
+
+function abrirModoCoZinha(r) {
+  const ratio = getRatio(r);
+  const p = calcAt(r, ratio);
+  const passos = (r.preparo || '').split('\n').filter(l => l.trim());
+
+  const passosHTML = passos.map((ln, i) =>
+    '<div style="display:flex;gap:14px;align-items:flex-start;padding:14px 16px;background:rgba(255,255,255,.06);border-radius:10px;border-left:4px solid #C8A35B;margin-bottom:10px">'
+    + '<span style="font-size:22px;font-weight:800;color:#C8A35B;flex-shrink:0;min-width:28px;font-family:Georgia,serif">' + String.fromCharCode(65+i) + ')</span>'
+    + '<span style="font-size:18px;line-height:1.8;color:#F0E6CC">' + ln.trim() + '</span>'
+    + '</div>'
+  ).join('');
+
+  const ingrsHTML = p.scaled.map(ig => {
+    const q = parseFloat(ig.qty||0);
+    const qtdStr = q>=100?q.toFixed(0):q>=10?q.toFixed(1):q.toFixed(2);
+    return '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(200,163,91,.2);align-items:center">'
+      + '<span style="font-size:16px;color:#F0E6CC;'+(ig.isBase?'font-weight:800':'')+'">'+(ig.isBase?'⭐ ':'')+ig.name+'</span>'
+      + '<span style="font-size:15px;font-weight:700;color:#C8A35B;white-space:nowrap;margin-left:12px">'+ qtdStr +' '+(ig.unit||'')+'</span>'
+      + '</div>';
+  }).join('');
+
+  const fotoHTML = (r.photos && r.photos[0])
+    ? '<img src="'+r.photos[0]+'" style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.4)">'
+    : '';
+
+  // Criar overlay full screen
+  let overlay = document.getElementById('cozinha-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'cozinha-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#1A1208;z-index:9999;overflow-y:auto;-webkit-overflow-scrolling:touch';
+    document.body.appendChild(overlay);
   }
+
+  overlay.innerHTML = ''
+    // HEADER
+    + '<div style="background:linear-gradient(135deg,#1A1208,#2C1E0A);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(200,163,91,.3)">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="height:34px;filter:drop-shadow(0 1px 6px rgba(200,163,91,.4))">'
+        + '<div>'
+          + '<div style="font-size:18px;font-weight:800;color:#F0E6CC;font-family:Georgia,serif">' + r.name + '</div>'
+          + '<div style="font-size:11px;color:#B8972A;text-transform:uppercase;letter-spacing:.1em">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
+        + '</div>'
+      + '</div>'
+      + '<button onclick="document.getElementById('cozinha-overlay').remove()" style="background:rgba(255,255,255,.1);border:1px solid rgba(200,163,91,.3);color:#C8A35B;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>'
+    + '</div>'
+
+    // CONTEÚDO
+    + '<div style="padding:20px;max-width:700px;margin:0 auto">'
+
+      // INFO RÁPIDA
+      + '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">'
+        + '<div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px">'
+          + '<div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Rendimento</div>'
+          + '<div style="font-size:16px;font-weight:800;color:#F0E6CC">'+(r.yield_qty||r.yield||6)+' '+(r.unit||'porções')+'</div>'
+        + '</div>'
+        + '<div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px">'
+          + '<div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Tempo</div>'
+          + '<div style="font-size:16px;font-weight:800;color:#F0E6CC">'+(r.time?(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':'')):'—')+'</div>'
+        + '</div>'
+        + '<div style="background:rgba(200,83,58,.2);border:1px solid rgba(200,83,58,.4);border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px">'
+          + '<div style="font-size:10px;color:#E8A090;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Custo</div>'
+          + '<div style="font-size:16px;font-weight:800;color:#FFB09A">R$ '+p.cost.toFixed(2)+'</div>'
+        + '</div>'
+        + '<div style="background:rgba(15,110,86,.2);border:1px solid rgba(15,110,86,.4);border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px">'
+          + '<div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Venda</div>'
+          + '<div style="font-size:16px;font-weight:800;color:#9FE1CB">R$ '+p.sale.toFixed(2)+'</div>'
+        + '</div>'
+      + '</div>'
+
+      // FOTO
+      + fotoHTML
+
+      // INGREDIENTES
+      + '<div style="margin-bottom:24px">'
+        + '<div style="font-size:13px;font-weight:800;color:#C8A35B;text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;display:flex;align-items:center;gap:8px">'
+          + '<span style="display:inline-block;width:3px;height:16px;background:#C8A35B;border-radius:2px"></span> Ingredientes'
+        + '</div>'
+        + ingrsHTML
+      + '</div>'
+
+      // MODO DE PREPARO
+      + (passos.length ? '<div>'
+        + '<div style="font-size:13px;font-weight:800;color:#C8A35B;text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px;display:flex;align-items:center;gap:8px">'
+          + '<span style="display:inline-block;width:3px;height:16px;background:#C8A35B;border-radius:2px"></span> Modo de Preparo'
+        + '</div>'
+        + passosHTML
+        + '</div>' : '')
+
+    + '</div>';
+
+  overlay.style.display = 'block';
 }
 
 </script>
