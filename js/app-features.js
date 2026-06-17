@@ -123,11 +123,20 @@ async function doLogin() {
     // Always check Supabase first for admin password
     try {
       const { data: cfgs } = await sb.from('config')
-        .select('admin_pwd')
+        .select('share_pwd, admin_pwd')
         .eq('user_id', USER_ID)
         .limit(1);
 
-      const cloudPwd = cfgs && cfgs.length > 0 ? (cfgs[0].admin_pwd || '') : '';
+      // admin_pwd column OR encoded in share_pwd with prefix "adm:"
+      let cloudPwd = '';
+      if (cfgs && cfgs.length > 0) {
+        const row = cfgs[0];
+        if (row.admin_pwd) {
+          cloudPwd = row.admin_pwd;
+        } else if (row.share_pwd && row.share_pwd.startsWith('adm:')) {
+          cloudPwd = row.share_pwd.slice(4);
+        }
+      }
       const localPwd = getAdminPwd();
 
       // No password anywhere = first time setup
@@ -140,7 +149,12 @@ async function doLogin() {
         if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; loginBtn.disabled=false; loginBtn.textContent='Criar senha e entrar'; return; }
         // Save to both local and cloud
         setAdminPwd(pwd);
-        await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: pwd }, { onConflict: 'user_id' });
+        try {
+          await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: pwd }, { onConflict: 'user_id' });
+        } catch(e2) {
+          // Fallback: store encoded in share_pwd temporarily  
+          await sb.from('config').upsert({ user_id: USER_ID, share_pwd: 'adm:' + pwd }, { onConflict: 'user_id' });
+        }
         setSession('admin');
         revelarApp();
         _safeToast('Senha criada! Bem-vindo, Administrador!');
@@ -162,7 +176,11 @@ async function doLogin() {
       if (cloudPwd && cloudPwd !== localPwd) setAdminPwd(cloudPwd);
       if (localPwd && !cloudPwd) {
         // Upload local pwd to cloud
-        await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: localPwd }, { onConflict: 'user_id' });
+        try {
+          await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: localPwd }, { onConflict: 'user_id' });
+        } catch(e2) {
+          await sb.from('config').upsert({ user_id: USER_ID, share_pwd: 'adm:' + localPwd }, { onConflict: 'user_id' });
+        }
       }
 
       setSession('admin');
@@ -254,7 +272,7 @@ async function forgotPwd() {
   if (!ok) return;
   // Clear cloud
   try {
-    await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: null }, { onConflict: 'user_id' });
+    await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: null, share_pwd: null }, { onConflict: 'user_id' });
   } catch(e) {}
   // Clear local
   localStorage.removeItem(ADMIN_PWD_KEY);
@@ -1177,7 +1195,7 @@ async function salvarSenhaConvidado() {
   shareConfig.pwd = p;
   try {
     const uid = (USER_ID||'').trim();
-    await sb.from('config').upsert({ user_id: uid, share_pwd: p }, { onConflict: 'user_id' });
+    await sb.from('config').upsert({ user_id: uid, share_pwd: p, admin_pwd: getAdminPwd()||null }, { onConflict: 'user_id' });
     toast('✅ Senha do convidado salva na nuvem!');
   } catch(e) { toast('Senha salva localmente'); }
   if (st) { st.style.color = 'var(--teal)'; st.innerHTML = '<i class="ti ti-lock"></i> Senha definida!'; }
@@ -1750,4 +1768,3 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
-
