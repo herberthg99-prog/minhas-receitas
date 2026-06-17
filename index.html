@@ -762,7 +762,6 @@ function renderHome() {
 
   document.getElementById('page-home').innerHTML = \`
 
-    <!-- BANNER BOAS-VINDAS -->
     <div style="background:linear-gradient(135deg,#1A1208 0%,#2C1E0A 60%,#3D2A0E 100%);border-radius:16px;padding:22px 20px 18px;margin-bottom:16px;position:relative;overflow:hidden">
       <div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.18) 0%,transparent 70%)"></div>
       <div style="position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.12) 0%,transparent 70%)"></div>
@@ -787,7 +786,6 @@ function renderHome() {
       </div>
     </div>
 
-    <!-- PRÓXIMO PEDIDO -->
     ${proximoPedido ? \`
     <div style="background:linear-gradient(135deg,#FFF8E6,#FFF3D0);border:1.5px solid rgba(200,163,91,.4);border-radius:14px;padding:14px 16px;margin-bottom:16px;cursor:pointer" onclick="goPage('confeitaria')">
       <div style="font-size:10px;font-weight:800;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">🔔 Próximo pedido</div>
@@ -799,7 +797,6 @@ function renderHome() {
       </div>
     </div>\` : ''}
 
-    <!-- AÇÕES RÁPIDAS -->
     <div style="margin-bottom:16px">
       <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Acesso rápido</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -822,7 +819,6 @@ function renderHome() {
       </div>
     </div>
 
-    <!-- RECEITAS RECENTES -->
     <div>
       <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
         <span>Receitas recentes</span>
