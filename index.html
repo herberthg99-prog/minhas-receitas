@@ -36,7 +36,7 @@ button{font-family:inherit;cursor:pointer}
 @keyframes pulse{to{opacity:.2}}
 .content{flex:1;padding:14px 14px 80px}
 .page{display:none}.page.act{display:block}
-.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:100%;background:linear-gradient(to top,#0E0902,#1A1005);border-top:1px solid rgba(200,163,91,.25);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.5)}
+.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:linear-gradient(to top,#0E0902,#1A1005);border-top:1px solid rgba(200,163,91,.25);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.5)}
 .bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;border:none;background:none;font-size:10px;color:rgba(200,163,91,.38);font-family:inherit;cursor:pointer;transition:color .2s}
 .bni i{font-size:22px}.bni.act{color:#C8A35B}
 .card{background:rgba(30,20,8,.92);border:1px solid rgba(200,163,91,.2);border-radius:var(--radius);padding:14px;margin-bottom:12px}
@@ -226,62 +226,121 @@ button{font-family:inherit;cursor:pointer}
 .total-row.grand{font-size:17px;font-weight:700;color:var(--gold);border-bottom:none;border-top:1.5px solid var(--border);margin-top:6px;padding-top:8px}
 .total-row.saldo{font-size:14px;font-weight:700;color:var(--teal)}
 
-/* Tela cheia */
+/* ─── TELA CHEIA ─── */
 .app { max-width: 100% !important; }
 .bottomnav { max-width: 100% !important; }
+.content { padding: 14px 16px 90px; }
 
-/* Botões de categoria */
-.cat-btn-active {
-  border-color: var(--gold) !important;
-  background: var(--gold) !important;
-  color: #fff !important;
+/* ─── GRID ESTILO PANELINHA ─── */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
+@media (min-width: 600px) { .recipes-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .recipes-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Lista de receitas — estilo linha */
-.rc-list {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: linear-gradient(160deg,#1E1408,#2A1C0A);
-  border: 1px solid rgba(200,163,91,.22);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  padding: 10px 12px;
+.rc-card {
+  background: #1E1408;
+  border-radius: 12px;
+  overflow: hidden;
   cursor: pointer;
+  border: 1px solid rgba(200,163,91,.18);
+  transition: transform .15s, box-shadow .15s;
   position: relative;
 }
-.rc-list.shared { border-left: 3px solid var(--blue); }
-.rc-list-thumb {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+.rc-card:active { transform: scale(.97); }
+.rc-card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  flex-shrink: 0;
-  background: var(--bg);
+  display: block;
+  background: #2A1C0A;
+}
+.rc-card-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #2A1C0A, #1A1208);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(200,163,91,.2);
+  font-size: 40px;
 }
-.rc-list-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.rc-list-thumb i { font-size: 22px; color: var(--text3); }
-.rc-list-info { flex: 1; min-width: 0; }
-.rc-list-name { font-size: 14px; font-weight: 700; color: #F5EDD8; font-family: Georgia,serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rc-list-meta { font-size: 11px; color: var(--text2); display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; align-items: center; }
-.rc-list-actions { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
-.rc-list-btn { background: none; border: none; color: var(--text2); font-size: 18px; padding: 6px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color .15s, background .15s; }
-.rc-list-btn:hover { background: rgba(200,163,91,.1); color: var(--gold); }
-.rc-list-btn.btn-ver { color: var(--blue); }
-.rc-list-btn.btn-edit { color: var(--teal); }
-.rc-list-btn.btn-share { color: var(--text3); }
-.rc-list-btn.btn-share.active { color: var(--blue); }
-.rc-list-btn.btn-max { color: var(--gold); }
-.rc-list-btn.btn-del { color: #A32D2D; }
+.rc-card-body {
+  padding: 8px 10px 10px;
+}
+.rc-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #F5EDD8;
+  font-family: Georgia, serif;
+  line-height: 1.3;
+  margin-bottom: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rc-card-meta {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rc-card-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 4px;
+  border-top: 1px solid rgba(200,163,91,.12);
+  margin-top: 6px;
+}
+.rc-card-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 17px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color .15s;
+  display: flex;
+  align-items: center;
+}
+.rc-card-btn.azul { color: var(--blue); }
+.rc-card-btn.verde { color: var(--teal); }
+.rc-card-btn.ouro { color: var(--gold); }
+.rc-card-btn.vermelho { color: #A32D2D; }
+.rc-card-btn.shared-on { color: var(--blue); }
+.rc-card-shared-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+.rc-card-lucro {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+}
 
 /* Separador alfabético */
-.alpha-sep { font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: .1em; padding: 8px 4px 4px; text-transform: uppercase; border-bottom: 1px solid rgba(200,163,91,.15); margin-bottom: 6px; margin-top: 8px; }
-.alpha-sep:first-child { margin-top: 0; }
+.alpha-divider {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 6px 2px 3px;
+  border-bottom: 1px solid rgba(200,163,91,.2);
+  margin-bottom: 2px;
+}
+.alpha-divider:first-child { padding-top: 0; }
 </style>
 </head>
 <body>
@@ -352,32 +411,32 @@ button{font-family:inherit;cursor:pointer}
 <div class="content">
   <div class="page act" id="page-home"></div>
   <div class="page" id="page-receitas">
-    <!-- Filtros de categoria -->
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button id="cat-btn-all" onclick="setCatFilter('')"
-        style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-        🍽️ Todas
+    <!-- Filtros tipo Panelinha -->
+    <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="cat-all" onclick="setCatFilter('')"
+        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+        🍽 Todas
       </button>
-      <button id="cat-btn-doce" onclick="setCatFilter('doce')"
-        style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+      <button id="cat-doce" onclick="setCatFilter('doce')"
+        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
         🍰 Doces
       </button>
-      <button id="cat-btn-salgada" onclick="setCatFilter('salgada')"
-        style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+      <button id="cat-salgada" onclick="setCatFilter('salgada')"
+        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
         🥩 Salgadas
       </button>
     </div>
-    <!-- Busca e grupos -->
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <input type="text" placeholder="🔍 Buscar receita..." id="si" oninput="renderRecipes()"
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()"
         style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
       <select id="fg2" onchange="renderRecipes()"
-        style="padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit">
+        style="padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;max-width:110px">
         <option value="">Grupos</option>
       </select>
     </div>
-    <!-- Hidden select mantido para compatibilidade com renderRecipes() -->
-    <select id="fc" onchange="renderRecipes()" style="display:none"><option value="">Todas</option><option value="doce">Doces</option><option value="salgada">Salgadas</option></select>
+    <select id="fc" onchange="renderRecipes()" style="display:none">
+      <option value="">Todas</option><option value="doce">Doces</option><option value="salgada">Salgadas</option>
+    </select>
     <div id="recipes-list"></div>
   </div>
   <div class="page" id="page-confeitaria"></div>
@@ -824,48 +883,102 @@ async function syncNow() {
 // ═══════════════════════════════════════════
 // RENDER RECIPES
 // ═══════════════════════════════════════════
+// ─── Filtro de categoria ───────────────────
+function setCatFilter(val) {
+  document.getElementById('fc').value = val;
+  ['all','doce','salgada'].forEach(k => {
+    var btn = document.getElementById('cat-' + k);
+    if (!btn) return;
+    var active = (k === 'all' && val === '') || k === val;
+    btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
+    btn.style.background  = active ? 'var(--gold)' : 'var(--bg)';
+    btn.style.color       = active ? '#fff' : 'var(--text2)';
+  });
+  renderRecipes();
+}
+
 function renderRecipes() {
-  const q = (document.getElementById('si').value || '').toLowerCase();
-  const cat = document.getElementById('fc').value;
-  const grp = document.getElementById('fg2').value;
-  const list = recipes.filter(r => (!q || (r.name || '').toLowerCase().includes(q)) && (!cat || r.cat === cat) && (!grp || r.group === grp));
-  const el = document.getElementById('recipes-list');
-  if (!list.length) { el.innerHTML = `<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>`; return; }
-  const guest = isGuest();
-  // For guests, only show shared recipes
-  if (guest) list = list.filter(r => shareConfig.sharedIds.includes(r.id));
-  if (!list.length && guest) {
-    el.innerHTML = '<div class="est"><i class="ti ti-eye-off"></i><p>Nenhuma receita compartilhada.</p></div>';
+  var q   = (document.getElementById('si').value || '').toLowerCase();
+  var cat = document.getElementById('fc').value;
+  var grp = document.getElementById('fg2').value;
+  var el  = document.getElementById('recipes-list');
+  var guest = isGuest();
+
+  var list = recipes.filter(function(r) {
+    return (!q || (r.name||'').toLowerCase().includes(q))
+        && (!cat || r.cat === cat)
+        && (!grp || r.group === grp);
+  });
+  if (guest) list = list.filter(function(r){ return shareConfig.sharedIds.includes(r.id); });
+
+  if (!list.length) {
+    el.innerHTML = guest
+      ? '<div class="est"><i class="ti ti-eye-off"></i><p>Nenhuma receita compartilhada.</p></div>'
+      : '<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>';
     return;
   }
-  el.innerHTML = list.map(r => {
-    const p = calcAt(r, 1); const pct = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
-    const b = getBase(r); const shared = shareConfig.sharedIds.includes(r.id);
-    const mainPhoto = r.photos && r.photos[0];
-    return `<div class="rc ${shared ? 'shared' : ''}">
-      ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:140px;object-fit:cover">` : ''}
-      <div class="rn">${r.name}</div>
-      <div class="rm" style="margin-top:4px">
-        <span class="tag t${r.cat[0]}">${r.cat}</span>
-        ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
-        ${b && !guest ? `<span class="badge badge-teal"><i class="ti ti-star" style="font-size:10px"></i> ${b.name}</span>` : ''}
-        <span><i class="ti ti-clock"></i> ${fT(r.time)}</span>
-        ${!guest ? `<span class="pb ${pctClass(pct)}">${pct.toFixed(0)}% lucro</span>` : ''}
-        ${r.comment ? `<span><i class="ti ti-message"></i></span>` : ''}
-        ${r.formasEnabled && r.formas && r.formas.length ? `<span><i class="ti ti-cake"></i> ${r.formas.length}</span>` : ''}
-      </div>
-      <div class="racts">
-        <button class="rb" onclick="viewRecipe('${r.id}')"><i class="ti ti-eye"></i> Ver</button>
-        ${!guest ? `
-        <button class="rb" onclick="openEdit('${r.id}')"><i class="ti ti-edit"></i> Editar</button>
-        <button class="rb ${shared ? 'share-active' : ''}" onclick="toggleShare('${r.id}',this)">
-          <i class="ti ti-${shared ? 'share-3' : 'share'}"></i> ${shared ? 'Compartilhando' : 'Compartilhar'}
-        </button>
-        <button class="rb" style="color:#A32D2D" onclick="delRecipe('${r.id}')"><i class="ti ti-trash"></i></button>
-        ` : ''}
-      </div>
-    </div>`;
-  }).join('');
+
+  // Ordenar alfabeticamente
+  list = list.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','pt-BR'); });
+
+  var html = '<div class="recipes-grid">';
+  var lastLetra = '';
+
+  list.forEach(function(r) {
+    var letra = (r.name||'?')[0].toUpperCase();
+    if (letra !== lastLetra) {
+      html += '<div class="alpha-divider">' + letra + '</div>';
+      lastLetra = letra;
+    }
+
+    var shared  = shareConfig.sharedIds.includes(r.id);
+    var photo   = r.photos && r.photos[0];
+    var p       = calcAt(r, 1);
+    var pct     = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
+    var emoji   = r.cat === 'doce' ? '🍰' : '🥩';
+
+    html += '<div class="rc-card" onclick="viewRecipe('' + r.id + '')">';
+
+    // Badge compartilhado
+    if (shared) html += '<div class="rc-card-shared-badge"><i class="ti ti-share" style="font-size:9px"></i></div>';
+
+    // Badge lucro (só admin)
+    if (!guest && p.cost > 0) {
+      html += '<div class="rc-card-lucro"><span class="pb ' + pctClass(pct) + '" style="font-size:9px">' + pct.toFixed(0) + '%</span></div>';
+    }
+
+    // Foto ou placeholder
+    if (photo) {
+      html += '<img class="rc-card-thumb" src="' + photo + '" alt="' + r.name + '" loading="lazy">';
+    } else {
+      html += '<div class="rc-card-thumb-placeholder">' + emoji + '</div>';
+    }
+
+    // Info
+    html += '<div class="rc-card-body">'
+      + '<div class="rc-card-name">' + r.name + '</div>'
+      + '<div class="rc-card-meta">'
+      + '<span class="tag t' + r.cat[0] + '" style="font-size:9px">' + r.cat + '</span>'
+      + (r.group ? '<span class="badge badge-blue" style="font-size:9px">' + r.group + '</span>' : '')
+      + (r.time ? '<span style="font-size:10px;color:var(--text3)"><i class="ti ti-clock"></i> ' + fT(r.time) + '</span>' : '')
+      + '</div>';
+
+    // Ações
+    if (!guest) {
+      html += '<div class="rc-card-actions" onclick="event.stopPropagation()">'
+        + '<button class="rc-card-btn azul" onclick="viewRecipe('' + r.id + '')" title="Ver"><i class="ti ti-eye"></i></button>'
+        + '<button class="rc-card-btn verde" onclick="openEdit('' + r.id + '')" title="Editar"><i class="ti ti-edit"></i></button>'
+        + '<button class="rc-card-btn ' + (shared ? 'shared-on' : '') + '" onclick="toggleShare('' + r.id + '',this)" title="Compartilhar"><i class="ti ti-' + (shared ? 'share-3' : 'share') + '"></i></button>'
+        + '<button class="rc-card-btn ouro" onclick="viewRecipe('' + r.id + '');setTimeout(toggleFullReceita,300)" title="Tela cheia"><i class="ti ti-maximize"></i></button>'
+        + '<button class="rc-card-btn vermelho" onclick="delRecipe('' + r.id + '')" title="Excluir"><i class="ti ti-trash"></i></button>'
+        + '</div>';
+    }
+
+    html += '</div></div>'; // fecha rc-card-body e rc-card
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
 }
 
 async function toggleShare(id, btn) {
@@ -3118,62 +3231,121 @@ function imprimirReceita() {
   }).join('');
 
   let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+r.name+'</title><style>'+css+'
-/* Tela cheia */
+/* ─── TELA CHEIA ─── */
 .app { max-width: 100% !important; }
 .bottomnav { max-width: 100% !important; }
+.content { padding: 14px 16px 90px; }
 
-/* Botões de categoria */
-.cat-btn-active {
-  border-color: var(--gold) !important;
-  background: var(--gold) !important;
-  color: #fff !important;
+/* ─── GRID ESTILO PANELINHA ─── */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
+@media (min-width: 600px) { .recipes-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .recipes-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Lista de receitas — estilo linha */
-.rc-list {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: linear-gradient(160deg,#1E1408,#2A1C0A);
-  border: 1px solid rgba(200,163,91,.22);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  padding: 10px 12px;
+.rc-card {
+  background: #1E1408;
+  border-radius: 12px;
+  overflow: hidden;
   cursor: pointer;
+  border: 1px solid rgba(200,163,91,.18);
+  transition: transform .15s, box-shadow .15s;
   position: relative;
 }
-.rc-list.shared { border-left: 3px solid var(--blue); }
-.rc-list-thumb {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+.rc-card:active { transform: scale(.97); }
+.rc-card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  flex-shrink: 0;
-  background: var(--bg);
+  display: block;
+  background: #2A1C0A;
+}
+.rc-card-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #2A1C0A, #1A1208);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(200,163,91,.2);
+  font-size: 40px;
 }
-.rc-list-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.rc-list-thumb i { font-size: 22px; color: var(--text3); }
-.rc-list-info { flex: 1; min-width: 0; }
-.rc-list-name { font-size: 14px; font-weight: 700; color: #F5EDD8; font-family: Georgia,serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rc-list-meta { font-size: 11px; color: var(--text2); display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; align-items: center; }
-.rc-list-actions { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
-.rc-list-btn { background: none; border: none; color: var(--text2); font-size: 18px; padding: 6px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color .15s, background .15s; }
-.rc-list-btn:hover { background: rgba(200,163,91,.1); color: var(--gold); }
-.rc-list-btn.btn-ver { color: var(--blue); }
-.rc-list-btn.btn-edit { color: var(--teal); }
-.rc-list-btn.btn-share { color: var(--text3); }
-.rc-list-btn.btn-share.active { color: var(--blue); }
-.rc-list-btn.btn-max { color: var(--gold); }
-.rc-list-btn.btn-del { color: #A32D2D; }
+.rc-card-body {
+  padding: 8px 10px 10px;
+}
+.rc-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #F5EDD8;
+  font-family: Georgia, serif;
+  line-height: 1.3;
+  margin-bottom: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rc-card-meta {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rc-card-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 4px;
+  border-top: 1px solid rgba(200,163,91,.12);
+  margin-top: 6px;
+}
+.rc-card-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 17px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color .15s;
+  display: flex;
+  align-items: center;
+}
+.rc-card-btn.azul { color: var(--blue); }
+.rc-card-btn.verde { color: var(--teal); }
+.rc-card-btn.ouro { color: var(--gold); }
+.rc-card-btn.vermelho { color: #A32D2D; }
+.rc-card-btn.shared-on { color: var(--blue); }
+.rc-card-shared-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+.rc-card-lucro {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+}
 
 /* Separador alfabético */
-.alpha-sep { font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: .1em; padding: 8px 4px 4px; text-transform: uppercase; border-bottom: 1px solid rgba(200,163,91,.15); margin-bottom: 6px; margin-top: 8px; }
-.alpha-sep:first-child { margin-top: 0; }
+.alpha-divider {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 6px 2px 3px;
+  border-bottom: 1px solid rgba(200,163,91,.2);
+  margin-bottom: 2px;
+}
+.alpha-divider:first-child { padding-top: 0; }
 </style></head><body>'
     + '<div class="page">'
     + '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" class="logo" alt="Sucrée"><div class="rtitle">'+r.name+'</div><div class="rsub">'+r.cat+(r.group?' · '+r.group:'')+'</div></div>'
@@ -3202,62 +3374,121 @@ function imprimirPedidoCozinha(id) {
   const lucro = parseFloat(p.valorTotal||0) - custo;
   const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#120D05;color:var(--text);font-size:15px;min-height:100vh}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{width:110px;height:auto;margin-bottom:6px}.hdr h1{font-size:18px;color:#2C1800}.num{font-size:11px;color:#888}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right;max-width:60%}.inspi{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:6px}.obs{background:#f9f9f9;border-left:3px solid #C8A35B;padding:7px 10px;font-size:12px;color:#555;font-style:italic;border-radius:0 6px 6px 0;margin-top:6px}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
   let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Pedido — '+p.cliente+'</title><style>'+css+'
-/* Tela cheia */
+/* ─── TELA CHEIA ─── */
 .app { max-width: 100% !important; }
 .bottomnav { max-width: 100% !important; }
+.content { padding: 14px 16px 90px; }
 
-/* Botões de categoria */
-.cat-btn-active {
-  border-color: var(--gold) !important;
-  background: var(--gold) !important;
-  color: #fff !important;
+/* ─── GRID ESTILO PANELINHA ─── */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
+@media (min-width: 600px) { .recipes-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .recipes-grid { grid-template-columns: repeat(4, 1fr); } }
 
-/* Lista de receitas — estilo linha */
-.rc-list {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: linear-gradient(160deg,#1E1408,#2A1C0A);
-  border: 1px solid rgba(200,163,91,.22);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  padding: 10px 12px;
+.rc-card {
+  background: #1E1408;
+  border-radius: 12px;
+  overflow: hidden;
   cursor: pointer;
+  border: 1px solid rgba(200,163,91,.18);
+  transition: transform .15s, box-shadow .15s;
   position: relative;
 }
-.rc-list.shared { border-left: 3px solid var(--blue); }
-.rc-list-thumb {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+.rc-card:active { transform: scale(.97); }
+.rc-card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  flex-shrink: 0;
-  background: var(--bg);
+  display: block;
+  background: #2A1C0A;
+}
+.rc-card-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #2A1C0A, #1A1208);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 1px solid rgba(200,163,91,.2);
+  font-size: 40px;
 }
-.rc-list-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.rc-list-thumb i { font-size: 22px; color: var(--text3); }
-.rc-list-info { flex: 1; min-width: 0; }
-.rc-list-name { font-size: 14px; font-weight: 700; color: #F5EDD8; font-family: Georgia,serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rc-list-meta { font-size: 11px; color: var(--text2); display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; align-items: center; }
-.rc-list-actions { display: flex; gap: 5px; flex-shrink: 0; align-items: center; }
-.rc-list-btn { background: none; border: none; color: var(--text2); font-size: 18px; padding: 6px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color .15s, background .15s; }
-.rc-list-btn:hover { background: rgba(200,163,91,.1); color: var(--gold); }
-.rc-list-btn.btn-ver { color: var(--blue); }
-.rc-list-btn.btn-edit { color: var(--teal); }
-.rc-list-btn.btn-share { color: var(--text3); }
-.rc-list-btn.btn-share.active { color: var(--blue); }
-.rc-list-btn.btn-max { color: var(--gold); }
-.rc-list-btn.btn-del { color: #A32D2D; }
+.rc-card-body {
+  padding: 8px 10px 10px;
+}
+.rc-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #F5EDD8;
+  font-family: Georgia, serif;
+  line-height: 1.3;
+  margin-bottom: 5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rc-card-meta {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rc-card-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 4px;
+  border-top: 1px solid rgba(200,163,91,.12);
+  margin-top: 6px;
+}
+.rc-card-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 17px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color .15s;
+  display: flex;
+  align-items: center;
+}
+.rc-card-btn.azul { color: var(--blue); }
+.rc-card-btn.verde { color: var(--teal); }
+.rc-card-btn.ouro { color: var(--gold); }
+.rc-card-btn.vermelho { color: #A32D2D; }
+.rc-card-btn.shared-on { color: var(--blue); }
+.rc-card-shared-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+.rc-card-lucro {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+}
 
 /* Separador alfabético */
-.alpha-sep { font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: .1em; padding: 8px 4px 4px; text-transform: uppercase; border-bottom: 1px solid rgba(200,163,91,.15); margin-bottom: 6px; margin-top: 8px; }
-.alpha-sep:first-child { margin-top: 0; }
+.alpha-divider {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 6px 2px 3px;
+  border-bottom: 1px solid rgba(200,163,91,.2);
+  margin-bottom: 2px;
+}
+.alpha-divider:first-child { padding-top: 0; }
 </style></head><body>';
   html += '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"><h1>Pedido para Cozinha</h1><div class="num">'+num+' · '+new Date().toLocaleDateString('pt-BR')+'</div></div>';
   html += '<div class="sec"><div class="st">👤 Cliente</div>';
