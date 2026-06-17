@@ -573,7 +573,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     <div id="et0">
       <div class="fg"><label>Nome da receita</label><input type="text" id="fn" placeholder="Ex: Bolo de cenoura"></div>
       <div class="fr">
-        <div class="fg"><label>Categoria</label><select id="fcat" onchange="checkFormaTab()"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
+        <div class="fg"><label>Categoria</label><select id="fcat" onchange="checkFormaTab();if(typeof updateGrupoSelects==='function')updateGrupoSelects()"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
         <div class="fg"><label>Grupo</label><select id="fgrp" onchange="checkFormaTab()">
           <option value="">Sem grupo</option>
           <option value="Recheios">Recheios</option><option value="Bolos">Bolos</option><option value="Caldas">Caldas</option>
