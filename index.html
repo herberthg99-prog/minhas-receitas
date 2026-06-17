@@ -567,6 +567,9 @@ function calcAt(r, ratio) {
 // ═══════════════════════════════════════════
 // CLOUD: LOAD
 // ═══════════════════════════════════════════
+function getCurrentRole() { return sessionStorage.getItem('mr_role') || 'admin'; }
+function isLoggedIn() { return sessionStorage.getItem('mr_session') === 'ok'; }
+function isGuest() { return getCurrentRole() === 'guest'; }
 async function loadFromCloud() {
   setSyncStatus('syncing', 'carregando...');
   try {
