@@ -13,7 +13,7 @@ let shareConfig = { pwd: '', sharedIds: [] };
 let editId = null, curIngr = [], curPhotos = [], curFormas = [], formasEnabled = false;
 let newMode = null, fotoB64 = null, viewState = {}, rmap = {};
 let syncPending = false;
-let _currentSubGrp = ''; // active sub-aba group filter
+window._currentSubGrp = ''; // active sub-aba group filter
 
 // ═══════ UTILS ═══════
 function genId() { return 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -264,7 +264,7 @@ function setCatFilter(val) {
   // Rebuild sub-abas
   buildSubAbas(val);
   // Reset sub-group filter
-  _currentSubGrp = '';
+  window._currentSubGrp = '';
   renderRecipes();
 }
 
@@ -284,16 +284,16 @@ function buildSubAbas(cat) {
   groups.sort();
   if (!groups.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
   container.style.display = 'flex';
-  var parts = ['<button class="sub-aba act" id="sub-all" onclick="setSubAba(\'\')">Todas</button>'];
+  var parts = ['<button class="sub-aba act" id="sub-all" data-grp="" onclick="setSubAba(this.dataset.grp)">Todas</button>'];
   for (var j = 0; j < groups.length; j++) {
     var g = groups[j];
     var sid = g.replace(/[^a-zA-Z0-9]/g, '_');
-    parts.push('<button class="sub-aba" id="sub-' + sid + '" onclick="setSubAba(\'' + g + '\')">'+g+'</button>');
+    parts.push('<button class="sub-aba" id="sub-' + sid + '" data-grp="' + g + '" onclick="setSubAba(this.dataset.grp)">' + g + '</button>');
   }
   container.innerHTML = parts.join('');
 }
 function setSubAba(grp) {
-  _currentSubGrp = grp || '';
+  window._currentSubGrp = grp || '';
   document.querySelectorAll('.sub-aba').forEach(function(b){ b.classList.remove('act'); });
   var safeId = grp ? grp.replace(/[^a-zA-Z0-9]/g,'_') : 'all';
   var btn = document.getElementById('sub-' + safeId);
@@ -303,7 +303,7 @@ function setSubAba(grp) {
 function renderRecipes() {
   var q   = (document.getElementById('si').value || '').toLowerCase();
   var cat = document.getElementById('fc').value;
-  var grp = _currentSubGrp; // use module var, not hidden select
+  var grp = window._currentSubGrp || ''; // use module var, not hidden select
   var el  = document.getElementById('recipes-list');
   var guest = isGuest();
 
