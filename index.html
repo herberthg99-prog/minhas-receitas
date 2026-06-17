@@ -826,7 +826,7 @@ function renderRecipes() {
   const grp = document.getElementById('fg2').value;
   const list = recipes.filter(r => (!q || (r.name || '').toLowerCase().includes(q)) && (!cat || r.cat === cat) && (!grp || r.group === grp));
   const el = document.getElementById('recipes-list');
-  if (!list.length) { el.innerHTML = `<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>`; return; }
+  if (!list.length) { el.innerHTML = '<div class="est"><i class="ti ti-recipe"></i><p>Nenhuma receita encontrada.</p></div>'; return; }
   const guest = isGuest();
   // For guests, only show shared recipes
   if (guest) list = list.filter(r => shareConfig.sharedIds.includes(r.id));
