@@ -201,17 +201,12 @@ function forgotPwd() {
 }
 
 function enterGuestMode() {
-  // Hide admin-only elements
-  const bottomnav = document.querySelector('.bottomnav');
-  if (bottomnav) {
-    // Hide Nova and Share buttons for guests
-    const btns = bottomnav.querySelectorAll('.bni');
-    btns.forEach(btn => {
-      if (btn.textContent.includes('Nova') || btn.textContent.includes('Compartilhar')) {
-        btn.style.display = 'none';
-      }
-    });
-  }
+  // Hide admin-only nav items for guests
+  var hideIds = ['nav-nova', 'nav-confeitaria', 'nav-config'];
+  hideIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
   // Go to shared recipes view
   loadGuestView();
 }
@@ -1543,3 +1538,4 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
+
