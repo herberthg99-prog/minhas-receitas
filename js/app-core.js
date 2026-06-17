@@ -13,6 +13,7 @@ let shareConfig = { pwd: '', sharedIds: [] };
 let editId = null, curIngr = [], curPhotos = [], curFormas = [], formasEnabled = false;
 let newMode = null, fotoB64 = null, viewState = {}, rmap = {};
 let syncPending = false;
+let _currentSubGrp = ''; // active sub-aba group filter
 
 // ═══════ UTILS ═══════
 function genId() { return 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2); }
@@ -262,9 +263,8 @@ function setCatFilter(val) {
   });
   // Rebuild sub-abas
   buildSubAbas(val);
-  // Reset grupo filter
-  var selGrp = document.getElementById('fg2');
-  if(selGrp) selGrp.value = '';
+  // Reset sub-group filter
+  _currentSubGrp = '';
   renderRecipes();
 }
 
@@ -293,18 +293,17 @@ function buildSubAbas(cat) {
   container.innerHTML = parts.join('');
 }
 function setSubAba(grp) {
+  _currentSubGrp = grp || '';
   document.querySelectorAll('.sub-aba').forEach(function(b){ b.classList.remove('act'); });
   var safeId = grp ? grp.replace(/[^a-zA-Z0-9]/g,'_') : 'all';
   var btn = document.getElementById('sub-' + safeId);
   if(btn) btn.classList.add('act');
-  var selGrp = document.getElementById('fg2');
-  if(selGrp) selGrp.value = grp;
   renderRecipes();
 }
 function renderRecipes() {
   var q   = (document.getElementById('si').value || '').toLowerCase();
   var cat = document.getElementById('fc').value;
-  var grp = document.getElementById('fg2').value;
+  var grp = _currentSubGrp; // use module var, not hidden select
   var el  = document.getElementById('recipes-list');
   var guest = isGuest();
 
