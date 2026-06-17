@@ -1126,6 +1126,35 @@ function renderConfigPage() {
   el.innerHTML = `
     <div class="st"><i class="ti ti-settings"></i> Configurações da Sucrée</div>
 
+    <!-- LINK RÁPIDO ESTOQUE -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btns" style="flex:1;justify-content:center;font-size:13px" onclick="goPage('estoque')">
+        <i class="ti ti-package"></i> Gerenciar Estoque (preços por IA)
+      </button>
+    </div>
+
+    <!-- GERENCIADOR DE GRUPOS -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-folder"></i> Grupos e Sub-grupos</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Grupos aparecem como sub-abas automáticas nas receitas. Doces e Salgadas têm suas próprias sub-abas.</p>
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:4px"><span class="tag td">doce</span> Sub-grupos de Doces</div>
+        <div id="grupos-doce-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="novo-grupo-doce" placeholder="Ex: Mousses, Brigadeiros..." style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit">
+          <button class="btnp" onclick="addGrupo('doce')" style="padding:8px 14px;font-size:13px"><i class="ti ti-plus"></i> Adicionar</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:4px"><span class="tag ts">salgada</span> Sub-grupos de Salgadas</div>
+        <div id="grupos-salgada-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="novo-grupo-salgada" placeholder="Ex: Frango, Massas..." style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit">
+          <button class="btnp" onclick="addGrupo('salgada')" style="padding:8px 14px;font-size:13px"><i class="ti ti-plus"></i> Adicionar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- SENHA DO CONVIDADO -->
     <div class="card" style="margin-bottom:12px;border:1px solid rgba(200,163,91,.35)">
       <div class="st"><i class="ti ti-lock"></i> Senha do Convidado</div>
@@ -1251,6 +1280,86 @@ function renderConfigPage() {
       <button class="btns" style="font-size:12px" onclick="goPage('share')"><i class="ti ti-share"></i> Compartilhar cardápio</button>
     </div>
   `;
+  setTimeout(renderGrupoLists, 50);
+}
+
+
+// ═══════════════════════════════════════════
+// GERENCIADOR DE GRUPOS
+// ═══════════════════════════════════════════
+function getGruposConfig() {
+  try { return JSON.parse(localStorage.getItem('mr_grupos') || 'null'); } catch(e) { return null; }
+}
+
+function saveGruposConfig(cfg) {
+  localStorage.setItem('mr_grupos', JSON.stringify(cfg));
+}
+
+function getGruposParaCat(cat) {
+  const saved = getGruposConfig();
+  if (saved && saved[cat]) return saved[cat];
+  // Defaults
+  if (cat === 'doce') return ['Recheios','Bolos','Caldas','Biscoitos','Sobremesas','Pães','Bebidas'];
+  if (cat === 'salgada') return ['Carnes','Aves','Peixes','Massas','Tortas','Lanches','Sopas'];
+  return [];
+}
+
+function renderGrupoLists() {
+  ['doce','salgada'].forEach(function(cat) {
+    const el = document.getElementById('grupos-' + cat + '-list');
+    if (!el) return;
+    const grupos = getGruposParaCat(cat);
+    // Also add groups found in existing recipes
+    const recipeGroups = [...new Set(recipes.filter(r=>r.cat===cat&&r.group).map(r=>r.group))];
+    const all = [...new Set([...grupos, ...recipeGroups])].sort();
+    el.innerHTML = all.map(g => `
+      <div style="display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600">
+        <span>${g}</span>
+        <button onclick="removeGrupo('${cat}','${g}')" style="background:none;border:none;color:#A32D2D;font-size:13px;cursor:pointer;padding:0 2px;line-height:1"><i class="ti ti-x"></i></button>
+      </div>`).join('');
+  });
+}
+
+function addGrupo(cat) {
+  const inp = document.getElementById('novo-grupo-' + cat);
+  const val = (inp.value || '').trim();
+  if (!val) { toast('Digite o nome do grupo'); return; }
+  const saved = getGruposConfig() || { doce: getGruposParaCat('doce'), salgada: getGruposParaCat('salgada') };
+  if (!saved[cat]) saved[cat] = getGruposParaCat(cat);
+  if (!saved[cat].includes(val)) {
+    saved[cat].push(val);
+    saved[cat].sort();
+  }
+  saveGruposConfig(saved);
+  inp.value = '';
+  renderGrupoLists();
+  updateGrupoSelects();
+  toast('Grupo "' + val + '" adicionado!');
+}
+
+function removeGrupo(cat, grp) {
+  const saved = getGruposConfig() || { doce: getGruposParaCat('doce'), salgada: getGruposParaCat('salgada') };
+  if (!saved[cat]) saved[cat] = getGruposParaCat(cat);
+  saved[cat] = saved[cat].filter(g => g !== grp);
+  saveGruposConfig(saved);
+  renderGrupoLists();
+  updateGrupoSelects();
+  toast('Grupo removido');
+}
+
+function updateGrupoSelects() {
+  // Update all group selects in the edit form
+  ['fgrp','choice-grp'].forEach(function(selId) {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const cat = selId === 'fgrp'
+      ? (document.getElementById('fcat')?.value || 'salgada')
+      : (document.getElementById('choice-cat')?.value || 'salgada');
+    const grupos = getGruposParaCat(cat);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Sem grupo</option>'
+      + grupos.map(g => `<option value="${g}" ${g===cur?'selected':''}>${g}</option>`).join('');
+  });
 }
 
 function salvarConfig() {
@@ -1258,6 +1367,7 @@ function salvarConfig() {
   // Update cardapio prices via localStorage so cardapio.html can read them
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
   toast('Configurações salvas! ✅');
+  setTimeout(renderGrupoLists, 100);
   // If cardapio is open in another tab, it will pick up on next load
 }
 
