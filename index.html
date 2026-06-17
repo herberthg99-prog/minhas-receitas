@@ -944,6 +944,31 @@ function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', price: 0, isB
 function remIngr(i) { curIngr.splice(i, 1); renderIngrTable(); }
 function setBase(i) { curIngr.forEach((ig, j) => ig.isBase = (j === i)); renderIngrTable(); }
 
+
+// ═══ HELPERS DE QUANTIDADE (formato decimal com vírgula) ═══
+// Converte valor interno (ex: 100) para exibição (ex: 0,100)
+function fmtQtdInput(qty) {
+  const q = parseFloat(qty) || 0;
+  if (q === 0) return '';
+  if (q >= 1000) return (q/1000).toFixed(3).replace('.', ',');
+  if (q >= 100) return (q/1000).toFixed(3).replace('.', ',');
+  if (q >= 10) return (q/1000).toFixed(3).replace('.', ',');
+  return (q/1000).toFixed(3).replace('.', ',');
+}
+
+// Converte entrada do usuário (ex: "0,100" ou "100") para valor interno em g
+function parseQtdInput(val) {
+  if (!val) return 0;
+  // Substituir vírgula por ponto
+  const norm = val.toString().replace(',', '.').trim();
+  const num = parseFloat(norm);
+  if (isNaN(num)) return 0;
+  // Se o usuário digitou >= 1 → interpretar como kg → converter para g
+  if (num >= 1) return num * 1000;
+  // Se digitou < 1 → é fração de kg → converter para g
+  return num * 1000;
+}
+
 function renderIngrTable() {
   const tb = document.getElementById('ingr-body');
   if (!curIngr.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</td></tr>`; return; }
@@ -957,7 +982,7 @@ function renderIngrTable() {
           oninput="curIngr[${i}].obs=this.value"
           style="font-size:11px;color:var(--text2);border-color:var(--border);padding:3px 5px;font-style:italic">
       </td>
-      <td><input type="number" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;renderIngrTable()"></td>
+      <td><input type="text" value="${fmtQtdInput(ig.qty)}" placeholder="0,100" style="text-align:center" oninput="curIngr[${i}].qty=parseQtdInput(this.value);renderIngrTable()"></td>
       <td><input value="${ig.unit}" placeholder="g" oninput="curIngr[${i}].unit=this.value"></td>
       <td><input type="number" value="${(parseFloat(ig.price || 0) * 1000).toFixed(2)}" min="0" step=".01" oninput="curIngr[${i}].price=(parseFloat(this.value)||0)/1000;renderIngrTable()"></td>
       <td style="text-align:right;color:var(--text2);font-size:11px;white-space:nowrap">${fR(sub)}</td>
