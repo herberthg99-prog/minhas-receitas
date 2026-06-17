@@ -3124,11 +3124,10 @@ function abrirModoCoZinha(r) {
   // Formatar quantidade — converter para kg/L se >= 1000
   function fmtQtd(q, unit) {
     const u = (unit||'').toLowerCase();
-    if ((u==='g'||u==='ml') && q >= 1000) {
-      const val = (q/1000).toFixed(3).replace('.',',');
-      return val + ' ' + (u==='g'?'kg':'L');
-    }
-    // Formato decimal com vírgula
+    // g e ml: sempre mostrar em kg/L com 3 casas decimais
+    if (u === 'g') return (q/1000).toFixed(3).replace('.',',') + ' kg';
+    if (u === 'ml') return (q/1000).toFixed(3).replace('.',',') + ' L';
+    // Outras unidades (un, colher, etc): mostrar normal
     let str;
     if (q >= 100) str = q.toFixed(0);
     else if (q >= 10) str = q.toFixed(1);
