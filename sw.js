@@ -1,5 +1,5 @@
-// Service Worker v31 — autodestruição do cache antigo
-const CACHE = 'receitas-v31';
+// Service Worker v32 — autodestruição do cache antigo
+const CACHE = 'receitas-v32';
 
 self.addEventListener('install', () => self.skipWaiting());
 
