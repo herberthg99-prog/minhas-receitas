@@ -342,6 +342,29 @@ button{font-family:inherit;cursor:pointer}
   .bottomnav { max-width: 100% !important; }
   .content { max-width: 1200px; margin: 0 auto; }
 }
+
+/* ── SUB-ABAS ── */
+.sub-abas-row { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.sub-abas-row::-webkit-scrollbar { display: none; }
+.sub-aba {
+  flex: 0 0 auto; padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text2);
+  font-size: 12px; font-weight: 700; font-family: inherit;
+  cursor: pointer; white-space: nowrap; transition: all .2s;
+}
+.sub-aba.act { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+/* ── LAYOUT VIEW 2 COLUNAS (desktop) ── */
+.view-layout { display: flex; flex-direction: column; gap: 0; }
+@media (min-width: 700px) {
+  .view-layout { flex-direction: row; gap: 24px; align-items: flex-start; }
+  .view-col-calc { flex: 0 0 320px; position: sticky; top: 70px; }
+  .view-col-receita { flex: 1; min-width: 0; }
+}
+
+/* ── FIX ihl: ingrediente principal texto visível ── */
+tr.ihl td { color: #1a3a6b !important; }
+tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 </style>
 </head>
 <body>
@@ -412,11 +435,7 @@ button{font-family:inherit;cursor:pointer}
 <div class="content">
   <div class="page act" id="page-home"></div>
   <div class="page" id="page-receitas">
-    <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:14px">
-      <button id="cat-all" onclick="setCatFilter('')"
-        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-        🍽 Todas
-      </button>
+    <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:10px">
       <button id="cat-doce" onclick="setCatFilter('doce')"
         style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
         🍰 Doces
@@ -425,7 +444,12 @@ button{font-family:inherit;cursor:pointer}
         style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
         🥩 Salgadas
       </button>
+      <button id="cat-all" onclick="setCatFilter('')"
+        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
+        🍽 Todas
+      </button>
     </div>
+    <div id="sub-abas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap"></div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()"
         style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
@@ -444,12 +468,12 @@ button{font-family:inherit;cursor:pointer}
   <div class="page" id="page-config"></div>
   <div class="page" id="page-share"></div>
 </div>
-<div class="bottomnav">
+<div class="bottomnav" id="bottomnav">
   <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
   <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
-  <button class="bni" style="color:var(--gold)" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--gold)"></i><span style="color:var(--gold)">Nova</span></button>
+  <button class="bni" id="nav-nova" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--gold)"></i><span style="color:var(--gold)">Nova</span></button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
-  <button class="bni" onclick="abrirMenuCardapio()" id="nav-cardapio"><i class="ti ti-send"></i><span>Cardápio</span></button>
+  <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
 </div>
 
 <!-- CARDAPIO SHARE BOTTOM SHEET -->
@@ -873,9 +897,9 @@ if("serviceWorker" in navigator){
 }
 </script>
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=2"></script>
-<script src="js/app-features.js?v=2"></script>
-<script src="js/version.js?v=2"></script>
+<script src="js/app-core.js?v=3"></script>
+<script src="js/app-features.js?v=3"></script>
+<script src="js/version.js?v=3"></script>
 
 </body>
 </html>
