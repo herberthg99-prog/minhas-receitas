@@ -19,7 +19,7 @@
   --amber-light:#FAEEDA;--amber-dark:#633806;
   --green-light:#EAF3DE;--green-dark:#27500A;
   --red-light:#FCEBEB;--red-dark:#791F1F;
-  --bg:#F8F7F5;--surface:rgba(255,255,255,0.88);--border:rgba(0,0,0,0.12);
+  --bg:#F0EBE0;--surface:rgba(255,255,255,0.88);--border:rgba(0,0,0,0.12);
   --text:#1a1a1a;--text2:#666;--text3:#999;
   --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.1);
 }
@@ -332,9 +332,15 @@ button{font-family:inherit;cursor:pointer}
 <div class="bottomnav">
   <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
   <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
-  <button class="bni" style="color:var(--gold)" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--gold)"></i><span style="color:var(--gold)">Nova</span></button>
+  <button class="bni" onclick="openNewChoice()" style="color:var(--gold)">
+  <div style="width:44px;height:44px;background:var(--gold);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:2px;box-shadow:0 3px 12px rgba(200,163,91,.4)">
+    <i class="ti ti-plus" style="font-size:24px;color:#fff"></i>
+  </div>
+  <span style="color:var(--gold);font-weight:700">Nova</span>
+</button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
   <button class="bni" onclick="abrirMenuCardapio()" id="nav-cardapio"><i class="ti ti-send"></i><span>Cardápio</span></button>
+  <button class="bni" onclick="goPage('share')" id="nav-share"><i class="ti ti-settings"></i><span>Config</span></button>
 </div>
 
 <!-- CARDAPIO SHARE BOTTOM SHEET -->
@@ -1470,9 +1476,9 @@ function renderSharePage() {
 
     <div class="share-info-box"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Marque receitas com o botão "Compartilhar" na lista. Configure a senha do convidado abaixo.</div>
 
-    <div class="card" style="margin-bottom:12px">
-      <div class="st"><i class="ti ti-user"></i> Senha do Convidado</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">O convidado usa esta senha para acessar apenas as receitas marcadas.</p>
+    <div class="card" style="margin-bottom:12px;border:2px solid rgba(200,163,91,.3);background:linear-gradient(135deg,#FFF8E6,#FFF3D0)">
+      <div class="st" style="color:#7A6030"><i class="ti ti-lock"></i> 🔐 Senha do Convidado</div>
+      <p style="font-size:12px;color:#9A7A30;margin-bottom:10px">Defina a senha que seus convidados usarão para acessar as receitas compartilhadas.</p>
       <div class="fg"><label>Nova senha do convidado</label><input type="password" id="sp1" placeholder="••••••"></div>
       <div class="fg" style="margin-bottom:0"><label>Confirmar</label><input type="password" id="sp2" placeholder="••••••"></div>
       <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
