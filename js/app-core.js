@@ -436,7 +436,7 @@ function renderIngrTable() {
   }).join('');
 }
 
-async function _origAtualizarPrecos() {
+async function atualizarPrecos() {
   const names = curIngr.map(ig => ig.name).filter(n => n && !n.toLowerCase().includes('água'));
   if (!names.length) { toast('Adicione ingredientes primeiro'); return; }
   const btn = document.getElementById('btn-upd');
