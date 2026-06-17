@@ -847,7 +847,7 @@ function renderViewBody(r) {
     </button>` : '';
 
   // Layout: fotos e tags no topo
-  // Desktop: 2 colunas (cálculo | receita+custo)
+  // Desktop: 2 colunas (cálculo+custo | receita)
   document.getElementById('vb').innerHTML = `
     ${r.photos&&r.photos.length?r.photos.map(ph=>`<img src="${ph}" style="width:100%;border-radius:var(--radius);margin-bottom:6px;max-height:200px;object-fit:cover">`).join(''):''}
     <div class="flex-row" style="margin-bottom:12px;flex-wrap:wrap;gap:6px">
@@ -858,10 +858,12 @@ function renderViewBody(r) {
     </div>
 
     <div class="view-layout">
-      <div class="view-col-calc">${calcSection}</div>
+      <div class="view-col-calc">
+        ${calcSection}
+        ${custoSection}
+      </div>
       <div class="view-col-receita">
         ${ingredSection}
-        ${custoSection}
         ${preparoSection}
         ${formasSection}
         ${commentSection}
@@ -904,7 +906,7 @@ function renderSharePage() {
       <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
         <button class="btnp" onclick="saveGuestPwd()"><i class="ti ti-check"></i> Salvar senha</button>
         <span id="pws" style="font-size:12px;color:var(--teal);display:none"><i class="ti ti-check"></i> Salva!</span>
-        ${getGuestPwd?'<span style="font-size:12px;color:'+(getGuestPwd()?'var(--teal)':'var(--text3)')+'"><i class="ti ti-lock"></i> '+(getGuestPwd()?'Senha já definida':'Ainda sem senha')+'</span>':''}
+        <span id="spws2" style="font-size:12px;color:var(--text3)">Verificar senha nas configurações</span>
       </div>
     </div>
     <div class="card" style="margin-bottom:12px">
