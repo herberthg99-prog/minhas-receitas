@@ -235,26 +235,34 @@ function buildSubAbas(cat) {
   var container = document.getElementById('sub-abas-container');
   if(!container) return;
   if(!cat) { container.style.display = 'none'; container.innerHTML = ''; return; }
-  // Get groups from recipes of this cat
-  var groups = [...new Set(
-    recipes.filter(r => r.cat === cat && r.group).map(r => r.group)
-  )].sort();
-  if(!groups.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
+  // Get groups from recipes of this cat (only groups that actually have recipes)
+  var recipeGroups = [];
+  var seen = {};
+  recipes.forEach(function(r) {
+    if (r.cat === cat && r.group && !seen[r.group]) {
+      seen[r.group] = true;
+      recipeGroups.push(r.group);
+    }
+  });
+  recipeGroups.sort();
+  if(!recipeGroups.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
   container.style.display = 'flex';
-  container.innerHTML = '<button class="sub-aba act" id="sub-all" onclick="setSubAba(\'\')">Todas</button>'
-    + groups.map(g => `<button class="sub-aba" id="sub-${g.replace(/\s/g,'_')}" onclick="setSubAba('${g}')">${g}</button>`).join('');
+  var html = '<button class="sub-aba act" id="sub-all" onclick="setSubAba(\'\')">Todas</button>';
+  recipeGroups.forEach(function(g) {
+    var safeId = g.replace(/[^a-zA-Z0-9]/g,'_');
+    html += '<button class="sub-aba" id="sub-' + safeId + '" onclick="setSubAba('' + g + '')">' + g + '</button>';
+  });
+  container.innerHTML = html;
 }
-
 function setSubAba(grp) {
-  document.querySelectorAll('.sub-aba').forEach(b => b.classList.remove('act'));
-  var id = grp ? 'sub-' + grp.replace(/\s/g,'_') : 'sub-all';
-  var btn = document.getElementById(id);
+  document.querySelectorAll('.sub-aba').forEach(function(b){ b.classList.remove('act'); });
+  var safeId = grp ? grp.replace(/[^a-zA-Z0-9]/g,'_') : 'all';
+  var btn = document.getElementById('sub-' + safeId);
   if(btn) btn.classList.add('act');
   var selGrp = document.getElementById('fg2');
   if(selGrp) selGrp.value = grp;
   renderRecipes();
 }
-
 function renderRecipes() {
   var q   = (document.getElementById('si').value || '').toLowerCase();
   var cat = document.getElementById('fc').value;
@@ -418,6 +426,7 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   document.getElementById('fcomment').value = pre?.comment || '';
   document.getElementById('recipe-photos-grid').innerHTML = '';
   renderIngrTable(); renderFormas(); updateFormaToggle(); checkFormaTab(); st2(0);
+  if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   document.getElementById('modal-edit').style.display = 'flex';
 }
 
@@ -439,6 +448,7 @@ function openEdit(id) {
   document.getElementById('fprep').value = r.preparo || '';
   document.getElementById('fcomment').value = r.comment || '';
   renderIngrTable(); renderFormas(); renderRecipePhotosGrid(); updateFormaToggle(); checkFormaTab(); st2(0);
+  if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   document.getElementById('modal-edit').style.display = 'flex';
 }
 
