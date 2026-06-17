@@ -172,36 +172,69 @@ function renderHome() {
   if (guest) {
     document.getElementById('page-home').innerHTML = `
       <div style="text-align:center;padding:30px 20px">
-        <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:100px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.5));margin-bottom:16px">
+        <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:100px;filter:brightness(2) drop-shadow(0 2px 12px rgba(200,163,91,.5));margin-bottom:16px">
         <div style="font-family:Georgia,serif;font-size:22px;color:#F5EDD8;margin-bottom:8px">Sucrée Confeitaria</div>
         <div style="font-size:14px;color:var(--text2);margin-bottom:24px">Bem-vindo! Acesse as receitas pelo menu abaixo.</div>
         <button class="btnp full" onclick="goPage('receitas')"><i class="ti ti-book"></i> Ver Receitas</button>
       </div>`;
     return;
   }
-  const tot = recipes.length, dc = recipes.filter(r => r.cat === 'doce').length, sl = recipes.filter(r => r.cat === 'salgada').length;
-  const avg = tot ? recipes.reduce((a, r) => a + calcAt(r, 1).luc, 0) / tot : 0;
+  const tot = recipes.length;
+  const dc  = recipes.filter(r => r.cat === 'doce').length;
+  const sl  = recipes.filter(r => r.cat === 'salgada').length;
+  const avg = tot ? recipes.reduce((a,r) => a + calcAt(r,1).luc, 0) / tot : 0;
   const shCount = shareConfig.sharedIds.length;
+  const recentes = [...recipes].reverse().slice(0,5);
+  const lucrativas = [...recipes].sort((a,b)=>calcAt(b,1).luc-calcAt(a,1).luc).slice(0,5);
+
   document.getElementById('page-home').innerHTML = `
-    <div class="user-id-box"><i class="ti ti-device-mobile" style="font-size:14px"></i> Administrador: <strong>Herberth</strong></div>
-    <div class="g4">
-      <div class="met"><div class="ml">Total</div><div class="mv">${tot}</div></div>
-      <div class="met"><div class="ml">Doces</div><div class="mv blue">${dc}</div></div>
-      <div class="met"><div class="ml">Salgadas</div><div class="mv green">${sl}</div></div>
-      <div class="met"><div class="ml">Lucro médio</div><div class="mv coral">${fR(avg)}</div></div>
+    <!-- MÉTRICAS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+      <div class="met"><div class="ml">📚 Total</div><div class="mv">${tot}</div></div>
+      <div class="met"><div class="ml">🍰 Doces</div><div class="mv blue">${dc}</div></div>
+      <div class="met"><div class="ml">🥩 Salgadas</div><div class="mv green">${sl}</div></div>
+      <div class="met"><div class="ml">📈 Lucro médio</div><div class="mv coral" style="font-size:13px">${fR(avg)}</div></div>
     </div>
-    <div class="g2" style="margin-bottom:14px">
-      <div>
-        <div class="st"><i class="ti ti-flame"></i> Recentes</div>
-        ${[...recipes].reverse().slice(0,4).map(r=>`<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group?`<span>${r.group}</span>`:''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div></div>`).join('')||'<div class="est" style="padding:20px"><i class="ti ti-book"></i><p>Nenhuma ainda</p></div>'}
-      </div>
-      <div>
-        <div class="st"><i class="ti ti-trending-up"></i> Lucrativas</div>
-        ${[...recipes].sort((a,b)=>calcAt(b,1).luc-calcAt(a,1).luc).slice(0,4).map(r=>`<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span><span style="color:var(--teal);font-weight:700">+${fR(calcAt(r,1).luc)}</span></div></div>`).join('')||''}
-      </div>
+
+    <!-- AÇÕES RÁPIDAS -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btnp" style="flex:1;justify-content:center;font-size:13px" onclick="openNewChoice()">
+        <i class="ti ti-plus"></i> Nova receita
+      </button>
+      <button class="btns" style="flex:1;justify-content:center;font-size:13px" onclick="goPage('receitas')">
+        <i class="ti ti-book"></i> Ver receitas
+      </button>
     </div>
-    ${shCount?`<div class="success-box"><i class="ti ti-share" style="flex-shrink:0"></i> ${shCount} receita(s) marcada(s) para compartilhar</div>`:''}
-    <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="syncNow()"><i class="ti ti-refresh"></i> Sincronizar agora</button>`;
+
+    ${shCount ? `<div class="success-box" style="margin-bottom:14px"><i class="ti ti-share" style="flex-shrink:0"></i> ${shCount} receita(s) marcada(s) para compartilhar</div>` : ''}
+
+    <!-- RECENTES -->
+    <div class="st"><i class="ti ti-flame"></i> Adicionadas recentemente</div>
+    ${recentes.length ? recentes.map(r => {
+      const p = calcAt(r,1);
+      const photo = r.photos && r.photos[0];
+      return `<div onclick="viewRecipe('${r.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.2);border-radius:10px;margin-bottom:8px;cursor:pointer">
+        <div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#2A1C0A;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">
+          ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover">` : (r.cat==='doce'?'🍰':'🥩')}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</div>
+          <div style="display:flex;gap:5px;align-items:center;margin-top:3px">
+            <span class="tag t${r.cat[0]}" style="font-size:9px">${r.cat}</span>
+            ${r.group ? `<span class="badge badge-blue" style="font-size:9px">${r.group}</span>` : ''}
+            <span style="font-size:11px;color:var(--text3)"><i class="ti ti-clock"></i> ${fT(r.time)}</span>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:12px;font-weight:700;color:var(--teal)">+${fR(p.luc)}</div>
+          <div style="font-size:10px;color:var(--text3)">lucro</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="est" style="padding:16px"><i class="ti ti-book"></i><p>Nenhuma receita ainda</p></div>'}
+
+    <button class="btns" style="width:100%;justify-content:center;font-size:12px;margin-top:4px" onclick="syncNow()">
+      <i class="ti ti-refresh"></i> Sincronizar agora
+    </button>`;
 }
 
 async function syncNow() {
