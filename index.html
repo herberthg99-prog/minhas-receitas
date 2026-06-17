@@ -372,7 +372,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="login-overlay">
   <div class="login-box">
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:130px;height:auto;filter:brightness(1.2) drop-shadow(0 4px 24px rgba(200,163,91,.7));margin-bottom:12px">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:130px;height:auto;filter:brightness(1.8) drop-shadow(0 4px 24px rgba(200,163,91,.9));margin-bottom:12px">
     <div class="login-title" style="font-family:Georgia,serif;font-size:22px;color:#F5EDD8;margin-bottom:4px">Área Administrativa</div>
     <div class="login-sub" style="color:rgba(200,163,91,.8);font-size:13px;margin-bottom:20px">Sucrée Confeitaria</div>
 
@@ -422,7 +422,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <div class="app" id="app">
 <div class="topbar">
   <div class="logo" style="padding:2px 0">
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:52px;width:auto;filter:brightness(1.2) drop-shadow(0 2px 14px rgba(200,163,91,.7))">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:52px;width:auto;filter:brightness(2.0) drop-shadow(0 2px 14px rgba(255,220,120,.9)) saturate(0.8)">
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="sync-status" id="sync-status">
@@ -511,7 +511,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
-  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:130px;height:auto;filter:brightness(1.2) drop-shadow(0 2px 20px rgba(200,163,91,.6));margin-bottom:8px">
+  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:130px;height:auto;filter:brightness(1.8) drop-shadow(0 2px 20px rgba(200,163,91,.8));margin-bottom:8px">
   <i class="ti ti-loader" style="font-size:28px;color:#C8A35B;animation:spin 1s linear infinite"></i>
   <p id="loading-text" style="color:rgba(200,163,91,.8);font-size:13px;letter-spacing:.05em">Conectando à nuvem...</p>
 </div>
@@ -530,10 +530,11 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <div class="fg" style="margin-bottom:0"><label>Categoria</label><select id="choice-cat"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
       <div class="fg" style="margin-bottom:0"><label>Grupo</label>
         <select id="choice-grp"><option value="">Sem grupo</option>
-          <option value="Carnes">Carnes</option><option value="Aves">Aves</option><option value="Peixes">Peixes</option>
-          <option value="Massas">Massas</option><option value="Tortas">Tortas</option><option value="Lanches">Lanches</option>
-          <option value="Sopas">Sopas</option><option value="Bolos">Bolos</option><option value="Sobremesas">Sobremesas</option>
-          <option value="Biscoitos">Biscoitos</option><option value="Pães">Pães</option><option value="Bebidas">Bebidas</option>
+          <option value="Recheios">Recheios</option><option value="Bolos">Bolos</option><option value="Caldas">Caldas</option>
+          <option value="Biscoitos">Biscoitos</option><option value="Sobremesas">Sobremesas</option><option value="Pães">Pães</option>
+          <option value="Bebidas">Bebidas</option><option value="Carnes">Carnes</option><option value="Aves">Aves</option>
+          <option value="Peixes">Peixes</option><option value="Massas">Massas</option><option value="Tortas">Tortas</option>
+          <option value="Lanches">Lanches</option><option value="Sopas">Sopas</option>
         </select>
       </div>
     </div>
@@ -575,10 +576,11 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <div class="fg"><label>Categoria</label><select id="fcat" onchange="checkFormaTab()"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
         <div class="fg"><label>Grupo</label><select id="fgrp" onchange="checkFormaTab()">
           <option value="">Sem grupo</option>
-          <option value="Carnes">Carnes</option><option value="Aves">Aves</option><option value="Peixes">Peixes</option>
-          <option value="Massas">Massas</option><option value="Tortas">Tortas</option><option value="Lanches">Lanches</option>
-          <option value="Sopas">Sopas</option><option value="Bolos">Bolos</option><option value="Sobremesas">Sobremesas</option>
-          <option value="Biscoitos">Biscoitos</option><option value="Pães">Pães</option><option value="Bebidas">Bebidas</option>
+          <option value="Recheios">Recheios</option><option value="Bolos">Bolos</option><option value="Caldas">Caldas</option>
+          <option value="Biscoitos">Biscoitos</option><option value="Sobremesas">Sobremesas</option><option value="Pães">Pães</option>
+          <option value="Bebidas">Bebidas</option><option value="Carnes">Carnes</option><option value="Aves">Aves</option>
+          <option value="Peixes">Peixes</option><option value="Massas">Massas</option><option value="Tortas">Tortas</option>
+          <option value="Lanches">Lanches</option><option value="Sopas">Sopas</option>
         </select></div>
       </div>
       <div class="fr">
