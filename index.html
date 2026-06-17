@@ -1492,10 +1492,11 @@ async function loadPedidosFromCloud() {
       origem: p.origem,
       createdAt: new Date(p.created_at).getTime()
     }));
-    // Merge: cloud takes priority, keep local-only pedidos
+    // Merge: cloud takes priority, filtrar IDs excluídos
+    const deletedIds = window._deletedPedidoIds || new Set();
     const cloudIds = new Set(cloudPedidos.map(p=>p.id));
-    const localOnly = pedidos.filter(p => !cloudIds.has(p.id));
-    pedidos = [...cloudPedidos, ...localOnly];
+    const localOnly = pedidos.filter(p => !cloudIds.has(p.id) && !deletedIds.has(p.id));
+    pedidos = [...cloudPedidos.filter(p => !deletedIds.has(p.id)), ...localOnly];
     savePedidos();
   } catch(e) {
     console.log('Pedidos cloud error:', e.message);
@@ -2463,13 +2464,18 @@ function savePedido() {
   setTimeout(() => notificarWhatsApp(pedido), 1500);
 }
 
-function delPedido(id) {
+async function delPedido(id) {
   if(!confirm('Excluir este pedido?')) return;
+  // Guardar ID para não restaurar no próximo sync
+  if (!window._deletedPedidoIds) window._deletedPedidoIds = new Set();
+  window._deletedPedidoIds.add(id);
+  // Excluir na nuvem primeiro
+  try { await sb.from('pedidos_confeitaria').delete().eq('id', id); } catch(e) {}
+  // Depois localmente
   pedidos = pedidos.filter(p=>p.id!==id);
   savePedidos();
-  deletePedidoFromCloud(id);
   renderConfeitaria();
-  toast('Pedido excluído');
+  toast('Pedido excluído!');
 }
 
 function viewPedido(id) {
