@@ -737,74 +737,116 @@ function updateGroupFilter() {
 // RENDER HOME
 // ═══════════════════════════════════════════
 function renderHome() {
-  const tot = recipes.length, dc = recipes.filter(r => r.cat === 'doce').length, sl = recipes.filter(r => r.cat === 'salgada').length;
-  const avg = tot ? recipes.reduce((a, r) => a + calcAt(r, 1).luc, 0) / tot : 0;
-  const shCount = shareConfig.sharedIds.length;
-  document.getElementById('page-home').innerHTML = `
-    <div class="user-id-box"><i class="ti ti-device-mobile" style="font-size:14px"></i> Administrador: <strong>Herberth</strong></div>
-    <div class="g4">
-      <div class="met"><div class="ml">Total</div><div class="mv">${tot}</div></div>
-      <div class="met"><div class="ml">Doces</div><div class="mv blue">${dc}</div></div>
-      <div class="met"><div class="ml">Salgadas</div><div class="mv green">${sl}</div></div>
-      <div class="met"><div class="ml">Lucro médio</div><div class="mv coral">${fR(avg)}</div></div>
-    </div>
-    <div class="g2" style="margin-bottom:14px">
-      <div>
-        <div class="st"><i class="ti ti-flame"></i> Recentes</div>
-        ${[...recipes].reverse().slice(0, 4).map(r => `<div class="rc" style="position:relative;overflow:hidden;border:1px solid rgba(200,163,91,.15);border-radius:14px;background:linear-gradient(160deg,#FFFDF8,#FDF8EF);box-shadow:0 2px 12px rgba(200,163,91,.1)">
-      ${r.photos && r.photos[0] ? `
-        <div style="position:relative;height:150px;overflow:hidden;border-radius:14px 14px 0 0;cursor:pointer" onclick="viewRecipe('${r.id}')">
-          <img src="${r.photos[0]}" style="width:100%;height:100%;object-fit:cover;filter:brightness(.88) contrast(1.05);transition:transform .3s">
-          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(26,18,8,.7))"></div>
-          <div style="position:absolute;bottom:10px;left:14px;right:50px">
-            <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#FAF5E8;text-shadow:0 1px 6px rgba(0,0,0,.5);line-height:1.2">${r.name}</div>
+  const tot = recipes.length;
+  const dc = recipes.filter(r => r.cat === 'doce').length;
+  const sl = recipes.filter(r => r.cat === 'salgada').length;
+  const avg = tot ? recipes.reduce((a, r) => a + calcAt(r,1).luc, 0) / tot : 0;
+
+  // Pedidos do mês
+  const hoje = new Date();
+  const pedidosMes = pedidos.filter(p => {
+    if (!p.data) return false;
+    const d = new Date(p.data + 'T12:00:00');
+    return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear() && p.status!=='cancelado';
+  });
+  const totalMes = pedidosMes.reduce((a,p)=>a+(parseFloat(p.valorTotal)||0),0);
+  const pedidosAtivos = pedidos.filter(p=>p.status!=='entregue'&&p.status!=='cancelado').length;
+  const proximoPedido = [...pedidos].filter(p=>p.data&&p.status!=='entregue'&&p.status!=='cancelado')
+    .sort((a,b)=>new Date(a.data)-new Date(b.data))[0];
+  const hora = hoje.getHours();
+  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+
+  document.getElementById('page-home').innerHTML = \`
+
+    <!-- BANNER BOAS-VINDAS -->
+    <div style="background:linear-gradient(135deg,#1A1208 0%,#2C1E0A 60%,#3D2A0E 100%);border-radius:16px;padding:22px 20px 18px;margin-bottom:16px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.18) 0%,transparent 70%)"></div>
+      <div style="position:absolute;bottom:-30px;left:-30px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.12) 0%,transparent 70%)"></div>
+      <div style="position:relative;z-index:1">
+        <div style="font-size:12px;color:#B8972A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">${saudacao}, Herberth 👋</div>
+        <div style="font-family:Georgia,serif;font-size:22px;color:#F0E6CC;font-weight:700;margin-bottom:6px">Sucrée Confeitaria</div>
+        <div style="font-size:12px;color:rgba(200,163,91,.7);margin-bottom:16px">Seu ateliê de sabores exclusivos ✨</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center">
+            <div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Receitas</div>
+            <div style="font-size:22px;font-weight:800;color:#F0E6CC">${tot}</div>
           </div>
-          <div style="position:absolute;top:8px;right:8px;display:flex;gap:5px">
-            <button onclick="event.stopPropagation();const r2=recipes.find(x=>x.id==='${r.id}');if(r2)abrirModoCoZinha(r2)" title="Modo cozinha" style="background:rgba(200,163,91,.85);border:none;color:#1A1208;width:32px;height:32px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)"><i class="ti ti-maximize"></i></button>
+          <div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center">
+            <div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Pedidos ativos</div>
+            <div style="font-size:22px;font-weight:800;color:#F0E6CC">${pedidosAtivos}</div>
+          </div>
+          <div style="background:rgba(15,110,86,.2);border:1px solid rgba(15,110,86,.4);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center">
+            <div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Vendas/mês</div>
+            <div style="font-size:20px;font-weight:800;color:#9FE1CB">R$${totalMes.toFixed(0)}</div>
           </div>
         </div>
-        <div style="padding:10px 14px 12px;cursor:pointer" onclick="viewRecipe('${r.id}')">` : `
-        <div style="padding:14px 14px 12px;cursor:pointer;border-left:4px solid rgba(200,163,91,.4)" onclick="viewRecipe('${r.id}')">
-          <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.25">${r.name}</div>
-          <div style="position:absolute;top:10px;right:10px">
-            <button onclick="event.stopPropagation();const r2=recipes.find(x=>x.id==='${r.id}');if(r2)abrirModoCoZinha(r2)" title="Modo cozinha" style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.4);color:#C8A35B;width:32px;height:32px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-maximize"></i></button>
-          </div>`}
-          <div class="rm" style="margin-bottom:8px;flex-wrap:wrap;gap:5px">
-            <span class="tag t${r.cat[0]}">${r.cat}</span>
-            ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
-            ${r.ingredients && r.ingredients.find(i=>i.isBase) ? `<span style="font-size:11px;color:var(--gold)">⭐ ${r.ingredients.find(i=>i.isBase).name}</span>` : ''}
-            <span style="font-size:11px;color:var(--text3)"><i class="ti ti-clock"></i> ${fT(r.time)}</span>
-            <span class="pb ${pctClass(calcAt(r,1).luc/Math.max(calcAt(r,1).cost,.01)*100)}">${(calcAt(r,1).luc/Math.max(calcAt(r,1).cost,.01)*100).toFixed(0)}% lucro</span>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button onclick="event.stopPropagation();viewRecipe('${r.id}')" style="flex:1;padding:7px 10px;background:rgba(200,163,91,.1);border:1px solid rgba(200,163,91,.3);border-radius:8px;font-size:12px;font-weight:600;color:#7A6030;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px"><i class="ti ti-eye"></i> Ver</button>
-            <button onclick="event.stopPropagation();openEdit('${r.id}')" style="flex:1;padding:7px 10px;background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.2);border-radius:8px;font-size:12px;font-weight:600;color:#7A6030;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px"><i class="ti ti-edit"></i> Editar</button>
-            <button onclick="event.stopPropagation();toggleShareFromView('${r.id}')" style="flex:1;padding:7px 10px;background:${shareConfig.sharedIds.includes(r.id)?'rgba(15,110,86,.12)':'rgba(200,163,91,.06)'};border:1px solid ${shareConfig.sharedIds.includes(r.id)?'rgba(15,110,86,.4)':'rgba(200,163,91,.15)'};border-radius:8px;font-size:12px;font-weight:600;color:${shareConfig.sharedIds.includes(r.id)?'var(--teal)':'var(--text2)'};font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px"><i class="ti ti-${shareConfig.sharedIds.includes(r.id)?'share-3':'share'}"></i> ${shareConfig.sharedIds.includes(r.id)?'Compartilhando':'Compartilhar'}</button>
-            <button onclick="event.stopPropagation();delRecipe('${r.id}')" style="padding:7px 10px;background:rgba(200,83,58,.08);border:1px solid rgba(200,83,58,.2);border-radius:8px;font-size:12px;color:#C8503A;cursor:pointer;display:flex;align-items:center;justify-content:center"><i class="ti ti-trash"></i></button>
-          </div>
-        </div>`).join('') || '<div class="est" style="padding:20px"><i class="ti ti-book"></i><p>Nenhuma ainda</p></div>'}
-      </div>
-      <div>
-        <div class="st"><i class="ti ti-trending-up"></i> Lucrativas</div>
-        ${[...recipes].sort((a, b) => calcAt(b, 1).luc - calcAt(a, 1).luc).slice(0, 4).map(r => `<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span><span style="color:var(--teal);font-weight:700">+${fR(calcAt(r, 1).luc)}</span></div></div>`).join('') || ''}
       </div>
     </div>
-    ${shCount ? `<div class="success-box"><i class="ti ti-share" style="flex-shrink:0"></i> ${shCount} receita(s) marcada(s) para compartilhar</div>` : ''}
-    <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="syncNow()"><i class="ti ti-refresh"></i> Sincronizar agora</button>`;
+
+    <!-- PRÓXIMO PEDIDO -->
+    ${proximoPedido ? \`
+    <div style="background:linear-gradient(135deg,#FFF8E6,#FFF3D0);border:1.5px solid rgba(200,163,91,.4);border-radius:14px;padding:14px 16px;margin-bottom:16px;cursor:pointer" onclick="goPage('confeitaria')">
+      <div style="font-size:10px;font-weight:800;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">🔔 Próximo pedido</div>
+      <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#2C1800;margin-bottom:4px">\${proximoPedido.cliente}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#7A6030">
+        <span>📅 \${new Date(proximoPedido.data+'T12:00:00').toLocaleDateString('pt-BR')}\${proximoPedido.hora?' às '+proximoPedido.hora:''}</span>
+        \${proximoPedido.aro?'<span>🎂 Aro '+proximoPedido.aro+'</span>':''}
+        <span style="font-weight:700;color:#0F6E56">R$ \${parseFloat(proximoPedido.valorTotal||0).toFixed(2)}</span>
+      </div>
+    </div>\` : ''}
+
+    <!-- AÇÕES RÁPIDAS -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Acesso rápido</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onclick="openNewChoice()" style="background:linear-gradient(135deg,#C8A35B,#B8872A);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(200,163,91,.3)">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plus" style="font-size:20px;color:#fff"></i></div>
+          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Nova Receita</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Criar ou importar</div></div>
+        </button>
+        <button onclick="goPage('confeitaria')" style="background:linear-gradient(135deg,#0F6E56,#0A5240);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(15,110,86,.3)">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-cake" style="font-size:20px;color:#fff"></i></div>
+          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Agenda</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Ver pedidos</div></div>
+        </button>
+        <button onclick="abrirMenuCardapio()" style="background:linear-gradient(135deg,#2C2416,#4A3A1A);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;background:rgba(200,163,91,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-send" style="font-size:20px;color:#C8A35B"></i></div>
+          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Cardápio</div><div style="font-size:10px;color:#B8972A">Enviar para clientes</div></div>
+        </button>
+        <button onclick="window.open('inspiracao.html','_blank')" style="background:linear-gradient(135deg,#2C1E4A,#1A1230);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;background:rgba(200,163,91,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-wand" style="font-size:20px;color:#C8A35B"></i></div>
+          <div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Inspiração</div><div style="font-size:10px;color:#B8972A">Gerar tema de bolo</div></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- RECEITAS RECENTES -->
+    <div>
+      <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span>Receitas recentes</span>
+        <button onclick="goPage('receitas')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver todas →</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        \${[...recipes].reverse().slice(0, 3).map(r => \`
+          <div style="background:#fff;border:1px solid rgba(200,163,91,.2);border-radius:12px;overflow:hidden;display:flex;align-items:center;gap:0;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05)" onclick="viewRecipe('\${r.id}')">
+            \${r.photos && r.photos[0]
+              ? \`<img src="\${r.photos[0]}" style="width:70px;height:70px;object-fit:cover;flex-shrink:0">\`
+              : \`<div style="width:70px;height:70px;background:linear-gradient(135deg,#FFF8E6,#F0E6CC);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px">🍰</div>\`}
+            <div style="flex:1;padding:10px 12px;min-width:0">
+              <div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${r.name}</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+                <span class="tag t\${r.cat[0]}">\${r.cat}</span>
+                \${r.group ? \`<span style="font-size:10px;color:var(--text2)">\${r.group}</span>\` : ''}
+                <span style="font-size:10px;color:var(--text3)">\${fT(r.time)}</span>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation();const r2=recipes.find(x=>x.id==='\${r.id}');if(r2)abrirModoCoZinha(r2)" style="background:none;border:none;color:rgba(200,163,91,.5);padding:12px;cursor:pointer;font-size:18px;flex-shrink:0"><i class="ti ti-maximize"></i></button>
+          </div>
+        \`).join('')}
+      </div>
+    </div>
+  \`;
 }
 
-async function syncNow() {
-  toast('Sincronizando...');
-  const ok = await loadFromCloud();
-  updateGroupFilter();
-  renderHome();
-  renderRecipes();
-  toast(ok ? 'Sincronizado! ' + recipes.length + ' receita(s)' : 'Erro na conexao');
-}
 
-// ═══════════════════════════════════════════
-// RENDER RECIPES
-// ═══════════════════════════════════════════
 function renderRecipes() {
   const q = (document.getElementById('si').value || '').toLowerCase();
   const cat = document.getElementById('fc').value;
