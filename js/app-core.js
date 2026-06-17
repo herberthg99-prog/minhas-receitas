@@ -1000,6 +1000,13 @@ async function loadPedidosFromCloud() {
 
 
 (async function () {
+  // Aguarda app-features.js estar pronto (getCurrentRole deve estar disponível)
+  let _waitFeatures = 0;
+  while (typeof getCurrentRole === 'undefined' && _waitFeatures < 20) {
+    await new Promise(r => setTimeout(r, 100));
+    _waitFeatures++;
+  }
+
   document.getElementById('loading-text').textContent = 'Conectando à nuvem...';
   const ok = await loadFromCloud();
   document.getElementById('loading-overlay').style.display = 'none';
