@@ -233,26 +233,27 @@ function setCatFilter(val) {
 
 function buildSubAbas(cat) {
   var container = document.getElementById('sub-abas-container');
-  if(!container) return;
-  if(!cat) { container.style.display = 'none'; container.innerHTML = ''; return; }
-  // Get groups from recipes of this cat (only groups that actually have recipes)
-  var recipeGroups = [];
+  if (!container) return;
+  if (!cat) { container.style.display = 'none'; container.innerHTML = ''; return; }
   var seen = {};
-  recipes.forEach(function(r) {
+  var groups = [];
+  for (var i = 0; i < recipes.length; i++) {
+    var r = recipes[i];
     if (r.cat === cat && r.group && !seen[r.group]) {
       seen[r.group] = true;
-      recipeGroups.push(r.group);
+      groups.push(r.group);
     }
-  });
-  recipeGroups.sort();
-  if(!recipeGroups.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
+  }
+  groups.sort();
+  if (!groups.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
   container.style.display = 'flex';
-  var html = '<button class="sub-aba act" id="sub-all" onclick="setSubAba(\'\')">Todas</button>';
-  recipeGroups.forEach(function(g) {
-    var safeId = g.replace(/[^a-zA-Z0-9]/g,'_');
-    html += '<button class="sub-aba" id="sub-' + safeId + '" onclick="setSubAba(\'' + g + '\')">'+g+'</button>';
-  });
-  container.innerHTML = html;
+  var parts = ['<button class="sub-aba act" id="sub-all" onclick="setSubAba(\'\')">Todas</button>'];
+  for (var j = 0; j < groups.length; j++) {
+    var g = groups[j];
+    var sid = g.replace(/[^a-zA-Z0-9]/g, '_');
+    parts.push('<button class="sub-aba" id="sub-' + sid + '" onclick="setSubAba(\'' + g + '\')">'+g+'</button>');
+  }
+  container.innerHTML = parts.join('');
 }
 function setSubAba(grp) {
   document.querySelectorAll('.sub-aba').forEach(function(b){ b.classList.remove('act'); });
