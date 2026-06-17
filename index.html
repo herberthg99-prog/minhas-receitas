@@ -453,14 +453,9 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()"
         style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
-      <select id="fg2" onchange="renderRecipes()"
-        style="padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;max-width:110px">
-        <option value="">Grupos</option>
-      </select>
+      <input type="hidden" id="fg2" value="">
     </div>
-    <select id="fc" onchange="renderRecipes()" style="display:none">
-      <option value="">Todas</option><option value="doce">Doces</option><option value="salgada">Salgadas</option>
-    </select>
+    <input type="hidden" id="fc" value="">
     <div id="filter-debug" style="font-size:10px;color:var(--gold);padding:2px 4px;margin-bottom:4px"></div><div id="recipes-list"></div>
   </div>
   <div class="page" id="page-confeitaria"></div>
@@ -902,9 +897,9 @@ if("serviceWorker" in navigator){
 }
 </script>
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=4"></script>
-<script src="js/app-features.js?v=4"></script>
-<script src="js/version.js?v=4"></script>
+<script src="js/app-core.js?v=5"></script>
+<script src="js/app-features.js?v=5"></script>
+<script src="js/version.js?v=5"></script>
 
 </body>
 </html>
