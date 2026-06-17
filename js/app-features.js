@@ -1100,11 +1100,48 @@ function saveConfig() {
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
 }
 
+
+async function salvarSenhaConvidado() {
+  const p  = document.getElementById('cfg-sp1').value;
+  const p2 = document.getElementById('cfg-sp2').value;
+  const st = document.getElementById('cfg-pwd-status');
+  if (!p)       { toast('Informe a senha'); return; }
+  if (p !== p2) { toast('Senhas não conferem'); return; }
+  if (p.length < 4) { toast('Mínimo 4 caracteres'); return; }
+  setGuestPwd(p);
+  shareConfig.pwd = p;
+  try {
+    const uid = (USER_ID||'').trim();
+    await sb.from('config').upsert({ user_id: uid, share_pwd: p }, { onConflict: 'user_id' });
+    toast('✅ Senha do convidado salva na nuvem!');
+  } catch(e) { toast('Senha salva localmente'); }
+  if (st) { st.style.color = 'var(--teal)'; st.innerHTML = '<i class="ti ti-lock"></i> Senha definida!'; }
+  document.getElementById('cfg-sp1').value = '';
+  document.getElementById('cfg-sp2').value = '';
+}
+
 function renderConfigPage() {
   const el = document.getElementById('page-config');
   const p = sucreeConfig.precos;
   el.innerHTML = `
     <div class="st"><i class="ti ti-settings"></i> Configurações da Sucrée</div>
+
+    <!-- SENHA DO CONVIDADO -->
+    <div class="card" style="margin-bottom:12px;border:1px solid rgba(200,163,91,.35)">
+      <div class="st"><i class="ti ti-lock"></i> Senha do Convidado</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Defina a senha para que convidados acessem as receitas compartilhadas.</p>
+      <div class="fg"><label>Nova senha do convidado</label>
+        <div style="position:relative">
+          <input type="password" id="cfg-sp1" placeholder="Mínimo 4 caracteres" style="padding-right:44px">
+          <button onclick="var i=document.getElementById('cfg-sp1');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer"><i class="ti ti-eye"></i></button>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:12px"><label>Confirmar senha</label><input type="password" id="cfg-sp2" placeholder="Repetir senha"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btnp" onclick="salvarSenhaConvidado()"><i class="ti ti-check"></i> Salvar senha</button>
+        <span id="cfg-pwd-status" style="font-size:12px;color:${typeof getGuestPwd==='function'&&getGuestPwd()?'var(--teal)':'var(--text3)'}">${typeof getGuestPwd==='function'&&getGuestPwd()?'<i class="ti ti-lock"></i> Senha já definida':'<i class="ti ti-lock-off"></i> Sem senha definida'}</span>
+      </div>
+    </div>
 
     <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-table"></i> Tabela de preços dos bolos</div>
