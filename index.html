@@ -617,7 +617,8 @@ async function loadFromCloud() {
     }
 
     if (error) throw error;
-    recipes = (recs || []).map(dbToLocal);
+    const deletedIds = window._deletedIds || new Set();
+    recipes = (recs || []).filter(r => !deletedIds.has(r.id)).map(dbToLocal);
     const ids = recipes.filter(r => r.shared).map(r => r.id);
     shareConfig.sharedIds = ids;
 
@@ -1214,12 +1215,19 @@ async function saveRecipe() {
 
 async function delRecipe(id) {
   if (!confirm('Excluir esta receita?')) return;
+  // Marcar como excluída imediatamente para evitar que o sync restaure
+  if (!window._deletedIds) window._deletedIds = new Set();
+  window._deletedIds.add(id);
+  // Excluir na nuvem PRIMEIRO
+  try {
+    await sb.from('receitas').delete().eq('id', id).eq('user_id', USER_ID);
+  } catch(e) {}
+  // Depois atualizar local
   recipes = recipes.filter(r => r.id !== id);
   shareConfig.sharedIds = shareConfig.sharedIds.filter(x => x !== id);
   delete rmap[id]; delete viewState[id];
   updateGroupFilter(); renderRecipes(); renderHome();
-  await deleteFromCloud(id);
-  toast('Excluída');
+  toast('Receita excluída!');
 }
 
 // ═══════════════════════════════════════════
