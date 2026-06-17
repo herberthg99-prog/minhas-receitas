@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><!-- build:1781699850 -->
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -13,22 +13,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --gold:#C8A35B;--coral:#C8A35B;--coral-light:rgba(200,163,91,.15);--coral-dark:#C8A35B;
-  --teal:#0F6E56;--teal-light:rgba(15,110,86,.2);--teal-mid:#9FE1CB;
-  --blue:#4A90D9;--blue-light:rgba(74,144,217,.15);--blue-mid:rgba(74,144,217,.4);
-  --amber-light:rgba(200,163,91,.12);--amber-dark:#C8A35B;
-  --green-light:rgba(15,110,86,.15);--green-dark:#9FE1CB;
-  --red-light:rgba(200,83,58,.15);--red-dark:#FF8080;
+  --gold:#C8A35B;--coral:#C8A35B;--coral-light:#F7F0E0;--coral-dark:#7A6030;
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#9FE1CB;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#B5D4F4;
+  --amber-light:#FAEEDA;--amber-dark:#633806;
+  --green-light:#EAF3DE;--green-dark:#27500A;
+  --red-light:#FCEBEB;--red-dark:#791F1F;
   --bg:#1A1208;--surface:rgba(44,30,10,0.95);--border:rgba(200,163,91,0.2);
   --text:#F0E6CC;--text2:rgba(200,163,91,0.8);--text3:rgba(200,163,91,0.45);
-  --radius:10px;--radius-sm:7px;--shadow:0 2px 12px rgba(0,0,0,.4);
-  --gold-light:rgba(200,163,91,.12);--gold-dark:#C8A35B;
+  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1A1208;color:var(--text);font-size:15px;min-height:100vh}
 button{font-family:inherit;cursor:pointer}
 .app{display:none;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;position:relative;background:#1A1208}
-.topbar{background:linear-gradient(135deg,#2C1E0A,#3D2A0E)!important;border-bottom:1.5px solid rgba(200,163,91,.4)!important;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar{background:linear-gradient(135deg,#2C1E0A,#3D2A0E);border-bottom:1.5px solid rgba(200,163,91,.4);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
 .logo{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px}
 .logo i{color:var(--gold);font-size:22px}
 .sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(200,163,91,.8)}
@@ -37,9 +36,9 @@ button{font-family:inherit;cursor:pointer}
 @keyframes pulse{to{opacity:.2}}
 .content{flex:1;padding:14px 14px 80px}
 .page{display:none}.page.act{display:block}
-.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:linear-gradient(to top,#1A1208,#2C1E0A)!important;border-top:1.5px solid rgba(200,163,91,.4)!important;display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
-.bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;border:none;background:none;font-size:10px;color:rgba(200,163,91,.5);font-family:inherit;cursor:pointer;transition:color .2s}
-.bni i{font-size:24px}.bni.act{color:#C8A35B}.bni.act i{filter:drop-shadow(0 0 4px rgba(200,163,91,.4))}
+.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;border:none;background:none;font-size:10px;color:rgba(200,163,91,.45);font-family:inherit;cursor:pointer}
+.bni i{font-size:22px}.bni.act{color:#C8A35B}
 .card{background:rgba(255,255,255,0.88);border:1px solid rgba(200,163,91,0.2);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
@@ -47,7 +46,7 @@ button{font-family:inherit;cursor:pointer}
 .ml{font-size:11px;color:var(--text2);margin-bottom:3px}.mv{font-size:17px;font-weight:700}
 .mv.coral{color:var(--gold)}.mv.green{color:var(--teal)}.mv.blue{color:var(--blue)}
 .st{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.05em}
-.rc{background:linear-gradient(135deg,#2C1E0A 0%,#3D2A0E 100%);border:1.5px solid rgba(200,163,91,.35);border-radius:14px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);position:relative}
 .rc.shared{border-left:3px solid var(--blue)}
 .rn{font-size:14px;font-weight:700;margin-bottom:5px}
 .rm{font-size:11px;color:var(--text2);display:flex;gap:5px;flex-wrap:wrap;align-items:center}
@@ -72,7 +71,7 @@ button{font-family:inherit;cursor:pointer}
 .btns{background:none;color:var(--text);border:1px solid var(--border);padding:11px 16px;border-radius:var(--radius-sm);font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .btns:active{background:var(--bg)}
 .btng{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal-mid);padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:5px}
-.srow{display:flex;gap:8px;margin-bottom:12px;padding:12px 0 4px}
+.srow{display:flex;gap:8px;margin-bottom:12px}
 .srow input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit}
 .srow select{padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;max-width:110px}
 .tg{display:flex;gap:3px;margin-bottom:14px;background:var(--bg);padding:3px;border-radius:var(--radius-sm);overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -168,30 +167,31 @@ button{font-family:inherit;cursor:pointer}
 .est p{font-size:14px;margin-bottom:14px}
 .flex-row{display:flex;align-items:center;gap:8px}
 .text-sm{font-size:12px;color:var(--text2)}
-.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 60%,#1A1208 100%);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208,#2C1E0A);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
 .loading-overlay i{font-size:36px;color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-overlay p{font-size:14px;color:var(--text2);font-weight:600}
 .user-id-box{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
-.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 50%,#1A1208 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:24px;overflow-y:auto}
-.login-box{background:rgba(26,18,8,.88);backdrop-filter:blur(20px);border-radius:20px;padding:18px 20px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.6);text-align:center;border:1px solid rgba(200,163,91,.3);margin:auto 0;flex-shrink:0}
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208,#2C1E0A);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.login-box{background:rgba(44,30,10,.95);border-radius:20px;padding:22px 20px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.6);text-align:center;border:1px solid rgba(200,163,91,.3)}
 .login-logo{font-size:52px;margin-bottom:6px}
-.login-title{font-size:19px;font-weight:700;margin-bottom:2px;color:#F0E6CC}
-.login-sub{font-size:13px;color:#B8972A;margin-bottom:10px}
-.login-input{width:100%;padding:9px 12px;border:1.5px solid rgba(200,163,91,.35);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:10px;transition:border-color .2s}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:14px;color:var(--text2);margin-bottom:28px}
+.login-input{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:.15em;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:12px;transition:border-color .2s}
 .login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
-.login-btn{width:100%;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
+.login-btn{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
-.login-err{font-size:13px;color:#FF8080;margin-top:4px;min-height:18px}
-.login-hint{font-size:11px;color:rgba(200,163,91,.5);margin-top:8px}
-.login-setup{background:rgba(255,255,255,.06);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;font-size:13px;color:rgba(200,163,91,.7);text-align:left;border:1px solid rgba(200,163,91,.2)}
+.login-err{font-size:13px;color:#A32D2D;margin-top:4px;min-height:18px}
+.login-hint{font-size:12px;color:var(--text3);margin-top:16px}
+.login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;font-size:13px;color:var(--text2);text-align:left}
 .login-setup p{font-weight:700;margin-bottom:6px;color:var(--text)}
 .pwd-toggle{position:relative;margin-bottom:12px}
 .pwd-toggle input{padding-right:44px}
 .pwd-toggle button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px}
-.login-forgot{font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block}
+.login-forgot{font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block}
 
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
 
 .estoque-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
@@ -208,7 +208,7 @@ button{font-family:inherit;cursor:pointer}
 
 .aro-btn{padding:8px 4px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;text-align:center}
 .aro-btn.sel{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
-.pedido-card{background:linear-gradient(135deg,#2C1E0A,#3D2A0E);border:1.5px solid rgba(200,163,91,.3);border-radius:12px;padding:13px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);cursor:pointer;position:relative}
+.pedido-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);cursor:pointer;position:relative}
 .pedido-card:hover{border-color:var(--border)}
 .pedido-card.status-confirmado{border-left:3px solid var(--teal)}
 .pedido-card.status-producao{border-left:3px solid var(--coral)}
@@ -225,100 +225,77 @@ button{font-family:inherit;cursor:pointer}
 .total-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:0.5px solid var(--border)}
 .total-row.grand{font-size:17px;font-weight:700;color:var(--gold);border-bottom:none;border-top:1.5px solid var(--border);margin-top:6px;padding-top:8px}
 .total-row.saldo{font-size:14px;font-weight:700;color:var(--teal)}
-
-/* MODO TELA CHEIA RECEITA */
-.sheet-fullscreen{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;max-height:100vh!important;border-radius:0!important;z-index:9999}
-.sheet-fullscreen .sheet-body{font-size:16px!important}
-.sheet-fullscreen .sheet-body table{font-size:15px!important}
-.sheet-fullscreen .sheet-body .mv{font-size:22px!important}
-.sheet-fullscreen .passo-letra{font-size:22px!important}
-.sheet-fullscreen .passo-texto{font-size:16px!important;line-height:2!important}
 </style>
 </head>
 <body>
 
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="login-overlay">
-  <div style="position:absolute;top:-80px;right:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.14) 0%,transparent 65%);pointer-events:none"></div>
-  <div style="position:absolute;bottom:-60px;left:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.1) 0%,transparent 65%);pointer-events:none"></div>
   <div class="login-box">
+    <div class="login-logo">🍳</div>
+    <div class="login-title">Minhas Receitas</div>
+    <div class="login-sub">Seu livro de receitas profissional</div>
 
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
-      style="width:120px;height:auto;filter:drop-shadow(0 2px 14px rgba(200,163,91,.5));margin-bottom:10px">
-
-    <div style="font-size:18px;font-weight:700;color:#F0E6CC;margin-bottom:4px">Área Administrativa</div>
-    <div style="font-size:13px;color:#B8972A;margin-bottom:16px">Sucrée Confeitaria</div>
-
-    <!-- SELETOR ADMIN / CONVIDADO -->
-    <div style="display:flex;gap:8px;margin-bottom:14px;width:100%">
+    <!-- USER SELECTOR -->
+    <div id="user-selector" style="display:flex;gap:10px;margin-bottom:20px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
-        style="flex:1;padding:9px 6px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
-        <span style="font-size:18px">👨‍🍳</span><span>Administrador</span>
+        style="flex:1;padding:12px 8px;border-radius:var(--radius-sm);border:2px solid var(--coral);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
+        <span style="font-size:22px">👨‍🍳</span>
+        <span>Administrador</span>
       </button>
       <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:9px 6px;border-radius:8px;border:2px solid rgba(200,163,91,.3);background:rgba(255,255,255,.07);color:rgba(200,163,91,.8);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
-        <span style="font-size:18px">👤</span><span>Convidado</span>
+        style="flex:1;padding:12px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
+        <span style="font-size:22px">👤</span>
+        <span>Convidado</span>
       </button>
     </div>
 
-    <!-- SETUP (primeira vez) -->
-    <div id="login-setup-box" style="display:none;background:rgba(255,255,255,.06);border:1px solid rgba(200,163,91,.2);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:rgba(200,163,91,.8);text-align:left">
-      <strong>Primeira vez?</strong> Crie sua senha de administrador.
+    <div id="login-setup-box" class="login-setup" style="display:none">
+      <p>👋 Primeira vez? Crie sua senha de administrador:</p>
+      <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
     </div>
 
-    <!-- LABEL SENHA -->
-    <div id="login-user-label" style="font-size:11px;font-weight:700;color:rgba(200,163,91,.8);margin-bottom:6px;text-align:left;width:100%">SENHA DO ADMINISTRADOR</div>
+    <div id="login-user-label" style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-align:left;width:100%">Senha do Administrador</div>
 
-    <!-- CAMPO SENHA -->
-    <div style="position:relative;margin-bottom:10px">
-      <input type="password" id="login-pwd" placeholder="••••••"
-        style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;outline:none"
+    <div class="pwd-toggle">
+      <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
         onkeydown="if(event.key==='Enter')doLogin()"
         oninput="document.getElementById('login-err').textContent=''">
-      <button onclick="toggleLoginPwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(200,163,91,.6);font-size:18px;cursor:pointer;padding:4px">
-        <i class="ti ti-eye"></i>
-      </button>
+      <button onclick="toggleLoginPwd()" id="pwd-eye"><i class="ti ti-eye"></i></button>
     </div>
 
-    <!-- CONFIRMAR SENHA (primeira vez) -->
-    <div id="confirm-pwd-box" style="display:none;position:relative;margin-bottom:10px">
-      <input type="password" id="login-pwd2" placeholder="Confirmar senha"
-        style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;outline:none"
-        onkeydown="if(event.key==='Enter')doLogin()">
-      <button onclick="toggleLoginPwd2()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(200,163,91,.6);font-size:18px;cursor:pointer;padding:4px">
-        <i class="ti ti-eye"></i>
-      </button>
+    <div id="confirm-pwd-box" style="display:none">
+      <div class="pwd-toggle">
+        <input class="login-input" type="password" id="login-pwd2" placeholder="Confirmar senha"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button onclick="toggleLoginPwd2()"><i class="ti ti-eye"></i></button>
+      </div>
     </div>
 
-    <!-- BOTÃO ENTRAR -->
-    <button id="login-btn-label" onclick="doLogin()"
-      style="width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px">
-      Entrar
-    </button>
-
-    <div id="login-err" style="font-size:13px;color:#FF8080;min-height:18px;margin-bottom:4px"></div>
-    <span id="login-forgot" onclick="forgotPwd()" style="display:none;font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
-    <div id="login-hint" style="font-size:11px;color:rgba(200,163,91,.5);margin-top:8px">Acesso completo ao app de receitas</div>
+    <button class="login-btn" onclick="doLogin()" id="login-btn-label">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+    <span class="login-forgot" id="login-forgot" onclick="forgotPwd()" style="display:none">Esqueci minha senha</span>
+    <div class="login-hint" id="login-hint">Acesso completo ao app de receitas</div>
   </div>
 </div>
 
 <div class="app" id="app">
-<div class="topbar" style="background:linear-gradient(135deg,#2C1E0A,#3D2A0E);border-bottom:1px solid rgba(200,163,91,.4);padding:10px 16px">
+<div class="topbar">
   <div class="logo" style="padding:2px 0">
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:52px;width:auto;filter:brightness(1.3) drop-shadow(0 2px 14px rgba(200,163,91,.8))">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:52px;width:auto;filter:brightness(1.2) drop-shadow(0 2px 14px rgba(200,163,91,.7))">
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <div class="sync-status" id="sync-status">
       <div class="sync-dot" id="sync-dot"></div>
       <span id="sync-text">conectando...</span>
     </div>
-    <button onclick="doLogout()" title="Sair" style="background:rgba(200,163,91,.1);border:1px solid rgba(200,163,91,.3);color:rgba(200,163,91,.8);font-size:18px;cursor:pointer;padding:6px 8px;border-radius:8px"><i class="ti ti-logout"></i></button>
+    <button onclick="doLogout()" title="Sair" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;border-radius:var(--radius-sm)"><i class="ti ti-logout"></i></button>
   </div>
 </div>
 <div class="content">
   <div class="page act" id="page-home"></div>
-  <div class="page" id="page-receitas" style="background:#1A1208">
-    <div class="srow" style="padding:14px 0 8px">
+  <div class="page" id="page-receitas">
+    <div class="srow">
       <input type="text" placeholder="Buscar..." id="si" oninput="renderRecipes()">
       <select id="fc" onchange="renderRecipes()"><option value="">Todas</option><option value="doce">Doces</option><option value="salgada">Salgadas</option></select>
       <select id="fg2" onchange="renderRecipes()"><option value="">Grupos</option></select>
@@ -333,15 +310,9 @@ button{font-family:inherit;cursor:pointer}
 <div class="bottomnav">
   <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
   <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
-  <button class="bni" onclick="openNewChoice()" style="color:var(--gold)">
-  <div style="width:44px;height:44px;background:var(--gold);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:2px;box-shadow:0 3px 12px rgba(200,163,91,.4)">
-    <i class="ti ti-plus" style="font-size:24px;color:#fff"></i>
-  </div>
-  <span style="color:var(--gold);font-weight:700">Nova</span>
-</button>
+  <button class="bni" style="color:var(--gold)" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--gold)"></i><span style="color:var(--gold)">Nova</span></button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
   <button class="bni" onclick="abrirMenuCardapio()" id="nav-cardapio"><i class="ti ti-send"></i><span>Cardápio</span></button>
-  <button class="bni" onclick="goPage('share')" id="nav-share"><i class="ti ti-settings"></i><span>Config</span></button>
 </div>
 
 <!-- CARDAPIO SHARE BOTTOM SHEET -->
@@ -379,8 +350,7 @@ button{font-family:inherit;cursor:pointer}
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
-  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" 
-    style="width:120px;height:auto;filter:drop-shadow(0 2px 20px rgba(200,163,91,.6));margin-bottom:8px;animation:pulse 2s infinite">
+  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:130px;height:auto;filter:brightness(1.2) drop-shadow(0 2px 20px rgba(200,163,91,.6));margin-bottom:8px">
   <i class="ti ti-loader" style="font-size:28px;color:#C8A35B;animation:spin 1s linear infinite"></i>
   <p id="loading-text" style="color:rgba(200,163,91,.8);font-size:13px;letter-spacing:.05em">Conectando à nuvem...</p>
 </div>
@@ -524,8 +494,8 @@ button{font-family:inherit;cursor:pointer}
     <h2 id="vt">Receita</h2>
     <div class="flex-row">
       <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
-      <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:var(--teal)"><i class="ti ti-printer"></i> Imprimir</button>
-      <button class="rb" onclick="toggleFullReceita()" id="btn-full" title="Tela cheia" style="font-size:12px;color:#7A6030;background:#FFF8E6;border-color:#C8A35B"><i class="ti ti-maximize" id="ico-full"></i></button>
+      <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:#0F6E56"><i class="ti ti-printer"></i> Imprimir</button>
+      <button class="rb" onclick="toggleFullReceita()" style="font-size:12px;color:#C8A35B;background:rgba(200,163,91,.1);border-color:rgba(200,163,91,.4)"><i class="ti ti-maximize" id="ico-full"></i></button>
       <button class="xb" onclick="cm('modal-view')"><i class="ti ti-x"></i></button>
     </div>
   </div>
@@ -597,11 +567,6 @@ function calcAt(r, ratio) {
 // ═══════════════════════════════════════════
 // CLOUD: LOAD
 // ═══════════════════════════════════════════
-
-// helper mínimo para loadFromCloud
-function getCurrentRole(){return sessionStorage.getItem('mr_role')||'admin';}
-function isGuest(){return getCurrentRole()==='guest';}
-
 async function loadFromCloud() {
   setSyncStatus('syncing', 'carregando...');
   try {
@@ -741,92 +706,50 @@ function updateGroupFilter() {
 // RENDER HOME
 // ═══════════════════════════════════════════
 function renderHome() {
-  const tot = recipes.length;
-  const dc = recipes.filter(r => r.cat === 'doce').length;
-  const sl = recipes.filter(r => r.cat === 'salgada').length;
-  const pedidosAtivos = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado').length;
-  const hoje = new Date();
-  const hora = hoje.getHours();
-  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
-  const pedidosMes = pedidos.filter(p => {
-    if (!p.data) return false;
-    const d = new Date(p.data + 'T12:00:00');
-    return d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear() && p.status !== 'cancelado';
-  });
-  const totalMes = pedidosMes.reduce((a,p) => a + (parseFloat(p.valorTotal)||0), 0);
-  const proximoPedido = [...pedidos]
-    .filter(p => p.data && p.status !== 'entregue' && p.status !== 'cancelado')
-    .sort((a,b) => new Date(a.data) - new Date(b.data))[0];
-
-  // Banner boas-vindas
-  let html = '<div style="background:linear-gradient(135deg,#1A1208 0%,#2C1E0A 60%,#3D2A0E 100%);border-radius:16px;padding:22px 20px 18px;margin-bottom:16px;position:relative;overflow:hidden">'
-    + '<div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.18) 0%,transparent 70%)"></div>'
-    + '<div style="position:relative;z-index:1">'
-    + '<div style="font-size:12px;color:#B8972A;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">' + saudacao + ', Herberth</div>'
-    + '<div style="font-family:Georgia,serif;font-size:22px;color:#F0E6CC;font-weight:700;margin-bottom:6px">Sucrée Confeitaria</div>'
-    + '<div style="font-size:12px;color:rgba(200,163,91,.7);margin-bottom:16px">Seu ateliê de sabores exclusivos</div>'
-    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-    + '<div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center"><div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Receitas</div><div style="font-size:22px;font-weight:800;color:#F0E6CC">' + tot + '</div></div>'
-    + '<div style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center"><div style="font-size:10px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Pedidos ativos</div><div style="font-size:22px;font-weight:800;color:#F0E6CC">' + pedidosAtivos + '</div></div>'
-    + '<div style="background:rgba(15,110,86,.2);border:1px solid rgba(15,110,86,.4);border-radius:10px;padding:10px 14px;flex:1;min-width:80px;text-align:center"><div style="font-size:10px;color:#9FE1CB;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Vendas/mês</div><div style="font-size:20px;font-weight:800;color:#9FE1CB">R$' + totalMes.toFixed(0) + '</div></div>'
-    + '</div></div></div>';
-
-  // Próximo pedido
-  if (proximoPedido) {
-    const dataFmt = new Date(proximoPedido.data + 'T12:00:00').toLocaleDateString('pt-BR');
-    html += '<div style="background:linear-gradient(135deg,#FFF8E6,#FFF3D0);border:1.5px solid rgba(200,163,91,.4);border-radius:14px;padding:14px 16px;margin-bottom:16px;cursor:pointer" onclick="goPage('confeitaria')">'
-      + '<div style="font-size:10px;font-weight:800;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Proximo pedido</div>'
-      + '<div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#2C1800;margin-bottom:4px">' + (proximoPedido.cliente||'—') + '</div>'
-      + '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#7A6030">'
-      + '<span>' + dataFmt + (proximoPedido.hora ? ' as ' + proximoPedido.hora : '') + '</span>'
-      + (proximoPedido.aro ? '<span>Aro ' + proximoPedido.aro + '</span>' : '')
-      + '<span style="font-weight:700;color:#0F6E56">R$ ' + parseFloat(proximoPedido.valorTotal||0).toFixed(2) + '</span>'
-      + '</div></div>';
-  }
-
-  // Ações rápidas
-  html += '<div style="margin-bottom:16px">'
-    + '<div style="font-size:11px;font-weight:800;color:rgba(200,163,91,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Acesso rápido</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-    + '<button onclick="openNewChoice()" style="background:linear-gradient(135deg,#C8A35B,#B8872A);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(200,163,91,.3)"><div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plus" style="font-size:20px;color:#fff"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Nova Receita</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Criar ou importar</div></div></button>'
-    + '<button onclick="goPage('confeitaria')" style="background:linear-gradient(135deg,#0F6E56,#0A5240);border:none;border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-cake" style="font-size:20px;color:#fff"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#fff">Agenda</div><div style="font-size:10px;color:rgba(255,255,255,.7)">Ver pedidos</div></div></button>'
-    + '<button onclick="abrirMenuCardapio()" style="background:linear-gradient(135deg,#2C2416,#3D2A0E);border:1px solid rgba(200,163,91,.3);border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:rgba(200,163,91,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-send" style="font-size:20px;color:#C8A35B"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Cardapio</div><div style="font-size:10px;color:#B8972A">Enviar para clientes</div></div></button>'
-    + '<button onclick="window.open('inspiracao.html','_blank')" style="background:linear-gradient(135deg,#1A1230,#2C1E4A);border:1px solid rgba(200,163,91,.2);border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:rgba(200,163,91,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-wand" style="font-size:20px;color:#C8A35B"></i></div><div style="text-align:left"><div style="font-size:13px;font-weight:700;color:#F0E6CC">Inspiracao</div><div style="font-size:10px;color:#B8972A">Gerar tema de bolo</div></div></button>'
-    + '</div></div>';
-
-  // Receitas recentes
-  const recentes = [...recipes].reverse().slice(0, 3);
-  html += '<div>'
-    + '<div style="font-size:11px;font-weight:800;color:rgba(200,163,91,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center"><span>Receitas recentes</span><button onclick="goPage('receitas')" style="background:none;border:none;color:#C8A35B;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver todas</button></div>'
-    + '<div style="display:flex;flex-direction:column;gap:10px">';
-
-  recentes.forEach(r => {
-    const foto = (r.photos && r.photos[0])
-      ? '<img src="' + r.photos[0] + '" style="width:70px;height:70px;object-fit:cover;flex-shrink:0">'
-      : '<div style="width:70px;height:70px;background:linear-gradient(135deg,#2C1E0A,#3D2A0E);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;color:#C8A35B"><i class="ti ti-chef-hat"></i></div>';
-    html += '<div style="background:linear-gradient(135deg,#2C1E0A,#3D2A0E);border:1px solid rgba(200,163,91,.25);border-radius:12px;overflow:hidden;display:flex;align-items:center;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.3)" onclick="viewRecipe('' + r.id + '')">'
-      + foto
-      + '<div style="flex:1;padding:10px 12px;min-width:0">'
-      + '<div style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:#F0E6CC;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r.name + '</div>'
-      + '<div style="display:flex;gap:5px;align-items:center"><span class="tag t' + r.cat[0] + '">' + r.cat + '</span>'
-      + (r.group ? '<span style="font-size:10px;color:rgba(200,163,91,.6)">' + r.group + '</span>' : '')
-      + '<span style="font-size:10px;color:rgba(200,163,91,.5)">' + fT(r.time) + '</span></div></div>'
-      + '<button onclick="event.stopPropagation();const r2=recipes.find(x=>x.id==='' + r.id + '');if(r2)abrirModoCoZinha(r2)" style="background:none;border:none;color:rgba(200,163,91,.4);padding:12px;cursor:pointer;font-size:18px;flex-shrink:0"><i class="ti ti-maximize"></i></button>'
-      + '</div>';
-  });
-
-  html += '</div></div>';
-  document.getElementById('page-home').innerHTML = html;
+  const tot = recipes.length, dc = recipes.filter(r => r.cat === 'doce').length, sl = recipes.filter(r => r.cat === 'salgada').length;
+  const avg = tot ? recipes.reduce((a, r) => a + calcAt(r, 1).luc, 0) / tot : 0;
+  const shCount = shareConfig.sharedIds.length;
+  document.getElementById('page-home').innerHTML = `
+    <div class="user-id-box"><i class="ti ti-device-mobile" style="font-size:14px"></i> Administrador: <strong>Herberth</strong></div>
+    <div class="g4">
+      <div class="met"><div class="ml">Total</div><div class="mv">${tot}</div></div>
+      <div class="met"><div class="ml">Doces</div><div class="mv blue">${dc}</div></div>
+      <div class="met"><div class="ml">Salgadas</div><div class="mv green">${sl}</div></div>
+      <div class="met"><div class="ml">Lucro médio</div><div class="mv coral">${fR(avg)}</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:14px">
+      <div>
+        <div class="st"><i class="ti ti-flame"></i> Recentes</div>
+        ${[...recipes].reverse().slice(0, 4).map(r => `<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span>${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div></div>`).join('') || '<div class="est" style="padding:20px"><i class="ti ti-book"></i><p>Nenhuma ainda</p></div>'}
+      </div>
+      <div>
+        <div class="st"><i class="ti ti-trending-up"></i> Lucrativas</div>
+        ${[...recipes].sort((a, b) => calcAt(b, 1).luc - calcAt(a, 1).luc).slice(0, 4).map(r => `<div class="rc" onclick="viewRecipe('${r.id}')"><div class="rn">${r.name}</div><div class="rm"><span class="tag t${r.cat[0]}">${r.cat}</span><span style="color:var(--teal);font-weight:700">+${fR(calcAt(r, 1).luc)}</span></div></div>`).join('') || ''}
+      </div>
+    </div>
+    ${shCount ? `<div class="success-box"><i class="ti ti-share" style="flex-shrink:0"></i> ${shCount} receita(s) marcada(s) para compartilhar</div>` : ''}
+    <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="syncNow()"><i class="ti ti-refresh"></i> Sincronizar agora</button>`;
 }
 
+async function syncNow() {
+  toast('Sincronizando...');
+  const ok = await loadFromCloud();
+  updateGroupFilter();
+  renderHome();
+  renderRecipes();
+  toast(ok ? 'Sincronizado! ' + recipes.length + ' receita(s)' : 'Erro na conexao');
+}
 
+// ═══════════════════════════════════════════
+// RENDER RECIPES
+// ═══════════════════════════════════════════
 function renderRecipes() {
   const q = (document.getElementById('si').value || '').toLowerCase();
   const cat = document.getElementById('fc').value;
   const grp = document.getElementById('fg2').value;
   const list = recipes.filter(r => (!q || (r.name || '').toLowerCase().includes(q)) && (!cat || r.cat === cat) && (!grp || r.group === grp));
   const el = document.getElementById('recipes-list');
-  if (!list.length) { el.innerHTML = '<div class="est"><i class="ti ti-recipe"></i><p>Nenhuma receita encontrada.</p></div>'; return; }
+  if (!list.length) { el.innerHTML = `<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>`; return; }
   const guest = isGuest();
   // For guests, only show shared recipes
   if (guest) list = list.filter(r => shareConfig.sharedIds.includes(r.id));
@@ -842,7 +765,7 @@ function renderRecipes() {
       ${mainPhoto ? `<img src="${mainPhoto}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:140px;object-fit:cover">` : ''}
       <div class="rn">${r.name}</div>
       <div class="rm" style="margin-top:4px">
-        <span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>
+        <span class="tag t${r.cat[0]}">${r.cat}</span>
         ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
         ${b && !guest ? `<span class="badge badge-teal"><i class="ti ti-star" style="font-size:10px"></i> ${b.name}</span>` : ''}
         <span><i class="ti ti-clock"></i> ${fT(r.time)}</span>
@@ -996,28 +919,6 @@ function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', price: 0, isB
 function remIngr(i) { curIngr.splice(i, 1); renderIngrTable(); }
 function setBase(i) { curIngr.forEach((ig, j) => ig.isBase = (j === i)); renderIngrTable(); }
 
-
-// ═══ HELPERS DE QUANTIDADE (formato decimal com vírgula) ═══
-// Converte valor interno (ex: 100) para exibição (ex: 0,100)
-function fmtQtdInput(qty) {
-  // Exibe o valor para edição: sempre em formato decimal com vírgula
-  // Ex: 100 → "0,100"  |  1000 → "1,000"  |  30 → "0,030"
-  const q = parseFloat(qty) || 0;
-  if (q === 0) return '';
-  return (q / 1000).toFixed(3).replace('.', ',');
-}
-
-// Converte entrada do usuário (ex: "0,100" ou "100") para valor interno em g
-function parseQtdInput(val) {
-  if (!val) return 0;
-  const norm = val.toString().replace(',', '.').trim();
-  const num = parseFloat(norm);
-  if (isNaN(num)) return 0;
-  // Sempre interpreta como kg e converte para g
-  // 0,100 → 0.1 kg → 100g | 1,000 → 1 kg → 1000g | 0,030 → 30g
-  return Math.round(num * 1000 * 1000) / 1000; // evita float imprecision
-}
-
 function renderIngrTable() {
   const tb = document.getElementById('ingr-body');
   if (!curIngr.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</td></tr>`; return; }
@@ -1031,7 +932,7 @@ function renderIngrTable() {
           oninput="curIngr[${i}].obs=this.value"
           style="font-size:11px;color:var(--text2);border-color:var(--border);padding:3px 5px;font-style:italic">
       </td>
-      <td><input type="text" value="${fmtQtdInput(ig.qty)}" placeholder="0,100" style="text-align:center" oninput="curIngr[${i}].qty=parseQtdInput(this.value);renderIngrTable()"></td>
+      <td><input type="number" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;renderIngrTable()"></td>
       <td><input value="${ig.unit}" placeholder="g" oninput="curIngr[${i}].unit=this.value"></td>
       <td><input type="number" value="${(parseFloat(ig.price || 0) * 1000).toFixed(2)}" min="0" step=".01" oninput="curIngr[${i}].price=(parseFloat(this.value)||0)/1000;renderIngrTable()"></td>
       <td style="text-align:right;color:var(--text2);font-size:11px;white-space:nowrap">${fR(sub)}</td>
@@ -1187,14 +1088,9 @@ async function saveRecipe() {
 
 async function delRecipe(id) {
   if (!confirm('Excluir esta receita?')) return;
-  // Marcar como excluída imediatamente para evitar que o sync restaure
   if (!window._deletedIds) window._deletedIds = new Set();
   window._deletedIds.add(id);
-  // Excluir na nuvem PRIMEIRO
-  try {
-    await sb.from('receitas').delete().eq('id', id).eq('user_id', USER_ID);
-  } catch(e) {}
-  // Depois atualizar local
+  try { await sb.from('receitas').delete().eq('id', id).eq('user_id', USER_ID); } catch(e) {}
   recipes = recipes.filter(r => r.id !== id);
   shareConfig.sharedIds = shareConfig.sharedIds.filter(x => x !== id);
   delete rmap[id]; delete viewState[id];
@@ -1314,7 +1210,7 @@ function renderViewBody(r) {
   document.getElementById('vb').innerHTML = `
     ${r.photos && r.photos.length ? r.photos.map(ph => `<img src="${ph}" style="width:100%;border-radius:var(--radius);margin-bottom:6px;max-height:200px;object-fit:cover">`).join('') : ''}
     <div class="flex-row" style="margin-bottom:10px;flex-wrap:wrap;gap:6px">
-      <span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>
+      <span class="tag t${r.cat[0]}">${r.cat}</span>
       ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
       <span style="font-size:12px;color:var(--text2)"><i class="ti ti-clock"></i> ${fT(r.time)}</span>
       <span class="pb ${pctClass(pct2)}">${pct2.toFixed(0)}% lucro</span>
@@ -1390,25 +1286,13 @@ function renderViewBody(r) {
       </div>
     </div>
 
-    <div style="margin-bottom:14px;background:linear-gradient(135deg,rgba(200,163,91,.08),rgba(200,163,91,.04));border:1px solid rgba(200,163,91,.25);border-radius:10px;padding:12px">
-      <div style="font-size:10px;font-weight:800;color:#C8A35B;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-currency-dollar" style="font-size:13px"></i> Custo & Precificação</div>
+    <div style="margin-bottom:14px;background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.25);border-radius:10px;padding:12px">
+      <div style="font-size:10px;font-weight:800;color:#C8A35B;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">💰 Custo & Precificação</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
-          <div style="font-size:10px;color:#999;margin-bottom:2px">💸 Custo total</div>
-          <div style="font-size:16px;font-weight:800;color:#C8503A">${fR(p.cost)}</div>
-        </div>
-        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
-          <div style="font-size:10px;color:#999;margin-bottom:2px">🍽️ Por porção</div>
-          <div style="font-size:16px;font-weight:800;color:#C8503A">${fR(p.cost / Math.max(p.portions, .01))}</div>
-        </div>
-        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
-          <div style="font-size:10px;color:#999;margin-bottom:2px">💰 Preço venda</div>
-          <div style="font-size:16px;font-weight:800;color:var(--gold)">${fR(p.sale)}</div>
-        </div>
-        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
-          <div style="font-size:10px;color:#999;margin-bottom:2px">📈 Lucro</div>
-          <div style="font-size:16px;font-weight:800;color:var(--teal)">${fR(p.luc)}</div>
-        </div>
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">💸 Custo total</div><div style="font-size:16px;font-weight:800;color:#FF8080">${fR(p.cost)}</div></div>
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">🍽️ Por porção</div><div style="font-size:16px;font-weight:800;color:#FF8080">${fR(p.cost / Math.max(p.portions, .01))}</div></div>
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">💰 Preço venda</div><div style="font-size:16px;font-weight:800;color:#C8A35B">${fR(p.sale)}</div></div>
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">📈 Lucro</div><div style="font-size:16px;font-weight:800;color:#9FE1CB">${fR(p.luc)}</div></div>
       </div>
     </div>
 
@@ -1430,14 +1314,14 @@ function renderViewBody(r) {
     </div>` : ''}
 
     ${r.preparo ? `<div style="margin-bottom:16px">
-      <div class="st" style="font-size:12px;letter-spacing:.1em"><i class="ti ti-notes"></i> Modo de preparo</div>
+      <div class="st"><i class="ti ti-notes"></i> Modo de preparo</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        ${r.preparo.split('\n').filter(l=>l.trim()).map((linha, i) => {
-          const letra = String.fromCharCode(65 + i); // A, B, C...
-          return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:rgba(200,163,91,.06);border-radius:8px;border-left:3px solid rgba(200,163,91,.4)">'
-            + '<span style="font-size:13px;font-weight:800;color:#C8A35B;flex-shrink:0;min-width:20px">' + letra + ')</span>'
-            + '<span style="font-size:13px;line-height:1.7;color:#1a1a1a">' + linha.trim() + '</span>'
-            + '</div>';
+        ${r.preparo.split('\n').filter(l=>l.trim()).map((linha,i)=>{
+          const letra=String.fromCharCode(65+i);
+          return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:rgba(200,163,91,.08);border-radius:8px;border-left:3px solid rgba(200,163,91,.4)">'
+            +'<span style="font-size:13px;font-weight:800;color:#C8A35B;flex-shrink:0;min-width:20px">'+letra+')</span>'
+            +'<span style="font-size:13px;line-height:1.7">'+linha.trim()+'</span>'
+            +'</div>';
         }).join('')}
       </div>
     </div>` : ''}
@@ -1498,9 +1382,9 @@ function renderSharePage() {
 
     <div class="share-info-box"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Marque receitas com o botão "Compartilhar" na lista. Configure a senha do convidado abaixo.</div>
 
-    <div class="card" style="margin-bottom:12px;border:2px solid rgba(200,163,91,.3);background:linear-gradient(135deg,#FFF8E6,#FFF3D0)">
-      <div class="st" style="color:#7A6030"><i class="ti ti-lock"></i> 🔐 Senha do Convidado</div>
-      <p style="font-size:12px;color:#9A7A30;margin-bottom:10px">Defina a senha que seus convidados usarão para acessar as receitas compartilhadas.</p>
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-user"></i> Senha do Convidado</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">O convidado usa esta senha para acessar apenas as receitas marcadas.</p>
       <div class="fg"><label>Nova senha do convidado</label><input type="password" id="sp1" placeholder="••••••"></div>
       <div class="fg" style="margin-bottom:0"><label>Confirmar</label><input type="password" id="sp2" placeholder="••••••"></div>
       <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
@@ -1512,7 +1396,7 @@ function renderSharePage() {
     <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-eye"></i> Receitas marcadas (${shareConfig.sharedIds.length})</div>
       ${shareConfig.sharedIds.length
-        ? recipes.filter(r => shareConfig.sharedIds.includes(r.id)).map(r => `<div class="rci"><i class="ti ti-check" style="color:var(--teal)"></i><span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>${r.group ? `<span style="font-size:11px;color:var(--text2)">[${r.group}]</span>` : ''}<span>${r.name}</span></div>`).join('')
+        ? recipes.filter(r => shareConfig.sharedIds.includes(r.id)).map(r => `<div class="rci"><i class="ti ti-check" style="color:var(--teal)"></i><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span style="font-size:11px;color:var(--text2)">[${r.group}]</span>` : ''}<span>${r.name}</span></div>`).join('')
         : '<p style="font-size:13px;color:var(--text2)">Nenhuma receita marcada. Vá em Receitas e toque em "Compartilhar".</p>'}
     </div>
     <button class="btnp full" onclick="openShareView()"><i class="ti ti-external-link"></i> Ver como convidado</button>`;
@@ -1566,7 +1450,7 @@ function checkGuest() {
     shared.map(r => `<div class="card" style="margin-bottom:10px">
       ${r.photos && r.photos[0] ? `<img src="${r.photos[0]}" style="width:100%;border-radius:var(--radius-sm);margin-bottom:8px;max-height:160px;object-fit:cover">` : ''}
       <div class="rn">${r.name}</div>
-      <div class="rm" style="margin-bottom:8px"><span class="tag t${r.cat[0]}" style="border:1px solid rgba(200,163,91,.3)">${r.cat}</span>${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div>
+      <div class="rm" style="margin-bottom:8px"><span class="tag t${r.cat[0]}">${r.cat}</span>${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}<span><i class="ti ti-clock"></i> ${fT(r.time)}</span></div>
       ${(r.ingredients || []).length ? `<table class="it" style="margin-bottom:8px"><thead><tr><th>Ingrediente</th><th>Qtd</th><th>Un.</th></tr></thead><tbody>${r.ingredients.map(ig => `<tr ${ig.isBase ? 'style="font-weight:700"' : ''}><td>${ig.name}</td><td>${ig.qty}</td><td>${ig.unit}</td></tr>`).join('')}</tbody></table>` : ''}
       ${r.preparo ? `<div style="font-size:12px;line-height:1.8;color:var(--text2);margin-bottom:6px">${r.preparo.replace(/\n/g, '<br>')}</div>` : ''}
       ${r.comment ? `<div style="font-size:11px;font-style:italic;color:var(--text2);padding:8px 10px;background:var(--bg);border-radius:var(--radius-sm)">${r.comment.replace(/\n/g, '<br>')}</div>` : ''}
@@ -1621,9 +1505,7 @@ async function loadPedidosFromCloud() {
 
 (async function () {
   document.getElementById('loading-text').textContent = 'Conectando à nuvem...';
-  // Timeout de 5s para não ficar travado
-  const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(false), 5000));
-  const ok = await Promise.race([loadFromCloud(), timeoutPromise]);
+  const ok = await loadFromCloud();
   document.getElementById('loading-overlay').style.display = 'none';
   updateGroupFilter();
   renderHome();
@@ -1651,66 +1533,14 @@ async function loadPedidosFromCloud() {
     if(typeof _renderConfeitariaUI === 'function') _renderConfeitariaUI();
   }
 })();
-
-// ═══ IMPRIMIR PARA COZINHA ═══
-function imprimirPedidoCozinha(id) {
-  const p = pedidos.find(x => x.id === id);
-  if (!p) return;
-  const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
-  const num = '#' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2,'0') + String(new Date().getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*999)+1).padStart(3,'0');
-  const win = window.open('', '_blank');
-  if (!win) { toast('Permita pop-ups para imprimir'); return; }
-  const custo = parseFloat(p.custoEstimado||0) || (parseFloat(p.valorBolo||0)*0.35);
-  const lucro = parseFloat(p.valorTotal||0) - custo;
-  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;padding:20px;color:#1a1a1a;max-width:480px;margin:0 auto}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{width:110px;height:auto;margin-bottom:6px}.hdr h1{font-size:18px;color:#2C1800;margin-bottom:2px}.num{font-size:11px;color:#888}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right;max-width:60%}.inspi{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:6px}.aviso{background:#FFF8E6;border:1px solid #C8A35B55;border-radius:6px;padding:7px 10px;font-size:11px;color:#7a5c00;text-align:center;margin-top:6px}.obs{background:#f9f9f9;border-left:3px solid #C8A35B;padding:7px 10px;font-size:12px;color:#555;font-style:italic;border-radius:0 6px 6px 0;margin-top:6px}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
-  let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Pedido — '+p.cliente+'</title><style>'+css+'</style></head><body>';
-  html += '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"><h1>Pedido para Cozinha</h1><div class="num">'+num+' · '+new Date().toLocaleDateString('pt-BR')+'</div></div>';
-  html += '<div class="sec"><div class="st">👤 Cliente</div>';
-  html += '<div class="row"><span class="key">Nome</span><span class="val">'+(p.cliente||'—')+'</span></div>';
-  html += '<div class="row"><span class="key">Entrega</span><span class="val">'+dataFmt+(p.hora?' às '+p.hora:'')+'</span></div>';
-  html += '<div class="row"><span class="key">Retirada</span><span class="val">'+(p.retira?'✅ Retira':'🚗 Entrego')+'</span></div>';
-  if(p.endereco) html += '<div class="row"><span class="key">Endereço</span><span class="val">'+p.endereco+'</span></div>';
-  if(p.telefone) html += '<div class="row"><span class="key">Telefone</span><span class="val">'+p.telefone+'</span></div>';
-  html += '</div><div class="sec"><div class="st">🎂 Bolo</div>';
-  if(p.aro) html += '<div class="row"><span class="key">Tamanho</span><span class="val">Aro '+p.aro+' cm</span></div>';
-  if(p.massa) html += '<div class="row"><span class="key">Massa</span><span class="val">'+(p.massa==='amanteigada'?'🧈 Amanteigada':'🍰 Pão de Ló')+'</span></div>';
-  if(p.recheio1) html += '<div class="row"><span class="key">Recheio 1</span><span class="val">'+p.recheio1+'</span></div>';
-  if(p.recheio2) html += '<div class="row"><span class="key">Recheio 2</span><span class="val">'+p.recheio2+'</span></div>';
-  if(p.cobertura) html += '<div class="row"><span class="key">Cobertura</span><span class="val">'+(p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream')+'</span></div>';
-  html += '</div>';
-  if(p.tema||p.flores||p.obsDeco){
-    html += '<div class="sec"><div class="st">🎨 Decoração</div>';
-    if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>';
-    if(p.flores) html += '<div class="row"><span class="key">Flores</span><span class="val">✅ Sim (R$ 50,00)</span></div>';
-    if(p.papelaria) html += '<div class="row"><span class="key">Papelaria</span><span class="val">✅ Sim (R$ 35,00)</span></div>';
-    if(p.obsDeco) html += '<div class="obs">'+p.obsDeco+'</div>';
-    html += '</div>';
-  }
-  if(p.inspiPhoto) html += '<div class="sec"><div class="st">📸 Foto de inspiração</div><img src="'+p.inspiPhoto+'" class="inspi"><div class="aviso">⚠️ Imagem é apenas referência visual. O resultado pode variar.</div></div>';
-  if(p.obsCliente) html += '<div class="sec"><div class="st">📝 Obs. do cliente</div><div class="obs">'+p.obsCliente+'</div></div>';
-  html += '<div class="tbox"><span style="font-size:11px;letter-spacing:1px">TOTAL</span><span style="font-size:19px;font-weight:700">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</span></div>';
-  if(p.sinal>0) html += '<div style="text-align:center;margin-top:6px;font-size:12px;color:#555">✅ Sinal: R$ '+parseFloat(p.sinal).toFixed(2)+' · A receber: R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)+'</div>';
-  html += '<div style="background:#f9f9f9;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:#555">💸 Custo est: <strong>R$ '+custo.toFixed(2)+'</strong> &nbsp;·&nbsp; 📈 Lucro: <strong style="color:#0F6E56">R$ '+lucro.toFixed(2)+'</strong></div>';
-  html += '<div class="ftr">Sucrée Confeitaria · Vitória – ES<br><strong style="color:#2C1800">✅ CONFIRMADO PARA PRODUÇÃO</strong><br>'+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>';
-  html += '<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt></body></html>';
-  win.document.write(html);
-  win.document.close();
-}
-
 </script>
 <script>
 if("serviceWorker" in navigator){
-  // Desregistrar SW antigo que causava loop
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(r=>r.unregister());
-    console.log("SW desregistrados:",regs.length);
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js")
+      .then(()=>console.log("SW registrado"))
+      .catch(e=>console.log("SW erro",e));
   });
-  if(window.caches){
-    caches.keys().then(keys=>{
-      keys.forEach(k=>caches.delete(k));
-      console.log("Caches limpos:",keys.length);
-    });
-  }
 }
 
 // ═══════════════════════════════════════════
@@ -1761,12 +1591,12 @@ function selectUser(role) {
   err.textContent = '';
 
   if (role === 'admin') {
-    adminBtn.style.background = 'var(--gold)';
+    adminBtn.style.background = 'var(--coral)';
     adminBtn.style.color = '#fff';
     adminBtn.style.borderColor = 'var(--coral)';
-    guestBtn.style.background = 'rgba(255,255,255,.05)';
-    guestBtn.style.color = 'rgba(200,163,91,.6)';
-    guestBtn.style.borderColor = 'rgba(200,163,91,.2)';
+    guestBtn.style.background = 'var(--bg)';
+    guestBtn.style.color = 'var(--text2)';
+    guestBtn.style.borderColor = 'var(--border)';
     label.textContent = 'Senha do Administrador';
     hint.textContent = 'Acesso completo ao app de receitas';
 
@@ -1783,31 +1613,30 @@ function selectUser(role) {
       forgot.style.display = 'inline-block';
     }
   } else {
-    guestBtn.style.background = 'rgba(255,255,255,.15)';
+    guestBtn.style.background = 'var(--blue)';
     guestBtn.style.color = '#fff';
     guestBtn.style.borderColor = 'var(--blue)';
-    adminBtn.style.background = 'rgba(255,255,255,.05)';
-    adminBtn.style.color = 'rgba(200,163,91,.6)';
-    adminBtn.style.borderColor = 'rgba(200,163,91,.2)';
+    adminBtn.style.background = 'var(--bg)';
+    adminBtn.style.color = 'var(--text2)';
+    adminBtn.style.borderColor = 'var(--border)';
     label.textContent = 'Senha de Convidado';
     hint.textContent = 'Acesso apenas às receitas compartilhadas';
-    forgot.style.display = 'none';
-
     setup.style.display = 'none';
     confirm.style.display = 'none';
     loginBtn.textContent = 'Entrar como Convidado';
+    forgot.style.display = 'none';
+
     if (!getGuestPwd()) {
-      err.textContent = 'Peça a senha ao administrador.';
+      err.textContent = 'Nenhuma senha de convidado definida ainda.';
     }
   }
 }
 
-
+async 
 function revelarApp() {
   document.getElementById('app').style.display = 'flex';
-  document.getElementById('login-overlay').style.display = 'none';
+  revelarApp();
 }
-
 async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   const err = document.getElementById('login-err');
@@ -2272,7 +2101,7 @@ function renderConfeitaria() {
   _renderConfeitariaUI(); // show immediately with local data
 }
 
-function calcMetricasConfeitaria() {
+function calcMetricasConf() {
   const hoje = new Date();
   const mes = pedidos.filter(p => {
     if (!p.data) return false;
@@ -2280,19 +2109,19 @@ function calcMetricasConfeitaria() {
     return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear() && p.status!=='cancelado';
   });
   const totalVendas = mes.reduce((a,p)=>a+(parseFloat(p.valorTotal)||0),0);
-  const custoEstimado = mes.reduce((a,p)=>a+(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)),0);
-  const lucroEstimado = totalVendas - custoEstimado;
-  const totalRecebido = mes.reduce((a,p)=>a+(parseFloat(p.sinal)||0),0);
-  const totalAReceber = mes.reduce((a,p)=>{
+  const custoEst = mes.reduce((a,p)=>a+(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)),0);
+  const lucroEst = totalVendas - custoEst;
+  const recebido = mes.reduce((a,p)=>a+(parseFloat(p.sinal)||0),0);
+  const aReceber = mes.reduce((a,p)=>{
     if(p.status==='entregue') return a;
     return a+Math.max(0,(parseFloat(p.valorTotal)||0)-(parseFloat(p.sinal)||0));
   },0);
-  return {totalVendas,custoEstimado,lucroEstimado,totalRecebido,totalAReceber};
+  return {totalVendas,custoEst,lucroEst,recebido,aReceber};
 }
 
 function _renderConfeitariaUI() {
   const el = document.getElementById('page-confeitaria');
-  const m = calcMetricasConfeitaria();
+  const m = calcMetricasConf();
   const pendentes = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado');
 
   el.innerHTML = `
@@ -2303,10 +2132,10 @@ function _renderConfeitariaUI() {
       <div class="met"><div class="ml">Cancelados</div><div class="mv">${pedidos.filter(p=>p.status==='cancelado').length}</div></div>
     </div>
     <div class="g4" style="margin-bottom:14px">
-      <div class="met" style="border-top:2px solid #C8503A44"><div class="ml" style="font-size:10px">💸 Custo est.</div><div class="mv" style="font-size:13px;color:#C8503A">R$${m.custoEstimado.toFixed(0)}</div></div>
-      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">📈 Lucro est.</div><div class="mv green" style="font-size:13px">R$${m.lucroEstimado.toFixed(0)}</div></div>
-      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">✅ Recebido</div><div class="mv green" style="font-size:13px">R$${m.totalRecebido.toFixed(0)}</div></div>
-      <div class="met" style="border-top:2px solid #C8A35B44"><div class="ml" style="font-size:10px">⏳ A receber</div><div class="mv coral" style="font-size:13px">R$${m.totalAReceber.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #C8503A44"><div class="ml" style="font-size:10px">💸 Custo est.</div><div class="mv" style="font-size:13px;color:#FF8080">R$${m.custoEst.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">📈 Lucro est.</div><div class="mv green" style="font-size:13px">R$${m.lucroEst.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">✅ Recebido</div><div class="mv green" style="font-size:13px">R$${m.recebido.toFixed(0)}</div></div>
+      <div class="met" style="border-top:2px solid #C8A35B44"><div class="ml" style="font-size:10px">⏳ A receber</div><div class="mv coral" style="font-size:13px">R$${m.aReceber.toFixed(0)}</div></div>
     </div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -2364,14 +2193,8 @@ function renderPedidoCard(p) {
       ${p.tema ? `<span>🎨 ${p.tema}</span>` : ''}
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
-      <div>
-        <div style="font-size:15px;font-weight:700;color:var(--gold)">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</div>
-        <div style="font-size:11px;color:var(--text3)">📈 Lucro est: R$ ${(parseFloat(p.valorTotal||0)-(parseFloat(p.custoEstimado||0)||parseFloat(p.valorBolo||0)*0.35)).toFixed(0)}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:11px;color:var(--teal);font-weight:700">${p.sinal > 0 ? '✅ R$ '+parseFloat(p.sinal).toFixed(2) : ''}</div>
-        <div style="font-size:11px;color:var(--gold)">${p.sinal > 0 && p.status !== 'entregue' ? '⏳ R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2) : ''}</div>
-      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--gold)">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--teal);font-weight:700">${p.sinal > 0 ? 'Sinal: R$ '+parseFloat(p.sinal).toFixed(2) : ''}</div>
       <div style="display:flex;gap:5px">
         <button class="rb" onclick="event.stopPropagation();openEditPedido('${p.id}')" style="font-size:11px;padding:4px 8px"><i class="ti ti-edit"></i></button>
         <button class="rb" style="font-size:11px;padding:4px 8px;color:#A32D2D" onclick="event.stopPropagation();delPedido('${p.id}')"><i class="ti ti-trash"></i></button>
@@ -2494,15 +2317,15 @@ function calcPedidoTotal() {
   const box = document.getElementById('pedido-total-box');
   if(!box) return;
   box.innerHTML = `
-    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
+    <div style="background:rgba(255,255,255,.05);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
       <div class="total-row"><span>🎂 Valor do bolo</span><span>R$ ${valorBolo.toFixed(2)}</span></div>
-      ${flores>0?`<div class="total-row"><span>💐 Flores</span><span>R$ ${flores.toFixed(2)}</span></div>`:''}
-      ${papelaria>0?`<div class="total-row"><span>🎨 Papelaria</span><span>R$ ${papelaria.toFixed(2)}</span></div>`:''}
+      ${flores>0?'<div class="total-row"><span>💐 Flores</span><span>R$ '+flores.toFixed(2)+'</span></div>':''}
+      ${papelaria>0?'<div class="total-row"><span>🎨 Papelaria</span><span>R$ '+papelaria.toFixed(2)+'</span></div>':''}
       <div class="total-row grand"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
-      <div class="total-row" style="color:#C8503A"><span>💸 Custo estimado</span><span>R$ ${custo.toFixed(2)}</span></div>
-      <div class="total-row" style="color:var(--teal);font-weight:700"><span>📈 Lucro estimado</span><span>R$ ${lucro.toFixed(2)}</span></div>
-      ${sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${sinal.toFixed(2)}</span></div>`:''}
-      ${restante>0&&sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>⏳ A receber</span><span>R$ ${restante.toFixed(2)}</span></div>`:''}
+      <div class="total-row" style="color:#FF8080"><span>💸 Custo est.</span><span>R$ ${custo.toFixed(2)}</span></div>
+      <div class="total-row" style="color:#9FE1CB;font-weight:700"><span>📈 Lucro est.</span><span>R$ ${lucro.toFixed(2)}</span></div>
+      ${sinal>0?'<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ '+sinal.toFixed(2)+'</span></div>':''}
+      ${restante>0&&sinal>0?'<div class="total-row" style="color:#C8A35B;font-weight:700"><span>⏳ A receber</span><span>R$ '+restante.toFixed(2)+'</span></div>':''}
     </div>`;
 }
 
@@ -2576,7 +2399,6 @@ function openEditPedido(id) {
   if(p.tema) document.getElementById('p-tema').value = p.tema;
   if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
   if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
-  if(p.custoEstimado) { const ce=document.getElementById('p-custo'); if(ce) ce.value=p.custoEstimado; }
   if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
   if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
   if(p.status) document.getElementById('p-status').value = p.status;
@@ -2638,6 +2460,7 @@ function savePedido() {
   cm('modal-pedido');
   renderConfeitaria();
   toast('Pedido salvo!');
+  setTimeout(() => notificarWhatsApp(pedido), 1500);
 }
 
 function delPedido(id) {
@@ -2698,15 +2521,13 @@ function viewPedido(id) {
       ${p.pagamento?`<div class="total-row" style="margin-top:6px"><span>Pagamento</span><span>${{pix:'PIX',dinheiro:'Dinheiro',cartao_credito:'Cartão Crédito',cartao_debito:'Cartão Débito'}[p.pagamento]||p.pagamento}</span></div>`:''}
     </div>
 
-    <div style="padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);margin-bottom:10px">
-      <div class="total-row" style="color:#C8503A"><span>💸 Custo estimado</span><span>R$ ${(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)).toFixed(2)}</span></div>
-      <div class="total-row" style="color:var(--teal);font-weight:700;border-bottom:none"><span>📈 Lucro estimado</span><span>R$ ${(parseFloat(p.valorTotal||0)-(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35))).toFixed(2)}</span></div>
+    <div style="padding:10px 12px;background:rgba(255,255,255,.05);border-radius:8px;margin-bottom:10px">
+      <div class="total-row" style="color:#FF8080"><span>💸 Custo estimado</span><span>R$ ${(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)).toFixed(2)}</span></div>
+      <div class="total-row" style="color:#9FE1CB;font-weight:700"><span>📈 Lucro estimado</span><span>R$ ${(parseFloat(p.valorTotal||0)-(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35))).toFixed(2)}</span></div>
     </div>
-
     <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
       <i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha
     </button>
-
     <div style="display:flex;gap:8px;margin-top:4px">
       <select onchange="updatePedidoStatus('${p.id}',this.value)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
         <option value="pendente" ${p.status==='pendente'?'selected':''}>⏳ Pendente</option>
@@ -3046,112 +2867,37 @@ function abrirCardapioNovAba() {
 }
 
 
-// ═══ IMPRIMIR RECEITA — LAYOUT LUXUOSO ═══
-function imprimirReceita() {
-  const vt = document.getElementById('vt');
-  const id = vt ? vt.dataset.rid : null;
-  if (!id) { toast('Erro ao identificar receita'); return; }
-  const r = recipes.find(x => x.id === id);
-  if (!r) return;
+function notificarWhatsApp(p) {
+  try {
+    const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+    const recheios = (p.recheios||[]).map(r=>r.nome).join(', ') || '—';
+    const msg = encodeURIComponent(
+      '🎂 *NOVO PEDIDO — Sucrée Confeitaria*\n\n'
+      + '👤 *Cliente:* ' + (p.cliente||'—') + '\n'
+      + '📱 *WhatsApp:* ' + (p.telefone||'—') + '\n'
+      + '📅 *Entrega:* ' + dataFmt + (p.hora?' às '+p.hora:'') + '\n'
+      + '🚗 *Retirada:* ' + (p.retira?'Sim':'Não — entrego') + '\n'
+      + (p.endereco?'📍 *Endereço:* '+p.endereco+'\n':'')
+      + '\n🎂 *Bolo:*\n'
+      + '• Aro: ' + (p.aro||'—') + '\n'
+      + '• Massa: ' + (p.massaNome||p.massa||'—') + '\n'
+      + '• Cobertura: ' + (p.coberturaNome||p.cobertura||'—') + '\n'
+      + (p.tema?'• Tema: '+p.tema+'\n':'')
+      + '\n💰 *Financeiro:*\n'
+      + '• Total: R$ ' + parseFloat(p.valorTotal||0).toFixed(2) + '\n'
+      + '• Sinal: R$ ' + parseFloat(p.sinal||0).toFixed(2) + '\n'
+      + '\n🆔 Pedido: ' + p.id
+    );
+    window.open('https://wa.me/5527995213194?text=' + msg, '_blank');
+  } catch(e) { console.log('WhatsApp erro:', e.message); }
+}
 
-  const ratio = getRatio(r);
-  const p = calcAt(r, ratio);
-  const pct = p.cost > 0 ? (p.luc / p.cost * 100).toFixed(0) : 0;
-  const passos = (r.preparo || '').split('\n').filter(l => l.trim());
-
-  const win = window.open('', '_blank');
-  if (!win) { toast('Permita pop-ups para imprimir'); return; }
-
-  const css = `
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Lato',sans-serif;background:#FAF8F4;color:#1a1a1a;padding:30px}
-    .page{max-width:680px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.08)}
-    .hdr{background:linear-gradient(135deg,#1A1208,#2C1E0A);padding:28px 36px;text-align:center;position:relative;overflow:hidden}
-    .hdr::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.2) 0%,transparent 70%)}
-    .logo{width:110px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.4));position:relative;z-index:1}
-    .rtitle{font-family:'Playfair Display',serif;font-size:26px;color:#F0E6CC;position:relative;z-index:1;margin-bottom:3px}
-    .rsub{font-size:11px;color:#B8972A;letter-spacing:.2em;text-transform:uppercase;position:relative;z-index:1}
-    .div{height:1px;background:linear-gradient(90deg,transparent,#C8A35B,transparent);margin:0 36px}
-    .body{padding:28px 36px}
-    .info-row{display:flex;border:1px solid #f0ebe0;border-radius:10px;overflow:hidden;margin-bottom:24px}
-    .info-item{flex:1;padding:12px;text-align:center;border-right:1px solid #f0ebe0}
-    .info-item:last-child{border-right:none}
-    .il{font-size:9px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
-    .iv{font-size:14px;font-weight:700}
-    .sec{font-family:'Playfair Display',serif;font-size:15px;color:#1a1a1a;margin-bottom:12px;padding-bottom:5px;border-bottom:1.5px solid #f0ebe0;display:flex;align-items:center;gap:7px}
-    .sec::before{content:'';width:3px;height:16px;background:#C8A35B;border-radius:2px;flex-shrink:0}
-    table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:12px}
-    th{text-align:left;font-size:9px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.08em;padding:7px 9px;border-bottom:1.5px solid #f0ebe0}
-    td{padding:7px 9px;border-bottom:0.5px solid #f5f0e8;color:#333}
-    tr:nth-child(even) td{background:#FDFAF5}
-    tr.base td{font-weight:700}
-    td.c{text-align:right;color:#C8A35B}
-    .passo{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:11px 13px;background:#FDFAF5;border-radius:8px;border-left:3px solid #C8A35B}
-    .pl{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#C8A35B;flex-shrink:0;min-width:22px;line-height:1.2}
-    .pt{font-size:12px;line-height:1.8;color:#333}
-    .custo-box{background:linear-gradient(135deg,#1A1208,#2C1E0A);border-radius:10px;padding:18px 22px;margin-top:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center}
-    .cl2{font-size:9px;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
-    .cv2{font-size:15px;font-weight:700;color:#F0E6CC}
-    .foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:24px}
-    .foto-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:7px}
-    .ftr{background:#FDFAF5;padding:14px 36px;text-align:center;border-top:1px solid #f0ebe0;font-size:10px;color:#aaa}
-    .ftr strong{color:#C8A35B}
-    @media print{body{padding:0}.page{box-shadow:none;border-radius:0}@page{margin:0}}
-  `;
-
-  const passosHTML = passos.map((ln, i) =>
-    '<div class="passo"><span class="pl">' + String.fromCharCode(65+i) + '</span><span class="pt">' + ln.trim() + '</span></div>'
-  ).join('');
-
-  const ingrsHTML = p.scaled.map(ig => {
-    const q = parseFloat(ig.qty||0);
-    const sub = q * parseFloat(ig.price||0);
-    return '<tr class="'+(ig.isBase?'base':'')+'">'
-      +'<td>'+(ig.isBase?'⭐ ':'')+ig.name+'</td>'
-      +'<td>'+(q>=100?q.toFixed(0):q>=10?q.toFixed(1):q.toFixed(2))+' '+(ig.unit||'')+'</td>'
-      +'<td class="c">'+(sub>0?'R$ '+sub.toFixed(2):'—')+'</td>'
-      +'</tr>';
-  }).join('');
-
-  const fotosHTML = (r.photos&&r.photos.length)
-    ? '<div class="sec" style="margin-bottom:10px">Fotos</div><div class="foto-grid">'
-      + r.photos.map(f=>'<img src="'+f+'" alt="">').join('')
-      + '</div>'
-    : '';
-
-  const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+r.name+' — Sucrée</title><style>'+css+'</style></head><body>'
-    +'<div class="page">'
-    +'<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" class="logo" alt="Sucrée"><div class="rtitle">'+r.name+'</div><div class="rsub">'+r.cat+(r.group?' · '+r.group:'')+'</div></div>'
-    +'<div class="div"></div>'
-    +'<div class="body">'
-    +'<div class="info-row">'
-    +'<div class="info-item"><div class="il">Rendimento</div><div class="iv">'+(r.yield_qty||r.yield||6)+' '+(r.unit||'porções')+'</div></div>'
-    +'<div class="info-item"><div class="il">Tempo</div><div class="iv">'+(r.time?(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':'')):'—')+'</div></div>'
-    +'<div class="info-item"><div class="il">Custo</div><div class="iv" style="color:#C8503A">R$ '+p.cost.toFixed(2)+'</div></div>'
-    +'<div class="info-item"><div class="il">Venda</div><div class="iv" style="color:#C8A35B">R$ '+p.sale.toFixed(2)+'</div></div>'
-    +'</div>'
-    +(p.scaled.length?'<div class="sec">Ingredientes</div><table><thead><tr><th>Ingrediente</th><th>Quantidade</th><th style="text-align:right">Custo</th></tr></thead><tbody>'+ingrsHTML+'</tbody></table>':'')
-    +(passos.length?'<div class="sec" style="margin-bottom:12px">Modo de Preparo</div>'+passosHTML:'')
-    +fotosHTML
-    +(r.comment?'<div style="margin-top:16px"><div class="sec" style="margin-bottom:8px">Anotações</div><div style="font-size:12px;line-height:1.8;color:#555;font-style:italic;padding:11px 13px;background:#FDFAF5;border-radius:8px">'+r.comment.replace(/\n/g,'<br>')+'</div></div>':'')
-    +'<div class="custo-box"><div><div class="cl2">Custo total</div><div class="cv2">R$ '+p.cost.toFixed(2)+'</div></div>'
-    +'<div><div class="cl2">Por porção</div><div class="cv2">R$ '+(p.cost/Math.max(p.portions,.01)).toFixed(2)+'</div></div>'
-    +'<div><div class="cl2">Preço venda</div><div class="cv2">R$ '+p.sale.toFixed(2)+'</div></div>'
-    +'<div><div class="cl2">Lucro '+pct+'%</div><div class="cv2" style="color:#9FE1CB">R$ '+p.luc.toFixed(2)+'</div></div></div>'
-    +'</div>'
-    +'<div class="ftr"><strong>Sucrée Confeitaria</strong> · Vitória – ES · Receita exclusiva · Uso interno</div>'
-    +'</div>'
-    +'<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt>'
-    +'</body></html>';
-
-  win.document.write(html);
-  win.document.close();
+function fecharCozinha() {
+  const el = document.getElementById('cozinha-overlay');
+  if (el) el.remove();
 }
 
 
-// ═══ TELA CHEIA RECEITA ═══
-let _receitaFull = false;
 function toggleFullReceita() {
   const vt = document.getElementById('vt');
   const id = vt ? vt.dataset.rid : null;
@@ -3166,55 +2912,41 @@ function abrirModoCoZinha(r) {
   const p = calcAt(r, ratio);
   const passos = (r.preparo || '').split('\n').filter(l => l.trim());
 
-  // Formatar quantidade — converter para kg/L se >= 1000
   function fmtQtd(q, unit) {
     const u = (unit||'').toLowerCase();
-    // g e ml: sempre mostrar em kg/L com 3 casas decimais
     if (u === 'g') return (q/1000).toFixed(3).replace('.',',') + ' kg';
     if (u === 'ml') return (q/1000).toFixed(3).replace('.',',') + ' L';
-    // Outras unidades (un, colher, etc): mostrar normal
-    let str;
-    if (q >= 100) str = q.toFixed(0);
-    else if (q >= 10) str = q.toFixed(1);
-    else str = q.toFixed(3);
-    return str.replace('.',',') + ' ' + (unit||'');
+    return (q>=100?q.toFixed(0):q>=10?q.toFixed(1):q.toFixed(3)).replace('.',',') + ' ' + (unit||'');
   }
 
-  const passosHTML = passos.map((ln, i) =>
-    '<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:rgba(255,255,255,.05);border-radius:8px;border-left:3px solid #C8A35B;margin-bottom:8px">'
-    + '<span style="font-size:16px;font-weight:800;color:#C8A35B;flex-shrink:0;min-width:24px;font-family:Georgia,serif">' + String.fromCharCode(65+i) + ')</span>'
-    + '<span style="font-size:14px;line-height:1.75;color:#D4C8A8">' + ln.trim() + '</span>'
-    + '</div>'
-  ).join('');
-
-  // Ingredientes: quantidade PRIMEIRO, depois nome
   const ingrsHTML = p.scaled.map(ig => {
     const q = parseFloat(ig.qty||0);
-    const qtdStr = fmtQtd(q, ig.unit);
     return '<div style="display:flex;align-items:center;padding:11px 0;border-bottom:0.5px solid rgba(200,163,91,.18)">'
-      + '<span style="font-size:17px;font-weight:800;color:#C8A35B;min-width:110px;flex-shrink:0;text-align:right;padding-right:16px;font-family:Georgia,serif">' + qtdStr + '</span>'
-      + '<span style="font-size:16px;color:#F0E6CC;'+(ig.isBase?'font-weight:800':'')+'">'+(ig.isBase?'⭐ ':'')+ig.name+'</span>'
+      + '<span style="font-size:17px;font-weight:800;color:#C8A35B;min-width:110px;flex-shrink:0;text-align:right;padding-right:16px;font-family:Georgia,serif">' + fmtQtd(q, ig.unit) + '</span>'
+      + '<span style="font-size:16px;color:#F0E6CC;' + (ig.isBase?'font-weight:800':'') + '">' + (ig.isBase?'⭐ ':'') + ig.name + '</span>'
       + '</div>';
   }).join('');
 
-  // Foto luxuosa — estilo livro de receitas premium
+  const passosHTML = passos.map((ln, i) =>
+    '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:rgba(255,255,255,.05);border-radius:8px;border-left:3px solid #C8A35B;margin-bottom:8px">'
+    + '<span style="font-size:18px;font-weight:800;color:#C8A35B;flex-shrink:0;min-width:26px;font-family:Georgia,serif">' + String.fromCharCode(65+i) + ')</span>'
+    + '<span style="font-size:15px;line-height:1.8;color:#D4C8A8">' + ln.trim() + '</span>'
+    + '</div>'
+  ).join('');
+
   const fotoHTML = (r.photos && r.photos[0])
-    ? '<div style="position:relative;margin-bottom:32px;border-radius:18px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,.8)">'
-        + '<img src="'+r.photos[0]+'" style="width:100%;max-height:460px;object-fit:contain;display:block;background:#1A1208">'
-        + '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(26,18,8,.05) 0%,transparent 40%,rgba(26,18,8,.8) 80%,rgba(26,18,8,.97) 100%)"></div>'
-        + '<div style="position:absolute;bottom:0;left:0;right:0;padding:22px 24px">'
-          + '<div style="font-size:9px;font-weight:800;color:#C8A35B;letter-spacing:.25em;text-transform:uppercase;margin-bottom:6px">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
-          + '<div style="font-family:Georgia,serif;font-size:30px;font-weight:700;color:#FAF5E8;text-shadow:0 2px 12px rgba(0,0,0,.6);line-height:1.15;margin-bottom:8px">' + r.name + '</div>'
-          + '<div style="display:flex;gap:14px">'
-            + (r.yield_qty||r.yield ? '<span style="font-size:12px;color:rgba(200,163,91,.9)">🍽 '+(r.yield_qty||r.yield)+' '+(r.unit||'porções')+'</span>' : '')
-            + (r.time ? '<span style="font-size:12px;color:rgba(200,163,91,.9)">⏱ '+(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':''))+'</span>' : '')
-          + '</div>'
-        + '</div>'
+    ? '<div style="position:relative;margin-bottom:28px;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.6)">'
+      + '<img src="' + r.photos[0] + '" style="width:100%;max-height:380px;object-fit:contain;display:block;background:#1A1208">'
+      + '<div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(transparent,#1A1208)"></div>'
+      + '<div style="position:absolute;bottom:14px;left:20px;right:20px">'
+        + '<div style="font-size:9px;font-weight:800;color:#C8A35B;letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px">' + (r.cat||'') + (r.group?' · '+r.group:'') + '</div>'
+        + '<div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#FAF5E8;text-shadow:0 2px 10px rgba(0,0,0,.6)">' + r.name + '</div>'
       + '</div>'
-    : '<div style="margin-bottom:28px;padding:28px 0 20px;border-bottom:1px solid rgba(200,163,91,.25);text-align:center">'
-        + '<div style="font-size:9px;font-weight:800;color:#C8A35B;letter-spacing:.25em;text-transform:uppercase;margin-bottom:8px">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
-        + '<div style="font-family:Georgia,serif;font-size:32px;font-weight:700;color:#FAF5E8;line-height:1.2">' + r.name + '</div>'
-      + '</div>';
+    + '</div>'
+    : '<div style="margin-bottom:24px;padding:24px 0;text-align:center;border-bottom:1px solid rgba(200,163,91,.25)">'
+      + '<div style="font-size:9px;font-weight:800;color:#C8A35B;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px">' + (r.cat||'') + (r.group?' · '+r.group:'') + '</div>'
+      + '<div style="font-family:Georgia,serif;font-size:30px;font-weight:700;color:#FAF5E8">' + r.name + '</div>'
+    + '</div>';
 
   let overlay = document.getElementById('cozinha-overlay');
   if (!overlay) {
@@ -3224,57 +2956,139 @@ function abrirModoCoZinha(r) {
     document.body.appendChild(overlay);
   }
 
-  overlay.innerHTML = ''
-    // HEADER
-    + '<div style="background:rgba(26,18,8,.95);backdrop-filter:blur(10px);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(200,163,91,.25)">'
-      + '<div style="display:flex;align-items:center;gap:10px">'
-        + '<img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="height:30px;filter:drop-shadow(0 1px 6px rgba(200,163,91,.5))">'
-        + '<div>'
-          + '<div style="font-size:11px;color:#B8972A;text-transform:uppercase;letter-spacing:.15em">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
-        + '</div>'
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<div style="background:rgba(200,163,91,.12);border:1px solid rgba(200,163,91,.25);border-radius:8px;padding:6px 12px;text-align:center">'
-          + '<div style="font-size:9px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em">Rendimento</div>'
-          + '<div style="font-size:14px;font-weight:800;color:#F0E6CC">'+(r.yield_qty||r.yield||6)+' '+(r.unit||'porções')+'</div>'
-        + '</div>'
-        + '<div style="background:rgba(200,163,91,.12);border:1px solid rgba(200,163,91,.25);border-radius:8px;padding:6px 12px;text-align:center">'
-          + '<div style="font-size:9px;color:#B8972A;text-transform:uppercase;letter-spacing:.08em">Tempo</div>'
-          + '<div style="font-size:14px;font-weight:800;color:#F0E6CC">'+(r.time?(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':'')):'—')+'</div>'
-        + '</div>'
-        + '<button onclick="fecharCozinha()" style="background:rgba(255,255,255,.08);border:1px solid rgba(200,163,91,.3);color:#C8A35B;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px">✕</button>'
+  let html = '<div style="background:rgba(26,18,8,.95);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(200,163,91,.25)">'
+    + '<div style="display:flex;align-items:center;gap:10px">'
+      + '<img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="height:30px;filter:drop-shadow(0 1px 6px rgba(200,163,91,.5))">'
+      + '<div>'
+        + '<div style="font-size:11px;color:#B8972A;text-transform:uppercase;letter-spacing:.15em">' + (r.cat||'') + (r.group?' · '+r.group:'') + '</div>'
       + '</div>'
     + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<div style="background:rgba(200,163,91,.12);border:1px solid rgba(200,163,91,.25);border-radius:8px;padding:6px 12px;text-align:center"><div style="font-size:9px;color:#B8972A;text-transform:uppercase">Rendimento</div><div style="font-size:14px;font-weight:800;color:#F0E6CC">' + (r.yield_qty||r.yield||6) + ' ' + (r.unit||'porções') + '</div></div>'
+      + '<div style="background:rgba(200,163,91,.12);border:1px solid rgba(200,163,91,.25);border-radius:8px;padding:6px 12px;text-align:center"><div style="font-size:9px;color:#B8972A;text-transform:uppercase">Tempo</div><div style="font-size:14px;font-weight:800;color:#F0E6CC">' + (r.time?(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':'')):'—') + '</div></div>'
+      + '<button onclick="fecharCozinha()" style="background:rgba(255,255,255,.08);border:1px solid rgba(200,163,91,.3);color:#C8A35B;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '</div>'
+  + '</div>'
+  + '<div style="padding:20px 18px;max-width:680px;margin:0 auto">'
+    + fotoHTML
+    + '<div style="margin-bottom:28px">'
+      + '<div style="margin-bottom:14px;display:flex;align-items:center;gap:12px"><span style="display:inline-block;width:4px;height:28px;background:linear-gradient(180deg,#C8A35B,#8A6A20);border-radius:2px"></span><span style="font-family:Georgia,serif;font-size:22px;color:#FAF5E8;font-weight:700">Ingredientes</span></div>'
+      + ingrsHTML
+    + '</div>'
+    + (passos.length ? '<div><div style="margin-bottom:14px;display:flex;align-items:center;gap:12px"><span style="display:inline-block;width:4px;height:28px;background:linear-gradient(180deg,#C8A35B,#8A6A20);border-radius:2px"></span><span style="font-family:Georgia,serif;font-size:22px;color:#FAF5E8;font-weight:700">Modo de Preparo</span></div>' + passosHTML + '</div>' : '')
+  + '</div>';
 
-    // CONTEÚDO
-    + '<div style="padding:20px 18px;max-width:680px;margin:0 auto">'
-
-      // FOTO LUXUOSA
-      + fotoHTML
-
-      // INGREDIENTES — quantidade primeiro
-      + '<div style="margin-bottom:28px">'
-        + '<div style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'
-          + '<span style="display:inline-block;width:4px;height:30px;background:linear-gradient(180deg,#C8A35B,#8A6A20);border-radius:2px"></span>'+ '<span style="font-family:Georgia,serif;font-size:23px;color:#FAF5E8;font-weight:700">Ingredientes</span>'
-        + '</div>'
-        + ingrsHTML
-      + '</div>'
-
-      // MODO DE PREPARO
-      + (passos.length ? '<div>'
-        + '<div style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'
-          + '<span style="display:inline-block;width:4px;height:30px;background:linear-gradient(180deg,#C8A35B,#8A6A20);border-radius:2px"></span>'+ '<span style="font-family:Georgia,serif;font-size:23px;color:#FAF5E8;font-weight:700">Modo de Preparo</span>'
-        + '</div>'
-        + passosHTML
-        + '</div>' : '')
-
-    + '</div>';
-
+  overlay.innerHTML = html;
   overlay.style.display = 'block';
 }
-function fecharCozinha() {
-  const el = document.getElementById('cozinha-overlay');
-  if (el) el.remove();
+
+function imprimirReceita() {
+  const vt = document.getElementById('vt');
+  const id = vt ? vt.dataset.rid : null;
+  if (!id) { toast('Erro ao identificar receita'); return; }
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  const ratio = getRatio(r);
+  const p = calcAt(r, ratio);
+  const pct = p.cost > 0 ? (p.luc / p.cost * 100).toFixed(0) : 0;
+  const passos = (r.preparo || '').split('\n').filter(l => l.trim());
+  const win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups para imprimir'); return; }
+  const css = "@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');"
+    + "*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Lato',sans-serif;background:#FAF8F4;color:#1a1a1a;padding:30px}"
+    + ".page{max-width:680px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.08)}"
+    + ".hdr{background:linear-gradient(135deg,#1A1208,#2C1E0A);padding:28px 36px;text-align:center}"
+    + ".logo{width:110px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.4))}"
+    + ".rtitle{font-family:'Playfair Display',serif;font-size:26px;color:#F0E6CC;margin-bottom:3px}"
+    + ".rsub{font-size:11px;color:#B8972A;letter-spacing:.2em;text-transform:uppercase}"
+    + ".body{padding:28px 36px}"
+    + ".info-row{display:flex;border:1px solid #f0ebe0;border-radius:10px;overflow:hidden;margin-bottom:24px}"
+    + ".info-item{flex:1;padding:12px;text-align:center;border-right:1px solid #f0ebe0}"
+    + ".info-item:last-child{border-right:none}"
+    + ".il{font-size:9px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}"
+    + ".iv{font-size:14px;font-weight:700}"
+    + ".sec{font-family:'Playfair Display',serif;font-size:15px;color:#1a1a1a;margin-bottom:12px;padding-bottom:5px;border-bottom:1.5px solid #f0ebe0;display:flex;align-items:center;gap:7px}"
+    + ".sec::before{content:'';width:3px;height:16px;background:#C8A35B;border-radius:2px;flex-shrink:0}"
+    + "table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:12px}"
+    + "th{text-align:left;font-size:9px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.08em;padding:7px 9px;border-bottom:1.5px solid #f0ebe0}"
+    + "td{padding:7px 9px;border-bottom:0.5px solid #f5f0e8;color:#333}"
+    + "tr:nth-child(even) td{background:#FDFAF5}"
+    + ".passo{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:11px 13px;background:#FDFAF5;border-radius:8px;border-left:3px solid #C8A35B}"
+    + ".pl{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#C8A35B;flex-shrink:0;min-width:22px}"
+    + ".pt{font-size:12px;line-height:1.8;color:#333}"
+    + ".custo-box{background:linear-gradient(135deg,#1A1208,#2C1E0A);border-radius:10px;padding:18px;margin-top:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center}"
+    + ".cl2{font-size:9px;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}"
+    + ".cv2{font-size:15px;font-weight:700;color:#F0E6CC}"
+    + ".ftr{background:#FDFAF5;padding:14px 36px;text-align:center;border-top:1px solid #f0ebe0;font-size:10px;color:#aaa}"
+    + ".ftr strong{color:#C8A35B}"
+    + "@media print{body{padding:0}.page{box-shadow:none;border-radius:0}@page{margin:0}}";
+
+  const passosH = passos.map((ln,i) => '<div class="passo"><span class="pl">'+String.fromCharCode(65+i)+'</span><span class="pt">'+ln.trim()+'</span></div>').join('');
+  const ingrsH = p.scaled.map(ig => {
+    const q = parseFloat(ig.qty||0);
+    const sub = q * parseFloat(ig.price||0);
+    return '<tr><td>'+(ig.isBase?'⭐ ':'')+ig.name+'</td><td>'+(q>=100?q.toFixed(0):q>=10?q.toFixed(1):q.toFixed(2))+' '+(ig.unit||'')+'</td><td style="text-align:right;color:#C8A35B">'+(sub>0?'R$ '+sub.toFixed(2):'—')+'</td></tr>';
+  }).join('');
+
+  let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+r.name+'</title><style>'+css+'</style></head><body>'
+    + '<div class="page">'
+    + '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" class="logo" alt="Sucrée"><div class="rtitle">'+r.name+'</div><div class="rsub">'+r.cat+(r.group?' · '+r.group:'')+'</div></div>'
+    + '<div class="body">'
+    + '<div class="info-row"><div class="info-item"><div class="il">Rendimento</div><div class="iv">'+(r.yield_qty||r.yield||6)+' '+(r.unit||'porções')+'</div></div><div class="info-item"><div class="il">Tempo</div><div class="iv">'+(r.time?(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':'')):'—')+'</div></div><div class="info-item"><div class="il">Custo</div><div class="iv" style="color:#C8503A">R$ '+p.cost.toFixed(2)+'</div></div><div class="info-item"><div class="il">Venda</div><div class="iv" style="color:#C8A35B">R$ '+p.sale.toFixed(2)+'</div></div></div>'
+    + (p.scaled.length?'<div class="sec">Ingredientes</div><table><thead><tr><th>Ingrediente</th><th>Quantidade</th><th style="text-align:right">Custo</th></tr></thead><tbody>'+ingrsH+'</tbody></table>':'')
+    + (passos.length?'<div class="sec" style="margin-bottom:12px">Modo de Preparo</div>'+passosH:'')
+    + '<div class="custo-box"><div><div class="cl2">Custo total</div><div class="cv2">R$ '+p.cost.toFixed(2)+'</div></div><div><div class="cl2">Por porção</div><div class="cv2">R$ '+(p.cost/Math.max(p.portions,.01)).toFixed(2)+'</div></div><div><div class="cl2">Preço venda</div><div class="cv2">R$ '+p.sale.toFixed(2)+'</div></div><div><div class="cl2">Lucro '+pct+'%</div><div class="cv2" style="color:#9FE1CB">R$ '+p.luc.toFixed(2)+'</div></div></div>'
+    + '</div>'
+    + '<div class="ftr"><strong>Sucrée Confeitaria</strong> · Vitória – ES · Receita exclusiva</div>'
+    + '</div>'
+    + '<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt></body></html>';
+  win.document.write(html);
+  win.document.close();
+}
+
+
+function imprimirPedidoCozinha(id) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+  const num = '#' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2,'0') + String(new Date().getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*999)+1).padStart(3,'0');
+  const win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups para imprimir'); return; }
+  const custo = parseFloat(p.custoEstimado||0) || (parseFloat(p.valorBolo||0)*0.35);
+  const lucro = parseFloat(p.valorTotal||0) - custo;
+  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;padding:20px;color:#1a1a1a;max-width:480px;margin:0 auto}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{width:110px;height:auto;margin-bottom:6px}.hdr h1{font-size:18px;color:#2C1800}.num{font-size:11px;color:#888}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right;max-width:60%}.inspi{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:6px}.obs{background:#f9f9f9;border-left:3px solid #C8A35B;padding:7px 10px;font-size:12px;color:#555;font-style:italic;border-radius:0 6px 6px 0;margin-top:6px}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
+  let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Pedido — '+p.cliente+'</title><style>'+css+'</style></head><body>';
+  html += '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"><h1>Pedido para Cozinha</h1><div class="num">'+num+' · '+new Date().toLocaleDateString('pt-BR')+'</div></div>';
+  html += '<div class="sec"><div class="st">👤 Cliente</div>';
+  html += '<div class="row"><span class="key">Nome</span><span class="val">'+(p.cliente||'—')+'</span></div>';
+  html += '<div class="row"><span class="key">Entrega</span><span class="val">'+dataFmt+(p.hora?' às '+p.hora:'')+'</span></div>';
+  html += '<div class="row"><span class="key">Retirada</span><span class="val">'+(p.retira?'✅ Retira':'🚗 Entrego')+'</span></div>';
+  if(p.endereco) html += '<div class="row"><span class="key">Endereço</span><span class="val">'+p.endereco+'</span></div>';
+  if(p.telefone) html += '<div class="row"><span class="key">Telefone</span><span class="val">'+p.telefone+'</span></div>';
+  html += '</div><div class="sec"><div class="st">🎂 Bolo</div>';
+  if(p.aro) html += '<div class="row"><span class="key">Tamanho</span><span class="val">Aro '+p.aro+' cm</span></div>';
+  if(p.massa) html += '<div class="row"><span class="key">Massa</span><span class="val">'+(p.massa==='amanteigada'?'🧈 Amanteigada':'🍰 Pão de Ló')+'</span></div>';
+  if(p.recheio1) html += '<div class="row"><span class="key">Recheio 1</span><span class="val">'+p.recheio1+'</span></div>';
+  if(p.recheio2) html += '<div class="row"><span class="key">Recheio 2</span><span class="val">'+p.recheio2+'</span></div>';
+  if(p.cobertura) html += '<div class="row"><span class="key">Cobertura</span><span class="val">'+(p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream')+'</span></div>';
+  html += '</div>';
+  if(p.tema||p.flores||p.obsDeco){
+    html += '<div class="sec"><div class="st">🎨 Decoração</div>';
+    if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>';
+    if(p.flores) html += '<div class="row"><span class="key">Flores</span><span class="val">✅ Sim (R$ 50,00)</span></div>';
+    if(p.papelaria) html += '<div class="row"><span class="key">Papelaria</span><span class="val">✅ Sim (R$ 35,00)</span></div>';
+    if(p.obsDeco) html += '<div class="obs">'+p.obsDeco+'</div>';
+    html += '</div>';
+  }
+  if(p.inspiPhoto) html += '<div class="sec"><div class="st">📸 Inspiração</div><img src="'+p.inspiPhoto+'" class="inspi"></div>';
+  if(p.obsCliente) html += '<div class="sec"><div class="st">📝 Obs. do cliente</div><div class="obs">'+p.obsCliente+'</div></div>';
+  html += '<div class="tbox"><span style="font-size:11px;letter-spacing:1px">TOTAL</span><span style="font-size:19px;font-weight:700">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</span></div>';
+  if(p.sinal>0) html += '<div style="text-align:center;margin-top:6px;font-size:12px;color:#555">✅ Sinal: R$ '+parseFloat(p.sinal).toFixed(2)+' · A receber: R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)+'</div>';
+  html += '<div style="background:#f9f9f9;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;color:#555">💸 Custo est: <strong>R$ '+custo.toFixed(2)+'</strong> &nbsp;·&nbsp; 📈 Lucro: <strong style="color:#0F6E56">R$ '+lucro.toFixed(2)+'</strong></div>';
+  html += '<div class="ftr">Sucrée Confeitaria · Vitória – ES<br><strong style="color:#2C1800">✅ CONFIRMADO PARA PRODUÇÃO</strong></div>';
+  html += '<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt></body></html>';
+  win.document.write(html);
+  win.document.close();
 }
 
 </script>
@@ -3441,7 +3255,7 @@ function fecharCozinha() {
     <!-- TAB 3: TOTAL -->
     <div id="pt3" style="display:none">
       <div id="pedido-total-box"></div>
-      <div class="fg" style="margin-top:12px"><label>Custo estimado do bolo (R$)</label><input type="number" id="p-custo" placeholder="Deixe em branco para calcular auto (35%)" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg" style="margin-top:12px"><label>Custo estimado (R$) — deixe vazio para auto 35%</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
       <div class="fg"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
       <div class="fg"><label>Forma de pagamento</label>
         <select id="p-pagamento">
