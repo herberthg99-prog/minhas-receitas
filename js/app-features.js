@@ -254,12 +254,12 @@ async function doLogin() {
 
 
 function doLogout() {
-  const role = getCurrentRole();
-  const msg = role === 'guest' ? 'Sair do modo convidado?' : 'Sair do app?';
+  var role = getCurrentRole();
+  var msg = role === 'guest' ? 'Sair do modo convidado?' : 'Sair do app?';
   if (!confirm(msg)) return;
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_ROLE);
-  location.reload();
+  sessionStorage.clear();
+  localStorage.removeItem('mr_session');
+  window.location.href = window.location.href.split('?')[0] + '?logout=' + Date.now();
 }
 function shakeLoginBox() {
   const box = document.querySelector('.login-box');
@@ -1768,3 +1768,4 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
+
