@@ -3140,14 +3140,24 @@ function abrirModoCoZinha(r) {
       + '</div>';
   }).join('');
 
-  // Foto luxuosa — com gradiente overlay
+  // Foto luxuosa — estilo livro de receitas premium
   const fotoHTML = (r.photos && r.photos[0])
-    ? '<div style="position:relative;margin-bottom:28px;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.6)">'
-        + '<img src="'+r.photos[0]+'" style="width:100%;height:260px;object-fit:cover;display:block">'
-        + '<div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(transparent,#1A1208)"></div>'
-        + '<div style="position:absolute;bottom:14px;left:20px;font-family:Georgia,serif;font-size:22px;font-weight:700;color:#F0E6CC;text-shadow:0 2px 8px rgba(0,0,0,.8)">' + r.name + '</div>'
+    ? '<div style="position:relative;margin-bottom:32px;border-radius:18px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,.8)">'
+        + '<img src="'+r.photos[0]+'" style="width:100%;height:320px;object-fit:cover;display:block;filter:brightness(0.92) contrast(1.05)">'
+        + '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(26,18,8,.05) 0%,transparent 40%,rgba(26,18,8,.8) 80%,rgba(26,18,8,.97) 100%)"></div>'
+        + '<div style="position:absolute;bottom:0;left:0;right:0;padding:22px 24px">'
+          + '<div style="font-size:9px;font-weight:800;color:#C8A35B;letter-spacing:.25em;text-transform:uppercase;margin-bottom:6px">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
+          + '<div style="font-family:Georgia,serif;font-size:30px;font-weight:700;color:#FAF5E8;text-shadow:0 2px 12px rgba(0,0,0,.6);line-height:1.15;margin-bottom:8px">' + r.name + '</div>'
+          + '<div style="display:flex;gap:14px">'
+            + (r.yield_qty||r.yield ? '<span style="font-size:12px;color:rgba(200,163,91,.9)">🍽 '+(r.yield_qty||r.yield)+' '+(r.unit||'porções')+'</span>' : '')
+            + (r.time ? '<span style="font-size:12px;color:rgba(200,163,91,.9)">⏱ '+(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':''))+'</span>' : '')
+          + '</div>'
+        + '</div>'
       + '</div>'
-    : '<div style="margin-bottom:24px;padding:20px 0;text-align:center;font-family:Georgia,serif;font-size:26px;font-weight:700;color:#F0E6CC;border-bottom:1px solid rgba(200,163,91,.3)">' + r.name + '</div>';
+    : '<div style="margin-bottom:28px;padding:28px 0 20px;border-bottom:1px solid rgba(200,163,91,.25);text-align:center">'
+        + '<div style="font-size:9px;font-weight:800;color:#C8A35B;letter-spacing:.25em;text-transform:uppercase;margin-bottom:8px">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
+        + '<div style="font-family:Georgia,serif;font-size:32px;font-weight:700;color:#FAF5E8;line-height:1.2">' + r.name + '</div>'
+      + '</div>';
 
   let overlay = document.getElementById('cozinha-overlay');
   if (!overlay) {
@@ -3187,16 +3197,16 @@ function abrirModoCoZinha(r) {
 
       // INGREDIENTES — quantidade primeiro
       + '<div style="margin-bottom:28px">'
-        + '<div style="font-size:11px;font-weight:800;color:#C8A35B;text-transform:uppercase;letter-spacing:.15em;margin-bottom:12px;display:flex;align-items:center;gap:8px">'
-          + '<span style="display:inline-block;width:3px;height:14px;background:#C8A35B;border-radius:2px"></span> Ingredientes'
+        + '<div style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'
+          + '<span style="display:inline-block;width:4px;height:30px;background:linear-gradient(180deg,#C8A35B,#8A6A20);border-radius:2px"></span>'+ '<span style="font-family:Georgia,serif;font-size:23px;color:#FAF5E8;font-weight:700">Ingredientes</span>'
         + '</div>'
         + ingrsHTML
       + '</div>'
 
       // MODO DE PREPARO
       + (passos.length ? '<div>'
-        + '<div style="font-size:11px;font-weight:800;color:#C8A35B;text-transform:uppercase;letter-spacing:.15em;margin-bottom:12px;display:flex;align-items:center;gap:8px">'
-          + '<span style="display:inline-block;width:3px;height:14px;background:#C8A35B;border-radius:2px"></span> Modo de Preparo'
+        + '<div style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'
+          + '<span style="display:inline-block;width:4px;height:30px;background:linear-gradient(180deg,#C8A35B,#8A6A20);border-radius:2px"></span>'+ '<span style="font-family:Georgia,serif;font-size:23px;color:#FAF5E8;font-weight:700">Modo de Preparo</span>'
         + '</div>'
         + passosHTML
         + '</div>' : '')
