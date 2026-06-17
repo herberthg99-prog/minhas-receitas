@@ -241,11 +241,10 @@ async function syncNow() {
 // ═══════════════════════════════════════════
 function setCatFilter(val) {
   document.getElementById('fc').value = val;
-  // Atualizar visual dos botões
-  ['all','doce','salgada'].forEach(k => {
-    const btn = document.getElementById('cat-btn-' + (k === 'all' ? 'all' : k));
+  ['all','doce','salgada'].forEach(function(k) {
+    var btn = document.getElementById('cat-' + k);
     if (!btn) return;
-    const active = (k === 'all' && val === '') || k === val;
+    var active = (k === 'all' && val === '') || k === val;
     btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
     btn.style.background  = active ? 'var(--gold)' : 'var(--bg)';
     btn.style.color       = active ? '#fff' : 'var(--text2)';
@@ -253,76 +252,81 @@ function setCatFilter(val) {
   renderRecipes();
 }
 
-// ═══════════════════════════════════════════
-// RENDER RECIPES
-// ═══════════════════════════════════════════
 function renderRecipes() {
-  const q = (document.getElementById('si').value || '').toLowerCase();
-  const cat = document.getElementById('fc').value;
-  const grp = document.getElementById('fg2').value;
-  const el = document.getElementById('recipes-list');
-  const guest = isGuest();
+  var q   = (document.getElementById('si').value || '').toLowerCase();
+  var cat = document.getElementById('fc').value;
+  var grp = document.getElementById('fg2').value;
+  var el  = document.getElementById('recipes-list');
+  var guest = isGuest();
 
-  let list = recipes.filter(r =>
-    (!q || (r.name || '').toLowerCase().includes(q)) &&
-    (!cat || r.cat === cat) &&
-    (!grp || r.group === grp)
-  );
-
-  if (guest) list = list.filter(r => shareConfig.sharedIds.includes(r.id));
+  var list = recipes.filter(function(r) {
+    return (!q || (r.name||'').toLowerCase().includes(q))
+        && (!cat || r.cat === cat)
+        && (!grp || r.group === grp);
+  });
+  if (guest) list = list.filter(function(r){ return shareConfig.sharedIds.includes(r.id); });
 
   if (!list.length) {
     el.innerHTML = guest
       ? '<div class="est"><i class="ti ti-eye-off"></i><p>Nenhuma receita compartilhada.</p></div>'
-      : `<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>`;
+      : '<div class="est"><i class="ti ti-salad"></i><p>Nenhuma receita.</p><button class="btnp" onclick="openNewChoice()"><i class="ti ti-plus"></i> Criar</button></div>';
     return;
   }
 
-  // Ordenar alfabeticamente
-  list = [...list].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR'));
+  list = list.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','pt-BR'); });
 
-  // Agrupar por primeira letra
-  let html = '';
-  let lastLetter = '';
-  list.forEach(r => {
-    const letra = (r.name || '?')[0].toUpperCase();
-    if (letra !== lastLetter) {
-      html += `<div class="alpha-sep">${letra}</div>`;
-      lastLetter = letra;
+  var html = '<div class="recipes-grid">';
+  var lastLetra = '';
+
+  list.forEach(function(r) {
+    var letra = (r.name||'?')[0].toUpperCase();
+    if (letra !== lastLetra) {
+      html += '<div class="alpha-divider">' + letra + '</div>';
+      lastLetra = letra;
     }
 
-    const shared = shareConfig.sharedIds.includes(r.id);
-    const mainPhoto = r.photos && r.photos[0];
-    const p = calcAt(r, 1);
-    const pct = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
+    var shared = shareConfig.sharedIds.includes(r.id);
+    var photo  = r.photos && r.photos[0];
+    var p      = calcAt(r, 1);
+    var pct    = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
+    var emoji  = r.cat === 'doce' ? '🍰' : '🥩';
 
-    html += `<div class="rc-list ${shared ? 'shared' : ''}">
-      <div class="rc-list-thumb">
-        ${mainPhoto ? `<img src="${mainPhoto}" alt="${r.name}">` : `<i class="ti ti-${r.cat === 'doce' ? 'cookie' : 'meat'}"></i>`}
-      </div>
-      <div class="rc-list-info">
-        <div class="rc-list-name">${r.name}</div>
-        <div class="rc-list-meta">
-          <span class="tag t${r.cat[0]}">${r.cat}</span>
-          ${r.group ? `<span class="badge badge-blue">${r.group}</span>` : ''}
-          ${r.time ? `<span><i class="ti ti-clock"></i> ${fT(r.time)}</span>` : ''}
-          ${!guest && p.cost > 0 ? `<span class="pb ${pctClass(pct)}">${pct.toFixed(0)}%</span>` : ''}
-        </div>
-      </div>
-      <div class="rc-list-actions">
-        <button class="rc-list-btn btn-ver" onclick="viewRecipe('${r.id}')" title="Ver"><i class="ti ti-eye"></i></button>
-        ${!guest ? `
-        <button class="rc-list-btn btn-edit" onclick="openEdit('${r.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-        <button class="rc-list-btn btn-share ${shared ? 'active' : ''}" onclick="toggleShare('${r.id}',this)" title="Compartilhar"><i class="ti ti-${shared ? 'share-3' : 'share'}"></i></button>
-        <button class="rc-list-btn btn-max" onclick="viewRecipe('${r.id}');setTimeout(toggleFullReceita,300)" title="Tela cheia"><i class="ti ti-maximize"></i></button>
-        <button class="rc-list-btn btn-del" onclick="delRecipe('${r.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
-        ` : ''}
-      </div>
-    </div>`;
+    html += '<div class="rc-card">';
+    if (shared) html += '<div class="rc-shared-badge"><i class="ti ti-share" style="font-size:9px"></i></div>';
+    if (!guest && p.cost > 0) html += '<div class="rc-lucro-badge"><span class="pb ' + pctClass(pct) + '" style="font-size:9px">' + pct.toFixed(0) + '%</span></div>';
+
+    if (photo) {
+      html += '<img class="rc-card-thumb" src="' + photo + '" alt="" loading="lazy" onclick="viewRecipe(\'' + r.id + '\')">';
+    } else {
+      html += '<div class="rc-card-no-photo" onclick="viewRecipe(\'' + r.id + '\')">' + emoji + '</div>';
+    }
+
+    html += '<div class="rc-card-body">'
+      + '<div class="rc-card-name" onclick="viewRecipe(\'' + r.id + '\')">' + (r.name||'') + '</div>'
+      + '<div class="rc-card-meta">'
+      + '<span class="tag t' + r.cat[0] + '" style="font-size:9px">' + r.cat + '</span>'
+      + (r.group ? '<span class="badge badge-blue" style="font-size:9px">' + r.group + '</span>' : '')
+      + (r.time ? '<span style="font-size:10px;color:var(--text3)"><i class="ti ti-clock"></i> ' + fT(r.time) + '</span>' : '')
+      + '</div>';
+
+    if (!guest) {
+      html += '<div class="rc-card-actions">'
+        + '<button class="rc-card-btn azul" onclick="viewRecipe(\'' + r.id + '\')" title="Ver"><i class="ti ti-eye"></i></button>'
+        + '<button class="rc-card-btn verde" onclick="openEdit(\'' + r.id + '\')" title="Editar"><i class="ti ti-edit"></i></button>'
+        + '<button class="rc-card-btn ' + (shared ? 'shared-on' : '') + '" onclick="toggleShare(\'' + r.id + '\',this)" title="Compartilhar"><i class="ti ti-' + (shared ? 'share-3' : 'share') + '"></i></button>'
+        + '<button class="rc-card-btn ouro" onclick="viewRecipe(\'' + r.id + '\');setTimeout(toggleFullReceita,300)" title="Tela cheia"><i class="ti ti-maximize"></i></button>'
+        + '<button class="rc-card-btn vermelho" onclick="delRecipe(\'' + r.id + '\')" title="Excluir"><i class="ti ti-trash"></i></button>'
+        + '</div>';
+    }
+
+    html += '</div></div>';
   });
 
+  html += '</div>';
   el.innerHTML = html;
 }
+
+
 
 async function toggleShare(id, btn) {
   const idx = shareConfig.sharedIds.indexOf(id);
