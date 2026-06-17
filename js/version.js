@@ -17,12 +17,11 @@ window.addEventListener('load', () => {
     }
   } catch(e) {}
 
-  // Rodar checklist 2 segundos após carregar (dá tempo do app inicializar)
-  setTimeout(_runChecklist, 2000);
+  // Rodar checklist 4 segundos após carregar (dá tempo do Supabase inicializar)
+  setTimeout(_runChecklist, 4000);
 });
 
 // ─── Checklist de regressão ────────────────────────────────────────────────────
-// Cada teste retorna { ok: bool, msg: string }
 const _CHECKS = [
   {
     name: 'Supabase conectado',
@@ -30,7 +29,10 @@ const _CHECKS = [
   },
   {
     name: 'Estado global (recipes)',
-    fn: () => ({ ok: Array.isArray(window.recipes !== undefined ? recipes : null), msg: `recipes = ${typeof recipes}` })
+    fn: () => {
+      const ok = Array.isArray(recipes);
+      return { ok, msg: ok ? `OK (${recipes.length} receitas)` : `recipes = ${typeof recipes} (ainda carregando?)` };
+    }
   },
   {
     name: 'Funções de autenticação',
@@ -94,49 +96,3 @@ const _CHECKS = [
 function _runChecklist() {
   const results = _CHECKS.map(c => {
     try {
-      const r = c.fn();
-      return { name: c.name, ...r };
-    } catch(e) {
-      return { name: c.name, ok: false, msg: 'ERRO: ' + e.message };
-    }
-  });
-
-  const failed = results.filter(r => !r.ok);
-  const passed = results.filter(r => r.ok);
-
-  if (failed.length === 0) {
-    console.log(`✅ Sucrée v${APP_VERSION} — todos os ${passed.length} testes passaram`);
-  } else {
-    console.warn(`⚠️ Sucrée v${APP_VERSION} — ${failed.length} PROBLEMA(S) DETECTADO(S):`);
-    failed.forEach(r => console.error(`  ❌ ${r.name}: ${r.msg}`));
-    console.log(`  ✅ Passaram: ${passed.length}/${results.length}`);
-  }
-
-  // Salvar resultado no sessionStorage para o painel de testes
-  sessionStorage.setItem('sucree_test_results', JSON.stringify({ version: APP_VERSION, results, ts: Date.now() }));
-}
-
-// ─── Painel de testes oculto ───────────────────────────────────────────────────
-// Acessado pelo admin: digitar "teste" no console ou pressionar Ctrl+Shift+T
-function mostrarPainelTestes() {
-  const raw = sessionStorage.getItem('sucree_test_results');
-  if (!raw) { alert('Rode os testes primeiro: _runChecklist()'); return; }
-  const { version, results } = JSON.parse(raw);
-  const failed = results.filter(r => !r.ok);
-  const lines = results.map(r => `${r.ok ? '✅' : '❌'} ${r.name}: ${r.msg}`).join('\n');
-  alert(`🎂 Sucrée v${version} — Checklist de Regressão\n\n${lines}\n\n${failed.length === 0 ? '🎉 TUDO OK!' : `⚠️ ${failed.length} problema(s)!`}`);
-}
-
-// Atalho de teclado Ctrl+Shift+T para abrir painel (só admin)
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'T') {
-    if (typeof getCurrentRole === 'function' && getCurrentRole() === 'admin') {
-      mostrarPainelTestes();
-    }
-  }
-});
-
-// Expor globalmente para uso no console
-window.sucreeTeste = _runChecklist;
-window.sucreePanel = mostrarPainelTestes;
-window.APP_VERSION = APP_VERSION;
