@@ -1543,4 +1543,3 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
-
