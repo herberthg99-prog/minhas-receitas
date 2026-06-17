@@ -159,7 +159,11 @@ function goPage(p) {
   const el = document.getElementById('nav-' + p);
   if (el) el.classList.add('act');
   if (p === 'home') renderHome();
-  if (p === 'receitas') { renderRecipes(); }
+  if (p === 'receitas') { 
+    var curCat = document.getElementById('fc') ? document.getElementById('fc').value : '';
+    buildSubAbas(curCat);
+    renderRecipes(); 
+  }
   if (p === 'confeitaria') renderConfeitaria();
   if (p === 'estoque') renderEstoque();
   if (p === 'config') renderConfigPage();
