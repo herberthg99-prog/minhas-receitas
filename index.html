@@ -3122,7 +3122,7 @@ function abrirModoCoZinha(r) {
           + '<div style="font-size:11px;color:#B8972A;text-transform:uppercase;letter-spacing:.1em">'+(r.cat||'')+(r.group?' · '+r.group:'')+'</div>'
         + '</div>'
       + '</div>'
-      + '<button onclick="document.getElementById('cozinha-overlay').remove()" style="background:rgba(255,255,255,.1);border:1px solid rgba(200,163,91,.3);color:#C8A35B;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>'
+      + '<button onclick="fecharCozinha()" style="background:rgba(255,255,255,.1);border:1px solid rgba(200,163,91,.3);color:#C8A35B;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>'
     + '</div>'
 
     // CONTEÚDO
@@ -3170,6 +3170,12 @@ function abrirModoCoZinha(r) {
     + '</div>';
 
   overlay.style.display = 'block';
+}
+
+
+function fecharCozinha() {
+  const el = document.getElementById('cozinha-overlay');
+  if (el) el.remove();
 }
 
 </script>
