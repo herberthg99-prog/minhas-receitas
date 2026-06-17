@@ -1,3 +1,9 @@
+// Safe toast - works even if app-core not loaded yet
+function _safeToast(msg, dur) {
+  if (typeof toast === 'function') { toast(msg, dur); return; }
+  var t = document.getElementById('toast');
+  if (t) { t.textContent = msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, dur||2400); }
+}
 // app-features.js — Login, estoque, pedidos, configurações
 // ⛔ ZONA CRÍTICA: não editar funções de login sem cuidado
 // ═══════════════════════════════════════════
@@ -137,7 +143,7 @@ async function doLogin() {
         await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: pwd }, { onConflict: 'user_id' });
         setSession('admin');
         revelarApp();
-        toast('Senha criada! Bem-vindo, Administrador!');
+        _safeToast('Senha criada! Bem-vindo, Administrador!');
         return;
       }
 
@@ -161,7 +167,7 @@ async function doLogin() {
 
       setSession('admin');
       revelarApp();
-      toast('Bem-vindo, Administrador!');
+      _safeToast('Bem-vindo, Administrador!');
     } catch(e) {
       // Fallback to local
       const localPwd = getAdminPwd();
@@ -181,7 +187,7 @@ async function doLogin() {
       }
       setSession('admin');
       revelarApp();
-      toast('Bem-vindo! (modo offline)');
+      _safeToast('Bem-vindo! (modo offline)');
     }
   } else {
     // Guest login - check Supabase first, fallback to local
@@ -214,7 +220,7 @@ async function doLogin() {
       // Load shared recipes from cloud
       await loadFromCloud();
       enterGuestMode();
-      toast('Bem-vindo, Convidado!');
+      _safeToast('Bem-vindo, Convidado!');
     } catch(e) {
       // Fallback to local check
       const localPwd = getGuestPwd();
@@ -223,7 +229,7 @@ async function doLogin() {
       setSession('guest');
       revelarApp();
       enterGuestMode();
-      toast('Bem-vindo, Convidado!');
+      _safeToast('Bem-vindo, Convidado!');
     }
   }
 }
@@ -1744,3 +1750,4 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
+
