@@ -1617,11 +1617,17 @@ function imprimirPedidoCozinha(id) {
 </script>
 <script>
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("sw.js")
-      .then(()=>console.log("SW registrado"))
-      .catch(e=>console.log("SW erro",e));
+  // Desregistrar SW antigo que causava loop
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+    console.log("SW desregistrados:",regs.length);
   });
+  if(window.caches){
+    caches.keys().then(keys=>{
+      keys.forEach(k=>caches.delete(k));
+      console.log("Caches limpos:",keys.length);
+    });
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -1714,9 +1720,9 @@ function selectUser(role) {
 }
 
 
-function showApp() {
+function revelarApp() {
   document.getElementById('app').style.display = 'flex';
-  showApp();
+  document.getElementById('login-overlay').style.display = 'none';
 }
 
 async function doLogin() {
@@ -1733,7 +1739,7 @@ async function doLogin() {
       if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
       setAdminPwd(pwd);
       setSession('admin');
-      showApp();
+      revelarApp();
       toast('Senha criada! Bem-vindo, Administrador!');
     } else {
       if (pwd !== getAdminPwd()) {
@@ -1743,7 +1749,7 @@ async function doLogin() {
         return;
       }
       setSession('admin');
-      showApp();
+      revelarApp();
       toast('Bem-vindo, Administrador!');
     }
   } else {
@@ -1773,7 +1779,7 @@ async function doLogin() {
         return;
       }
       setSession('guest');
-      showApp();
+      revelarApp();
       // Load shared recipes from cloud
       await loadFromCloud();
       enterGuestMode();
@@ -1784,7 +1790,7 @@ async function doLogin() {
       if (!localPwd) { err.textContent = 'Sem conexão e sem senha local.'; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       if (pwd !== localPwd) { err.textContent = 'Senha incorreta'; shakeLoginBox(); document.getElementById('login-pwd').value=''; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       setSession('guest');
-      showApp();
+      revelarApp();
       enterGuestMode();
       toast('Bem-vindo, Convidado!');
     }
