@@ -173,23 +173,23 @@ button{font-family:inherit;cursor:pointer}
 .loading-overlay p{font-size:14px;color:var(--text2);font-weight:600}
 .user-id-box{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
-.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 50%,#1A1208 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.login-box{background:rgba(26,18,8,.9);border-radius:20px;padding:22px 20px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.6);text-align:center;border:1px solid rgba(200,163,91,.3);margin:auto}
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 50%,#1A1208 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:24px;overflow-y:auto}
+.login-box{background:rgba(26,18,8,.88);backdrop-filter:blur(20px);border-radius:20px;padding:18px 20px;width:100%;max-width:360px;box-shadow:0 8px 60px rgba(0,0,0,.6);text-align:center;border:1px solid rgba(200,163,91,.3);margin:auto 0;flex-shrink:0}
 .login-logo{font-size:52px;margin-bottom:6px}
-.login-title{font-size:20px;font-weight:700;margin-bottom:3px;color:#F0E6CC}
-.login-sub{font-size:13px;color:#B8972A;margin-bottom:12px}
-.login-input{width:100%;padding:10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:10px;transition:border-color .2s}
+.login-title{font-size:19px;font-weight:700;margin-bottom:2px;color:#F0E6CC}
+.login-sub{font-size:13px;color:#B8972A;margin-bottom:10px}
+.login-input{width:100%;padding:9px 12px;border:1.5px solid rgba(200,163,91,.35);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;margin-bottom:10px;transition:border-color .2s}
 .login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
-.login-btn{width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
+.login-btn{width:100%;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
 .login-err{font-size:13px;color:#FF8080;margin-top:4px;min-height:18px}
-.login-hint{font-size:11px;color:rgba(200,163,91,.5);margin-top:10px}
-.login-setup{background:rgba(255,255,255,.06);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;font-size:12px;color:rgba(200,163,91,.7);text-align:left;border:1px solid rgba(200,163,91,.2)}
+.login-hint{font-size:11px;color:rgba(200,163,91,.5);margin-top:8px}
+.login-setup{background:rgba(255,255,255,.06);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;font-size:13px;color:rgba(200,163,91,.7);text-align:left;border:1px solid rgba(200,163,91,.2)}
 .login-setup p{font-weight:700;margin-bottom:6px;color:var(--text)}
 .pwd-toggle{position:relative;margin-bottom:12px}
 .pwd-toggle input{padding-right:44px}
 .pwd-toggle button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px}
-.login-forgot{font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline;margin-top:6px;display:inline-block}
+.login-forgot{font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block}
 
 @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
 
@@ -230,51 +230,66 @@ button{font-family:inherit;cursor:pointer}
 
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="login-overlay">
+  <div style="position:absolute;top:-80px;right:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.14) 0%,transparent 65%);pointer-events:none"></div>
+  <div style="position:absolute;bottom:-60px;left:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.1) 0%,transparent 65%);pointer-events:none"></div>
   <div class="login-box">
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:110px;height:auto;filter:drop-shadow(0 2px 14px rgba(200,163,91,.5));margin-bottom:8px">
-    <div class="login-title">Área Administrativa</div>
-    <div class="login-sub">Sucrée Confeitaria</div>
 
-    <!-- USER SELECTOR -->
-    <div id="user-selector" style="display:flex;gap:8px;margin-bottom:12px;width:100%">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
+      style="width:120px;height:auto;filter:drop-shadow(0 2px 14px rgba(200,163,91,.5));margin-bottom:10px">
+
+    <div style="font-size:18px;font-weight:700;color:#F0E6CC;margin-bottom:4px">Área Administrativa</div>
+    <div style="font-size:13px;color:#B8972A;margin-bottom:16px">Sucrée Confeitaria</div>
+
+    <!-- SELETOR ADMIN / CONVIDADO -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
-        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
-        <span style="font-size:18px">👨‍🍳</span>
-        <span>Administrador</span>
+        style="flex:1;padding:9px 6px;border-radius:8px;border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <span style="font-size:18px">👨‍🍳</span><span>Administrador</span>
       </button>
       <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid rgba(200,163,91,.3);background:rgba(255,255,255,.07);color:rgba(200,163,91,.8);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
-        <span style="font-size:18px">👤</span>
-        <span>Convidado</span>
+        style="flex:1;padding:9px 6px;border-radius:8px;border:2px solid rgba(200,163,91,.3);background:rgba(255,255,255,.07);color:rgba(200,163,91,.8);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+        <span style="font-size:18px">👤</span><span>Convidado</span>
       </button>
     </div>
 
-    <div id="login-setup-box" class="login-setup" style="display:none">
-      <p>👋 Primeira vez? Crie sua senha de administrador:</p>
-      <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
+    <!-- SETUP (primeira vez) -->
+    <div id="login-setup-box" style="display:none;background:rgba(255,255,255,.06);border:1px solid rgba(200,163,91,.2);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:rgba(200,163,91,.8);text-align:left">
+      <strong>Primeira vez?</strong> Crie sua senha de administrador.
     </div>
 
+    <!-- LABEL SENHA -->
     <div id="login-user-label" style="font-size:11px;font-weight:700;color:rgba(200,163,91,.8);margin-bottom:6px;text-align:left;width:100%">SENHA DO ADMINISTRADOR</div>
 
-    <div class="pwd-toggle">
-      <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
+    <!-- CAMPO SENHA -->
+    <div style="position:relative;margin-bottom:10px">
+      <input type="password" id="login-pwd" placeholder="••••••"
+        style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;outline:none"
         onkeydown="if(event.key==='Enter')doLogin()"
         oninput="document.getElementById('login-err').textContent=''">
-      <button onclick="toggleLoginPwd()" id="pwd-eye"><i class="ti ti-eye"></i></button>
+      <button onclick="toggleLoginPwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(200,163,91,.6);font-size:18px;cursor:pointer;padding:4px">
+        <i class="ti ti-eye"></i>
+      </button>
     </div>
 
-    <div id="confirm-pwd-box" style="display:none">
-      <div class="pwd-toggle">
-        <input class="login-input" type="password" id="login-pwd2" placeholder="Confirmar senha"
-          onkeydown="if(event.key==='Enter')doLogin()">
-        <button onclick="toggleLoginPwd2()"><i class="ti ti-eye"></i></button>
-      </div>
+    <!-- CONFIRMAR SENHA (primeira vez) -->
+    <div id="confirm-pwd-box" style="display:none;position:relative;margin-bottom:10px">
+      <input type="password" id="login-pwd2" placeholder="Confirmar senha"
+        style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid rgba(200,163,91,.35);border-radius:8px;font-size:16px;text-align:center;letter-spacing:.12em;font-family:inherit;background:rgba(255,255,255,.08);color:#F0E6CC;outline:none"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="toggleLoginPwd2()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(200,163,91,.6);font-size:18px;cursor:pointer;padding:4px">
+        <i class="ti ti-eye"></i>
+      </button>
     </div>
 
-    <button class="login-btn" onclick="doLogin()" id="login-btn-label">Entrar</button>
-    <div class="login-err" id="login-err"></div>
-    <span class="login-forgot" id="login-forgot" onclick="forgotPwd()" style="display:none">Esqueci minha senha</span>
-    <div class="login-hint" id="login-hint">Acesso completo ao app de receitas</div>
+    <!-- BOTÃO ENTRAR -->
+    <button id="login-btn-label" onclick="doLogin()"
+      style="width:100%;padding:11px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px">
+      Entrar
+    </button>
+
+    <div id="login-err" style="font-size:13px;color:#FF8080;min-height:18px;margin-bottom:4px"></div>
+    <span id="login-forgot" onclick="forgotPwd()" style="display:none;font-size:12px;color:#B8972A;cursor:pointer;text-decoration:underline">Esqueci minha senha</span>
+    <div id="login-hint" style="font-size:11px;color:rgba(200,163,91,.5);margin-top:8px">Acesso completo ao app de receitas</div>
   </div>
 </div>
 
@@ -312,7 +327,6 @@ button{font-family:inherit;cursor:pointer}
   <button class="bni" style="color:var(--gold)" onclick="openNewChoice()"><i class="ti ti-plus-square" style="font-size:28px;color:var(--gold)"></i><span style="color:var(--gold)">Nova</span></button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
   <button class="bni" onclick="abrirMenuCardapio()" id="nav-cardapio"><i class="ti ti-send"></i><span>Cardápio</span></button>
-  <button class="bni" onclick="window.open('inspiracao.html','_blank')" id="nav-inspiracao"><i class="ti ti-wand" style="color:#C8A35B"></i><span style="color:#C8A35B">Inspiração</span></button>
 </div>
 
 <!-- CARDAPIO SHARE BOTTOM SHEET -->
@@ -493,6 +507,7 @@ button{font-family:inherit;cursor:pointer}
     <h2 id="vt">Receita</h2>
     <div class="flex-row">
       <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
+      <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:var(--teal)"><i class="ti ti-printer"></i> Imprimir</button>
       <button class="xb" onclick="cm('modal-view')"><i class="ti ti-x"></i></button>
     </div>
   </div>
@@ -564,6 +579,11 @@ function calcAt(r, ratio) {
 // ═══════════════════════════════════════════
 // CLOUD: LOAD
 // ═══════════════════════════════════════════
+
+// helper mínimo para loadFromCloud
+function getCurrentRole(){return sessionStorage.getItem('mr_role')||'admin';}
+function isGuest(){return getCurrentRole()==='guest';}
+
 async function loadFromCloud() {
   setSyncStatus('syncing', 'carregando...');
   try {
@@ -1100,7 +1120,7 @@ function viewRecipe(id) {
   rmap[id] = r;
   const b = getBase(r);
   if (!viewState[id]) viewState[id] = { mode: b ? 'base' : 'prop', baseVal: b ? parseFloat(b.qty) : 1, propMode: 'pct', pct: 100, fracN: 1, fracD: 1, mult: 1, helperN: 1, helperD: 1 };
-  document.getElementById('vt').textContent = r.name;
+  document.getElementById('vt').textContent = r.name; document.getElementById('vt').dataset.rid = r.id;
   document.getElementById('veb').onclick = () => { cm('modal-view'); openEdit(id); };
   renderViewBody(r);
   document.getElementById('modal-view').style.display = 'flex';
@@ -1280,11 +1300,26 @@ function renderViewBody(r) {
       </div>
     </div>
 
-    <div class="g4" style="margin-bottom:12px">
-      <div class="met"><div class="ml">Custo</div><div class="mv" style="font-size:13px">${fR(p.cost)}</div></div>
-      <div class="met"><div class="ml">Por porção</div><div class="mv" style="font-size:13px">${fR(p.cost / Math.max(p.portions, .01))}</div></div>
-      <div class="met"><div class="ml">Venda</div><div class="mv coral" style="font-size:13px">${fR(p.sale)}</div></div>
-      <div class="met"><div class="ml">Lucro</div><div class="mv green" style="font-size:13px">${fR(p.luc)}</div></div>
+    <div style="margin-bottom:14px;background:linear-gradient(135deg,rgba(200,163,91,.08),rgba(200,163,91,.04));border:1px solid rgba(200,163,91,.25);border-radius:10px;padding:12px">
+      <div style="font-size:10px;font-weight:800;color:#C8A35B;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-currency-dollar" style="font-size:13px"></i> Custo & Precificação</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
+          <div style="font-size:10px;color:#999;margin-bottom:2px">💸 Custo total</div>
+          <div style="font-size:16px;font-weight:800;color:#C8503A">${fR(p.cost)}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
+          <div style="font-size:10px;color:#999;margin-bottom:2px">🍽️ Por porção</div>
+          <div style="font-size:16px;font-weight:800;color:#C8503A">${fR(p.cost / Math.max(p.portions, .01))}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
+          <div style="font-size:10px;color:#999;margin-bottom:2px">💰 Preço venda</div>
+          <div style="font-size:16px;font-weight:800;color:var(--gold)">${fR(p.sale)}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.7);border-radius:7px;padding:9px;text-align:center">
+          <div style="font-size:10px;color:#999;margin-bottom:2px">📈 Lucro</div>
+          <div style="font-size:16px;font-weight:800;color:var(--teal)">${fR(p.luc)}</div>
+        </div>
+      </div>
     </div>
 
     ${p.scaled.length ? `
@@ -1304,7 +1339,18 @@ function renderViewBody(r) {
       </table></div>
     </div>` : ''}
 
-    ${r.preparo ? `<div style="margin-bottom:12px"><div class="st"><i class="ti ti-notes"></i> Modo de preparo</div><div style="font-size:13px;line-height:1.9">${r.preparo.replace(/\n/g, '<br>')}</div></div>` : ''}
+    ${r.preparo ? `<div style="margin-bottom:16px">
+      <div class="st" style="font-size:12px;letter-spacing:.1em"><i class="ti ti-notes"></i> Modo de preparo</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${r.preparo.split('\n').filter(l=>l.trim()).map((linha, i) => {
+          const letra = String.fromCharCode(65 + i); // A, B, C...
+          return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:rgba(200,163,91,.06);border-radius:8px;border-left:3px solid rgba(200,163,91,.4)">'
+            + '<span style="font-size:13px;font-weight:800;color:#C8A35B;flex-shrink:0;min-width:20px">' + letra + ')</span>'
+            + '<span style="font-size:13px;line-height:1.7;color:#1a1a1a">' + linha.trim() + '</span>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>` : ''}
 
     ${r.formasEnabled && r.formas && r.formas.length ? `
     <div style="margin-bottom:12px">
@@ -1513,9 +1559,8 @@ async function loadPedidosFromCloud() {
     if(typeof _renderConfeitariaUI === 'function') _renderConfeitariaUI();
   }
 })();
-</script>
-<script>
 
+// ═══ IMPRIMIR PARA COZINHA ═══
 function imprimirPedidoCozinha(id) {
   const p = pedidos.find(x => x.id === id);
   if (!p) return;
@@ -1525,7 +1570,7 @@ function imprimirPedidoCozinha(id) {
   if (!win) { toast('Permita pop-ups para imprimir'); return; }
   const custo = parseFloat(p.custoEstimado||0) || (parseFloat(p.valorBolo||0)*0.35);
   const lucro = parseFloat(p.valorTotal||0) - custo;
-  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;padding:20px;color:#1a1a1a;max-width:480px;margin:0 auto}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{width:110px;height:auto;margin-bottom:6px}.hdr h1{font-size:18px;color:#2C1800}.num{font-size:11px;color:#888}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right}.inspi{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:6px}.aviso{background:#FFF8E6;border:1px solid #C8A35B55;border-radius:6px;padding:7px 10px;font-size:11px;color:#7a5c00;text-align:center;margin-top:6px}.obs{background:#f9f9f9;border-left:3px solid #C8A35B;padding:7px 10px;font-size:12px;color:#555;font-style:italic;border-radius:0 6px 6px 0;margin-top:6px}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
+  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;padding:20px;color:#1a1a1a;max-width:480px;margin:0 auto}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{width:110px;height:auto;margin-bottom:6px}.hdr h1{font-size:18px;color:#2C1800;margin-bottom:2px}.num{font-size:11px;color:#888}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right;max-width:60%}.inspi{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-top:6px}.aviso{background:#FFF8E6;border:1px solid #C8A35B55;border-radius:6px;padding:7px 10px;font-size:11px;color:#7a5c00;text-align:center;margin-top:6px}.obs{background:#f9f9f9;border-left:3px solid #C8A35B;padding:7px 10px;font-size:12px;color:#555;font-style:italic;border-radius:0 6px 6px 0;margin-top:6px}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
   let html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Pedido — '+p.cliente+'</title><style>'+css+'</style></head><body>';
   html += '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"><h1>Pedido para Cozinha</h1><div class="num">'+num+' · '+new Date().toLocaleDateString('pt-BR')+'</div></div>';
   html += '<div class="sec"><div class="st">👤 Cliente</div>';
@@ -1544,12 +1589,12 @@ function imprimirPedidoCozinha(id) {
   if(p.tema||p.flores||p.obsDeco){
     html += '<div class="sec"><div class="st">🎨 Decoração</div>';
     if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>';
-    if(p.flores) html += '<div class="row"><span class="key">Flores</span><span class="val">✅ Sim</span></div>';
-    if(p.papelaria) html += '<div class="row"><span class="key">Papelaria</span><span class="val">✅ Sim</span></div>';
+    if(p.flores) html += '<div class="row"><span class="key">Flores</span><span class="val">✅ Sim (R$ 50,00)</span></div>';
+    if(p.papelaria) html += '<div class="row"><span class="key">Papelaria</span><span class="val">✅ Sim (R$ 35,00)</span></div>';
     if(p.obsDeco) html += '<div class="obs">'+p.obsDeco+'</div>';
     html += '</div>';
   }
-  if(p.inspiPhoto) html += '<div class="sec"><div class="st">📸 Foto de inspiração</div><img src="'+p.inspiPhoto+'" class="inspi"><div class="aviso">⚠️ Imagem é apenas referência visual.</div></div>';
+  if(p.inspiPhoto) html += '<div class="sec"><div class="st">📸 Foto de inspiração</div><img src="'+p.inspiPhoto+'" class="inspi"><div class="aviso">⚠️ Imagem é apenas referência visual. O resultado pode variar.</div></div>';
   if(p.obsCliente) html += '<div class="sec"><div class="st">📝 Obs. do cliente</div><div class="obs">'+p.obsCliente+'</div></div>';
   html += '<div class="tbox"><span style="font-size:11px;letter-spacing:1px">TOTAL</span><span style="font-size:19px;font-weight:700">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</span></div>';
   if(p.sinal>0) html += '<div style="text-align:center;margin-top:6px;font-size:12px;color:#555">✅ Sinal: R$ '+parseFloat(p.sinal).toFixed(2)+' · A receber: R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)+'</div>';
@@ -1560,7 +1605,15 @@ function imprimirPedidoCozinha(id) {
   win.document.close();
 }
 
-if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(s=>s.unregister()));if(window.caches)caches.keys().then(k=>k.forEach(c=>caches.delete(c)));}
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js")
+      .then(()=>console.log("SW registrado"))
+      .catch(e=>console.log("SW erro",e));
+  });
+}
 
 // ═══════════════════════════════════════════
 // LOGIN / USUÁRIOS
@@ -1612,7 +1665,7 @@ function selectUser(role) {
   if (role === 'admin') {
     adminBtn.style.background = 'var(--gold)';
     adminBtn.style.color = '#fff';
-    adminBtn.style.borderColor = 'var(--gold)';
+    adminBtn.style.borderColor = 'var(--coral)';
     guestBtn.style.background = 'rgba(255,255,255,.05)';
     guestBtn.style.color = 'rgba(200,163,91,.6)';
     guestBtn.style.borderColor = 'rgba(200,163,91,.2)';
@@ -1634,7 +1687,7 @@ function selectUser(role) {
   } else {
     guestBtn.style.background = 'rgba(255,255,255,.15)';
     guestBtn.style.color = '#fff';
-    guestBtn.style.borderColor = 'rgba(200,163,91,.5)';
+    guestBtn.style.borderColor = 'var(--blue)';
     adminBtn.style.background = 'rgba(255,255,255,.05)';
     adminBtn.style.color = 'rgba(200,163,91,.6)';
     adminBtn.style.borderColor = 'rgba(200,163,91,.2)';
@@ -1651,10 +1704,12 @@ function selectUser(role) {
   }
 }
 
-async function revelarApp() {
+
+function showApp() {
   document.getElementById('app').style.display = 'flex';
-  document.getElementById('login-overlay').style.display = 'none';
+  showApp();
 }
+
 async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   const err = document.getElementById('login-err');
@@ -1669,7 +1724,7 @@ async function doLogin() {
       if (pwd.length < 4) { err.textContent = 'Mínimo 4 caracteres'; return; }
       setAdminPwd(pwd);
       setSession('admin');
-      revelarApp();
+      showApp();
       toast('Senha criada! Bem-vindo, Administrador!');
     } else {
       if (pwd !== getAdminPwd()) {
@@ -1679,7 +1734,7 @@ async function doLogin() {
         return;
       }
       setSession('admin');
-      revelarApp();
+      showApp();
       toast('Bem-vindo, Administrador!');
     }
   } else {
@@ -1709,7 +1764,7 @@ async function doLogin() {
         return;
       }
       setSession('guest');
-      revelarApp();
+      showApp();
       // Load shared recipes from cloud
       await loadFromCloud();
       enterGuestMode();
@@ -1720,7 +1775,7 @@ async function doLogin() {
       if (!localPwd) { err.textContent = 'Sem conexão e sem senha local.'; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       if (pwd !== localPwd) { err.textContent = 'Senha incorreta'; shakeLoginBox(); document.getElementById('login-pwd').value=''; loginBtn.disabled=false; loginBtn.textContent='Entrar como Convidado'; return; }
       setSession('guest');
-      revelarApp();
+      showApp();
       enterGuestMode();
       toast('Bem-vindo, Convidado!');
     }
@@ -2423,6 +2478,7 @@ function openEditPedido(id) {
   if(p.tema) document.getElementById('p-tema').value = p.tema;
   if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
   if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
+  if(p.custoEstimado) { const ce=document.getElementById('p-custo'); if(ce) ce.value=p.custoEstimado; }
   if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
   if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
   if(p.status) document.getElementById('p-status').value = p.status;
@@ -2548,9 +2604,11 @@ function viewPedido(id) {
       <div class="total-row" style="color:#C8503A"><span>💸 Custo estimado</span><span>R$ ${(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35)).toFixed(2)}</span></div>
       <div class="total-row" style="color:var(--teal);font-weight:700;border-bottom:none"><span>📈 Lucro estimado</span><span>R$ ${(parseFloat(p.valorTotal||0)-(parseFloat(p.custoEstimado||0)||(parseFloat(p.valorBolo||0)*0.35))).toFixed(2)}</span></div>
     </div>
+
     <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
       <i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha
     </button>
+
     <div style="display:flex;gap:8px;margin-top:4px">
       <select onchange="updatePedidoStatus('${p.id}',this.value)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
         <option value="pendente" ${p.status==='pendente'?'selected':''}>⏳ Pendente</option>
@@ -2889,6 +2947,110 @@ function abrirCardapioNovAba() {
   cm('modal-cardapio-share');
 }
 
+
+// ═══ IMPRIMIR RECEITA — LAYOUT LUXUOSO ═══
+function imprimirReceita() {
+  const vt = document.getElementById('vt');
+  const id = vt ? vt.dataset.rid : null;
+  if (!id) { toast('Erro ao identificar receita'); return; }
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+
+  const ratio = getRatio(r);
+  const p = calcAt(r, ratio);
+  const pct = p.cost > 0 ? (p.luc / p.cost * 100).toFixed(0) : 0;
+  const passos = (r.preparo || '').split('\n').filter(l => l.trim());
+
+  const win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups para imprimir'); return; }
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Lato',sans-serif;background:#FAF8F4;color:#1a1a1a;padding:30px}
+    .page{max-width:680px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.08)}
+    .hdr{background:linear-gradient(135deg,#1A1208,#2C1E0A);padding:28px 36px;text-align:center;position:relative;overflow:hidden}
+    .hdr::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(200,163,91,.2) 0%,transparent 70%)}
+    .logo{width:110px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.4));position:relative;z-index:1}
+    .rtitle{font-family:'Playfair Display',serif;font-size:26px;color:#F0E6CC;position:relative;z-index:1;margin-bottom:3px}
+    .rsub{font-size:11px;color:#B8972A;letter-spacing:.2em;text-transform:uppercase;position:relative;z-index:1}
+    .div{height:1px;background:linear-gradient(90deg,transparent,#C8A35B,transparent);margin:0 36px}
+    .body{padding:28px 36px}
+    .info-row{display:flex;border:1px solid #f0ebe0;border-radius:10px;overflow:hidden;margin-bottom:24px}
+    .info-item{flex:1;padding:12px;text-align:center;border-right:1px solid #f0ebe0}
+    .info-item:last-child{border-right:none}
+    .il{font-size:9px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+    .iv{font-size:14px;font-weight:700}
+    .sec{font-family:'Playfair Display',serif;font-size:15px;color:#1a1a1a;margin-bottom:12px;padding-bottom:5px;border-bottom:1.5px solid #f0ebe0;display:flex;align-items:center;gap:7px}
+    .sec::before{content:'';width:3px;height:16px;background:#C8A35B;border-radius:2px;flex-shrink:0}
+    table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:12px}
+    th{text-align:left;font-size:9px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.08em;padding:7px 9px;border-bottom:1.5px solid #f0ebe0}
+    td{padding:7px 9px;border-bottom:0.5px solid #f5f0e8;color:#333}
+    tr:nth-child(even) td{background:#FDFAF5}
+    tr.base td{font-weight:700}
+    td.c{text-align:right;color:#C8A35B}
+    .passo{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;padding:11px 13px;background:#FDFAF5;border-radius:8px;border-left:3px solid #C8A35B}
+    .pl{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#C8A35B;flex-shrink:0;min-width:22px;line-height:1.2}
+    .pt{font-size:12px;line-height:1.8;color:#333}
+    .custo-box{background:linear-gradient(135deg,#1A1208,#2C1E0A);border-radius:10px;padding:18px 22px;margin-top:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center}
+    .cl2{font-size:9px;color:#B8972A;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px}
+    .cv2{font-size:15px;font-weight:700;color:#F0E6CC}
+    .foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:24px}
+    .foto-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:7px}
+    .ftr{background:#FDFAF5;padding:14px 36px;text-align:center;border-top:1px solid #f0ebe0;font-size:10px;color:#aaa}
+    .ftr strong{color:#C8A35B}
+    @media print{body{padding:0}.page{box-shadow:none;border-radius:0}@page{margin:0}}
+  `;
+
+  const passosHTML = passos.map((ln, i) =>
+    '<div class="passo"><span class="pl">' + String.fromCharCode(65+i) + '</span><span class="pt">' + ln.trim() + '</span></div>'
+  ).join('');
+
+  const ingrsHTML = p.scaled.map(ig => {
+    const q = parseFloat(ig.qty||0);
+    const sub = q * parseFloat(ig.price||0);
+    return '<tr class="'+(ig.isBase?'base':'')+'">'
+      +'<td>'+(ig.isBase?'⭐ ':'')+ig.name+'</td>'
+      +'<td>'+(q>=100?q.toFixed(0):q>=10?q.toFixed(1):q.toFixed(2))+' '+(ig.unit||'')+'</td>'
+      +'<td class="c">'+(sub>0?'R$ '+sub.toFixed(2):'—')+'</td>'
+      +'</tr>';
+  }).join('');
+
+  const fotosHTML = (r.photos&&r.photos.length)
+    ? '<div class="sec" style="margin-bottom:10px">Fotos</div><div class="foto-grid">'
+      + r.photos.map(f=>'<img src="'+f+'" alt="">').join('')
+      + '</div>'
+    : '';
+
+  const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+r.name+' — Sucrée</title><style>'+css+'</style></head><body>'
+    +'<div class="page">'
+    +'<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" class="logo" alt="Sucrée"><div class="rtitle">'+r.name+'</div><div class="rsub">'+r.cat+(r.group?' · '+r.group:'')+'</div></div>'
+    +'<div class="div"></div>'
+    +'<div class="body">'
+    +'<div class="info-row">'
+    +'<div class="info-item"><div class="il">Rendimento</div><div class="iv">'+(r.yield_qty||r.yield||6)+' '+(r.unit||'porções')+'</div></div>'
+    +'<div class="info-item"><div class="il">Tempo</div><div class="iv">'+(r.time?(r.time<60?r.time+'min':Math.floor(r.time/60)+'h'+(r.time%60?r.time%60+'min':'')):'—')+'</div></div>'
+    +'<div class="info-item"><div class="il">Custo</div><div class="iv" style="color:#C8503A">R$ '+p.cost.toFixed(2)+'</div></div>'
+    +'<div class="info-item"><div class="il">Venda</div><div class="iv" style="color:#C8A35B">R$ '+p.sale.toFixed(2)+'</div></div>'
+    +'</div>'
+    +(p.scaled.length?'<div class="sec">Ingredientes</div><table><thead><tr><th>Ingrediente</th><th>Quantidade</th><th style="text-align:right">Custo</th></tr></thead><tbody>'+ingrsHTML+'</tbody></table>':'')
+    +(passos.length?'<div class="sec" style="margin-bottom:12px">Modo de Preparo</div>'+passosHTML:'')
+    +fotosHTML
+    +(r.comment?'<div style="margin-top:16px"><div class="sec" style="margin-bottom:8px">Anotações</div><div style="font-size:12px;line-height:1.8;color:#555;font-style:italic;padding:11px 13px;background:#FDFAF5;border-radius:8px">'+r.comment.replace(/\n/g,'<br>')+'</div></div>':'')
+    +'<div class="custo-box"><div><div class="cl2">Custo total</div><div class="cv2">R$ '+p.cost.toFixed(2)+'</div></div>'
+    +'<div><div class="cl2">Por porção</div><div class="cv2">R$ '+(p.cost/Math.max(p.portions,.01)).toFixed(2)+'</div></div>'
+    +'<div><div class="cl2">Preço venda</div><div class="cv2">R$ '+p.sale.toFixed(2)+'</div></div>'
+    +'<div><div class="cl2">Lucro '+pct+'%</div><div class="cv2" style="color:#9FE1CB">R$ '+p.luc.toFixed(2)+'</div></div></div>'
+    +'</div>'
+    +'<div class="ftr"><strong>Sucrée Confeitaria</strong> · Vitória – ES · Receita exclusiva · Uso interno</div>'
+    +'</div>'
+    +'<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt>'
+    +'</body></html>';
+
+  win.document.write(html);
+  win.document.close();
+}
+
 </script>
 
 <!-- CONFEITARIA PEDIDO SHEET -->
@@ -3053,7 +3215,7 @@ function abrirCardapioNovAba() {
     <!-- TAB 3: TOTAL -->
     <div id="pt3" style="display:none">
       <div id="pedido-total-box"></div>
-      <div class="fg" style="margin-top:12px"><label>Custo estimado do bolo (R$)</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg" style="margin-top:12px"><label>Custo estimado do bolo (R$)</label><input type="number" id="p-custo" placeholder="Deixe em branco para calcular auto (35%)" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
       <div class="fg"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
       <div class="fg"><label>Forma de pagamento</label>
         <select id="p-pagamento">
