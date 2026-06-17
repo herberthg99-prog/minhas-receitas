@@ -1379,12 +1379,26 @@ function saveGruposConfig(cfg) {
 }
 
 function getGruposParaCat(cat) {
-  const saved = getGruposConfig();
-  if (saved && saved[cat]) return saved[cat];
-  // Defaults
-  if (cat === 'doce') return ['Recheios','Bolos','Caldas','Biscoitos','Sobremesas','Pães','Bebidas'];
-  if (cat === 'salgada') return ['Carnes','Aves','Peixes','Massas','Tortas','Lanches','Sopas'];
-  return [];
+  var saved = getGruposConfig();
+  var base;
+  if (saved && saved[cat] && saved[cat].length) {
+    base = saved[cat];
+  } else if (cat === 'doce') {
+    base = ['Recheios','Bolos','Caldas','Coberturas','Biscoitos','Sobremesas','Pães','Bebidas'];
+  } else if (cat === 'salgada') {
+    base = ['Carnes','Aves','Peixes','Massas','Tortas','Lanches','Sopas'];
+  } else {
+    base = [];
+  }
+  // Always merge with groups actually used in recipes
+  for (var i = 0; i < recipes.length; i++) {
+    var r = recipes[i];
+    if (r.cat === cat && r.group && base.indexOf(r.group) === -1) {
+      base.push(r.group);
+    }
+  }
+  base.sort();
+  return base;
 }
 
 function renderGrupoLists() {
