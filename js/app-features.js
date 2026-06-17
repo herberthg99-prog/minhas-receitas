@@ -466,23 +466,6 @@ async function atualizarEstoqueIA() {
   }
 }
 
-// Also update atualizarPrecos in ingredient tab to sync with estoque
-let _origAtualizarPrecos = atualizarPrecos;
-async function atualizarPrecos() {
-  await _origAtualizarPrecos();
-  // After updating recipe prices, sync back to estoque
-  curIngr.forEach(ig => {
-    if (!ig.name || !ig.price) return;
-    const key = ig.name.trim().toLowerCase();
-    if (!estoque[key]) {
-      estoque[key] = { name: ig.name.trim(), price: ig.price, unit: ig.unit||'g', updatedAt: new Date().toISOString(), usedIn: [] };
-    } else {
-      estoque[key].price = ig.price;
-      estoque[key].updatedAt = new Date().toISOString();
-    }
-  });
-  saveEstoque();
-}
 
 loadEstoque();
 
