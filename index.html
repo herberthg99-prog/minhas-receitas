@@ -1633,11 +1633,11 @@ function selectUser(role) {
   }
 }
 
-async 
 function revelarApp() {
   document.getElementById('app').style.display = 'flex';
-  revelarApp();
+  document.getElementById('login-overlay').style.display = 'none';
 }
+
 async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   const err = document.getElementById('login-err');
