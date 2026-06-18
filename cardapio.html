@@ -158,7 +158,7 @@ button{font-family:inherit;cursor:pointer}
 
   <div style="position:relative;z-index:1;max-width:360px">
     <!-- Logo -->
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:220px;max-width:80%;height:auto;margin-bottom:20px;filter:drop-shadow(0 2px 16px rgba(200,163,91,.4))">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:260px;max-width:85%;height:auto;margin-bottom:8px;filter:brightness(1.9) saturate(0.85) drop-shadow(0 4px 28px rgba(200,163,91,.85)) drop-shadow(0 0 60px rgba(200,163,91,.3))">
 
     <!-- Divider ornament -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
@@ -168,18 +168,18 @@ button{font-family:inherit;cursor:pointer}
     </div>
 
     <!-- Welcome text -->
-    <div style="font-size:20px;color:#F5EDD0;font-weight:300;margin-bottom:10px;line-height:1.4;letter-spacing:.02em">
-      Seja muito bem-vinda(o)! 🌸
+    <div style="font-size:22px;color:#F5EDD0;font-weight:300;margin-bottom:10px;line-height:1.4;letter-spacing:.02em">
+      Seja muito bem-vinda(o)! 🥣
     </div>
-    <div style="font-size:14px;color:#C8B89A;line-height:1.8;margin-bottom:8px">
+    <div style="font-size:14px;color:#C8B89A;line-height:1.9;margin-bottom:8px">
       Que alegria tê-la(o) aqui!<br>
       Cada bolo que fazemos é preparado com<br>
-      <em style="color:#C8A35B">amor, dedicação e muito carinho</em> — para que<br>
-      o seu momento seja inesquecível. ✨
+      <em style="color:#C8A35B">amor, dedicação e muito carinho</em> —<br>
+      para que o seu momento seja inesquecível.
     </div>
     <div style="font-size:13px;color:#A09070;line-height:1.7;margin-bottom:28px">
-      Aqui você vai montar o bolo dos seus sonhos,<br>
-      escolhendo cada detalhe com calma. 🍰
+      Monte o bolo dos seus sonhos,<br>
+      escolhendo cada detalhe com calma. 🎂
     </div>
 
     <!-- CTA Button -->
@@ -294,17 +294,25 @@ button{font-family:inherit;cursor:pointer}
   <div class="card">
     <div class="section-title">🧁 Tipo de massa</div>
     <div class="opcao-grid">
-      <button class="opcao-btn" onclick="setMassa('fofinha','Massa Fofinha')" id="massa-fofinha">
-        <span class="op-icon">☁️</span>
-        <span class="op-nome">Massa Fofinha</span>
-        <span class="op-desc">Pão de ló tradicional — leve, suave e aerada</span>
-      </button>
-      <button class="opcao-btn" onclick="setMassa('classica','Massa Clássica')" id="massa-classica">
-        <span class="op-icon">🧈</span>
-        <span class="op-nome">Massa Clássica</span>
-        <span class="op-desc">Bolo amanteigado — firme e macia com manteiga de verdade</span>
-      </button>
-    </div>
+      <div id="massas-container">
+        <button class="opcao-btn" onclick="setMassa('fofinha','Massa Fofinha')" id="massa-fofinha">
+          <span class="op-icon">☁️</span><span class="op-nome">Massa Fofinha</span>
+          <span class="op-desc">Pão de ló — leve, suave e aerada</span>
+        </button>
+        <button class="opcao-btn" onclick="setMassa('fofinha-chocolate','Massa Fofinha Chocolate')" id="massa-fofinha-chocolate">
+          <span class="op-icon">🍫</span><span class="op-nome">Massa Fofinha Chocolate</span>
+          <span class="op-desc">Pão de ló de chocolate — leve e aerada</span>
+        </button>
+        <button class="opcao-btn" onclick="setMassa('classica','Massa Clássica')" id="massa-classica">
+          <span class="op-icon">🧈</span><span class="op-nome">Massa Clássica</span>
+          <span class="op-desc">Amanteigada — macia, úmida e saborosa</span>
+        </button>
+        <button class="opcao-btn" onclick="setMassa('classica-chocolate','Massa Clássica Chocolate')" id="massa-classica-chocolate">
+          <span class="op-icon">🍫🧈</span><span class="op-nome">Massa Clássica Chocolate</span>
+          <span class="op-desc">Amanteigada de chocolate — encorpada e achocolatada</span>
+        </button>
+      </div>
+</div>
   </div>
 
   </div><!-- /box-massa -->
@@ -1266,6 +1274,77 @@ if(pedido.nome || pedido.aro) {
     // (cliente em outro dispositivo)
   }
 })();
+
+// ═══════════════════════════════════════════
+// CONFIGURAÇÃO DINÂMICA DO CARDÁPIO
+// ═══════════════════════════════════════════
+async function carregarConfigCardapio() {
+  try {
+    var resp = await fetch(SUPABASE_URL + '/rest/v1/config?select=cardapio_config&user_id=eq.herberth_admin&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    var data = await resp.json();
+    if (data && data[0] && data[0].cardapio_config) {
+      var cfg = typeof data[0].cardapio_config === 'string'
+        ? JSON.parse(data[0].cardapio_config)
+        : data[0].cardapio_config;
+      aplicarConfigCardapio(cfg);
+    }
+  } catch(e) { console.log('Config cardapio:', e); }
+}
+
+function aplicarConfigCardapio(cfg) {
+  // Massas
+  if (cfg.massas && cfg.massas.length) {
+    var cont = document.getElementById('massas-container');
+    if (cont) {
+      cont.innerHTML = cfg.massas.map(function(m) {
+        return '<button class="opcao-btn" onclick="setMassa('' + m.id + '','' + m.nome + '')" id="massa-' + m.id + '">'
+          + '<span class="op-icon">' + (m.icon||'🎂') + '</span>'
+          + '<span class="op-nome">' + m.nome + '</span>'
+          + '<span class="op-desc">' + (m.desc||'') + '</span>'
+          + '</button>';
+      }).join('');
+    }
+  }
+  // Recheios
+  if (cfg.recheios && cfg.recheios.length) {
+    var rCont = document.getElementById('recheios-container');
+    if (rCont) {
+      rCont.innerHTML = cfg.recheios.map(function(r) {
+        return '<button class="opcao-btn" onclick="setRecheio(1,'' + r.nome + '')" id="rec-' + r.id + '">'
+          + '<span class="op-icon">' + (r.icon||'🎂') + '</span>'
+          + '<span class="op-nome">' + r.nome + '</span>'
+          + '</button>';
+      }).join('');
+    }
+  }
+  // Coberturas
+  if (cfg.coberturas && cfg.coberturas.length) {
+    var cCont = document.getElementById('coberturas-container');
+    if (cCont) {
+      cCont.innerHTML = cfg.coberturas.map(function(cb) {
+        return '<button class="opcao-btn" onclick="setCobertura('' + cb.id + '','' + cb.nome + '')" id="cob-' + cb.id + '">'
+          + '<span class="op-icon">' + (cb.icon||'🍦') + '</span>'
+          + '<span class="op-nome">' + cb.nome + '</span>'
+          + '<span class="op-desc">' + (cb.desc||'') + '</span>'
+          + '</button>';
+      }).join('');
+    }
+  }
+  // Tamanhos
+  if (cfg.tamanhos && cfg.tamanhos.length) {
+    var tCont = document.getElementById('tamanhos-container');
+    if (tCont) {
+      tCont.innerHTML = cfg.tamanhos.map(function(t) {
+        return '<button class="tamanho-btn" onclick="setTamanho(' + t.aro + ','' + t.fatias + '')" id="tam-' + t.aro + '">'
+          + '<span class="tam-aro">Aro ' + t.aro + '</span>'
+          + '<span class="tam-fatias">' + t.fatias + '</span>'
+          + '</button>';
+      }).join('');
+    }
+  }
+}
 
 // ═══════════════════════════════════════════
 // ⚙️ CONFIGURAÇÕES — ALTERAR AQUI
