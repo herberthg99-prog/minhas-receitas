@@ -1,11 +1,12 @@
 {
-  "name": "Minhas Receitas",
-  "short_name": "Receitas",
-  "description": "Seu livro de receitas com custos e nuvem",
-  "start_url": "/",
+  "name": "Sucrée Confeitaria",
+  "short_name": "Sucrée",
+  "description": "App de receitas e pedidos da Sucrée Confeitaria",
+  "start_url": "/minhas-receitas/",
+  "scope": "/minhas-receitas/",
   "display": "standalone",
-  "background_color": "#F5F4F1",
-  "theme_color": "#D85A30",
+  "background_color": "#0F0800",
+  "theme_color": "#C8A35B",
   "orientation": "portrait",
   "icons": [
     {
@@ -21,6 +22,6 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["food", "productivity", "utilities"],
+  "categories": ["food", "productivity"],
   "lang": "pt-BR"
 }
