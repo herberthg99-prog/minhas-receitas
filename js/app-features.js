@@ -1413,7 +1413,10 @@ function renderConfigPage() {
     <!-- LINK RÁPIDO ESTOQUE -->
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button class="btns" style="flex:1;justify-content:center;font-size:13px" onclick="goPage('estoque')">
-        <i class="ti ti-package"></i> Gerenciar Estoque (preços por IA)
+        <i class="ti ti-package"></i> Gerenciar Estoque
+      </button>
+      <button class="btnp" style="flex:1;justify-content:center;font-size:13px" onclick="goPage('cardapio-cfg')">
+        <i class="ti ti-menu-2"></i> Configurar Cardápio
       </button>
     </div>
 
@@ -2474,7 +2477,16 @@ function compartilharLinkTemporario() {
   var expira = window._linkExpira || '';
   if (!link) { toast('Gere o link primeiro'); return; }
   var nl = '\n';
-  var msg = '🎂 *Sucrée Confeitaria*' + nl + nl + 'Olá! Segue o link do nosso cardápio:' + nl + nl + '👉 ' + link + nl + nl + '⏰ *Válido por ' + horas + 'h* (até ' + expira + ')' + nl + nl + 'Qualquer dúvida estou à disposição! 💛' + nl + '_Sucrée Confeitaria — feito com amor_ 🎂';
+  var msg = '✨ *Sucrée Confeitaria*' + nl + nl
+    + 'Olá! Fico muito feliz em atendê-la(o)! 💛' + nl + nl
+    + 'Preparei um link exclusivo do nosso cardápio especialmente para você:' + nl + nl
+    + '🎂 *Acesse aqui e monte o bolo dos seus sonhos:*' + nl
+    + '👉 ' + link + nl + nl
+    + '⏰ _Este link é válido por ' + horas + ' horas_ (até ' + expira + ')' + nl + nl
+    + 'Escolha sua massa, recheios e cobertura com calma.' + nl
+    + 'Estou à disposição para qualquer dúvida! 🥣' + nl + nl
+    + '_Com carinho,_' + nl
+    + '_Sucrée Confeitaria — feito com amor e dedicação_ 🎂';
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
