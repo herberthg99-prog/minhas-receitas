@@ -177,7 +177,8 @@ function goPage(p) {
   if (p === 'agenda')   renderAgenda();
   if (p === 'compras')  renderListaCompras();
   if (p === 'ficha')    renderFichaProducao();
-  if (p === 'metas')    renderMetas();
+  if (p === 'metas')         renderMetas();
+  if (p === 'cardapio-cfg') renderCardapioConfig();
 }
 
 // ═══════ RENDER HOME ═══════
@@ -309,6 +310,9 @@ function renderHome() {
       </button>
       <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('metas')">
         <i class="ti ti-target"></i> Minha meta
+      </button>
+      <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('cardapio-cfg')">
+        <i class="ti ti-menu-2"></i> Cardápio
       </button>
     </div>
 
@@ -2379,3 +2383,183 @@ function editarMeta() {
   toast('🎯 Meta atualizada!');
   renderMetas();
 }
+
+// ═══════════════════════════════════════════
+// CONFIGURAÇÃO DO CARDÁPIO
+// ═══════════════════════════════════════════
+function getCardapioConfig() {
+  var def = {
+    massas: [
+      {id:'fofinha',          nome:'Massa Fofinha',             icon:'☁️', desc:'Pão de ló — leve, suave e aerada'},
+      {id:'fofinha-chocolate',nome:'Massa Fofinha Chocolate',   icon:'🍫', desc:'Pão de ló de chocolate — leve e aerada'},
+      {id:'classica',         nome:'Massa Clássica',            icon:'🧈', desc:'Amanteigada — macia, úmida e saborosa'},
+      {id:'classica-chocolate',nome:'Massa Clássica Chocolate', icon:'🍫🧈',desc:'Amanteigada de chocolate — encorpada'},
+    ],
+    recheios: [
+      {id:'brig4leites',  nome:'Brigadeiro 4 Leites',      icon:'🍫'},
+      {id:'brigbranco',   nome:'Brigadeiro Branco',         icon:'🤍'},
+      {id:'brigchoco',    nome:'Brigadeiro de Chocolate',   icon:'🍫'},
+      {id:'ganache',      nome:'Ganache de Chocolate',      icon:'🍫'},
+      {id:'mousse',       nome:'Mousse de Chocolate Branco',icon:'☁️'},
+      {id:'chantininho',  nome:'Chantininho',               icon:'🍦'},
+    ],
+    coberturas: [
+      {id:'chantininho',    nome:'Chantininho',           icon:'🍦', desc:'Cobertura espatulada suave'},
+      {id:'buttercream',    nome:'Buttercream',           icon:'🧈', desc:'Cobertura firme e elegante (+R$50)'},
+      {id:'ganache',        nome:'Ganache de Chocolate',  icon:'🍫', desc:'Cobertura de chocolate'},
+    ],
+    tamanhos: [
+      {aro:10, fatias:'até 6 fatias'},
+      {aro:15, fatias:'até 12 fatias'},
+      {aro:20, fatias:'até 20 fatias'},
+      {aro:25, fatias:'até 30 fatias'},
+      {aro:30, fatias:'até 45 fatias'},
+    ]
+  };
+  try {
+    var saved = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
+    return saved || def;
+  } catch(e) { return def; }
+}
+
+function saveCardapioConfig(cfg) {
+  localStorage.setItem('mr_cardapio_config', JSON.stringify(cfg));
+  // Sync to Supabase
+  try {
+    sb.from('config').upsert({
+      user_id: USER_ID,
+      cardapio_config: JSON.stringify(cfg)
+    }, { onConflict: 'user_id' }).then(function(){});
+  } catch(e) {}
+}
+
+function renderCardapioConfig() {
+  var cfg = getCardapioConfig();
+  document.getElementById('page-cardapio-cfg').innerHTML = `
+    <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8;margin-bottom:4px">🍰 Configurar Cardápio</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Gerencie o que aparece para o seu cliente no cardápio.</div>
+
+    <!-- MASSAS -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="st" style="margin-bottom:0"><i class="ti ti-bread"></i> Massas</div>
+        <button onclick="addItemCardapio('massas')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
+      </div>
+      ${cfg.massas.map(function(m,i) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
+          + '<span style="font-size:22px">' + m.icon + '</span>'
+          + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + m.nome + '</div>'
+          + '<div style="font-size:11px;color:var(--text2)">' + (m.desc||'') + '</div></div>'
+          + '<button onclick="editarItemCardapio(\'massas\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
+          + '<button onclick="removerItemCardapio(\'massas\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
+          + '</div>';
+      }).join('')}
+    </div>
+
+    <!-- RECHEIOS -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="st" style="margin-bottom:0"><i class="ti ti-cake"></i> Recheios</div>
+        <button onclick="addItemCardapio('recheios')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
+      </div>
+      ${cfg.recheios.map(function(r,i) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
+          + '<span style="font-size:22px">' + r.icon + '</span>'
+          + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + r.nome + '</div></div>'
+          + '<button onclick="editarItemCardapio(\'recheios\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
+          + '<button onclick="removerItemCardapio(\'recheios\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
+          + '</div>';
+      }).join('')}
+    </div>
+
+    <!-- COBERTURAS -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="st" style="margin-bottom:0"><i class="ti ti-droplet"></i> Coberturas</div>
+        <button onclick="addItemCardapio('coberturas')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
+      </div>
+      ${cfg.coberturas.map(function(cb,i) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
+          + '<span style="font-size:22px">' + cb.icon + '</span>'
+          + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + cb.nome + '</div>'
+          + '<div style="font-size:11px;color:var(--text2)">' + (cb.desc||'') + '</div></div>'
+          + '<button onclick="editarItemCardapio(\'coberturas\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
+          + '<button onclick="removerItemCardapio(\'coberturas\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
+          + '</div>';
+      }).join('')}
+    </div>
+
+    <!-- TAMANHOS -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="st" style="margin-bottom:0"><i class="ti ti-ruler"></i> Tamanhos de bolo</div>
+        <button onclick="addItemCardapio('tamanhos')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+        ${cfg.tamanhos.map(function(t,i) {
+          return '<div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;position:relative">'
+            + '<div style="font-size:12px;font-weight:700;color:var(--gold)">Aro ' + t.aro + '</div>'
+            + '<div style="font-size:10px;color:var(--text2)">' + t.fatias + '</div>'
+            + '<button onclick="removerItemCardapio(\'tamanhos\',' + i + ')" style="position:absolute;top:2px;right:2px;background:none;border:none;color:#A32D2D;font-size:12px;cursor:pointer"><i class="ti ti-x"></i></button>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>
+
+    <button class="btnp full" onclick="salvarCardapioConfig()">
+      <i class="ti ti-device-floppy"></i> Salvar e publicar no cardápio
+    </button>
+  `;
+}
+
+function addItemCardapio(tipo) {
+  var cfg = getCardapioConfig();
+  if (tipo === 'tamanhos') {
+    var aro = prompt('Qual aro? (ex: 18)');
+    if (!aro) return;
+    var fatias = prompt('Quantas fatias? (ex: até 15 fatias)', 'até 15 fatias');
+    cfg.tamanhos.push({ aro: parseInt(aro), fatias: fatias||'—' });
+    cfg.tamanhos.sort(function(a,b){ return a.aro - b.aro; });
+  } else {
+    var nome = prompt('Nome do item:');
+    if (!nome) return;
+    var icon = prompt('Emoji/ícone:', '🎂');
+    var desc = tipo !== 'recheios' ? (prompt('Descrição breve (opcional):') || '') : '';
+    var id = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
+    cfg[tipo].push({ id: id, nome: nome, icon: icon||'🎂', desc: desc });
+  }
+  saveCardapioConfig(cfg);
+  toast('✅ ' + nome + ' adicionado!');
+  renderCardapioConfig();
+}
+
+function editarItemCardapio(tipo, idx) {
+  var cfg = getCardapioConfig();
+  var item = cfg[tipo][idx];
+  if (!item) return;
+  var novoNome = prompt('Nome:', item.nome);
+  if (!novoNome) return;
+  var novoIcon = prompt('Emoji:', item.icon || '🎂');
+  var novoDesc = tipo !== 'recheios' ? (prompt('Descrição:', item.desc||'') || '') : '';
+  cfg[tipo][idx].nome = novoNome;
+  cfg[tipo][idx].icon = novoIcon || item.icon;
+  if (tipo !== 'recheios') cfg[tipo][idx].desc = novoDesc;
+  saveCardapioConfig(cfg);
+  renderCardapioConfig();
+}
+
+function removerItemCardapio(tipo, idx) {
+  var cfg = getCardapioConfig();
+  var item = cfg[tipo][idx];
+  if (!confirm('Remover "' + (item.nome||'Aro '+item.aro) + '" do cardápio?')) return;
+  cfg[tipo].splice(idx, 1);
+  saveCardapioConfig(cfg);
+  renderCardapioConfig();
+}
+
+function salvarCardapioConfig() {
+  var cfg = getCardapioConfig();
+  saveCardapioConfig(cfg);
+  toast('✅ Cardápio atualizado! Seus clientes já veem as alterações.');
+}
+
