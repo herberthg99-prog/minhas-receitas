@@ -305,6 +305,9 @@ function renderHome() {
       <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('compras')">
         <i class="ti ti-shopping-cart"></i> Lista de compras
       </button>
+      <button class="btnp" style="flex:1;justify-content:center;font-size:12px" onclick="compartilharCardapioRapido()">
+        <i class="ti ti-share"></i> Compartilhar cardápio
+      </button>
       <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('portfolio')">
         <i class="ti ti-photo"></i> Portfólio
       </button>
@@ -1864,6 +1867,41 @@ function converterEmReceita(idx) {
     })
   });
   toast('📝 Rascunho carregado! Revise e salve como receita.');
+}
+
+
+// ═══ COMPARTILHAMENTO RÁPIDO DO CARDÁPIO ═══
+function compartilharCardapioRapido() {
+  // Get saved link config
+  var horas = 24; // default
+  var agora = Date.now();
+  var expira = agora + (horas * 60 * 60 * 1000);
+  var token = btoa(String(expira)).replace(/[^a-zA-Z0-9]/g,'').substring(0, 16);
+  var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+  var link = base + 'cardapio.html?token=' + token + '&exp=' + expira;
+
+  // Save token
+  var tokens = [];
+  try { tokens = JSON.parse(localStorage.getItem('mr_tokens_ativos') || '[]'); } catch(e) {}
+  tokens = tokens.filter(function(t){ return t.exp > agora; });
+  tokens.push({ token: token, exp: expira, horas: horas, criado: agora });
+  localStorage.setItem('mr_tokens_ativos', JSON.stringify(tokens));
+
+  var expDate = new Date(expira);
+  var expFmt = expDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' às ' + expDate.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  var nl = '\n';
+  var msg = '✨ *Sucrée Confeitaria*' + nl + nl
+    + 'Olá! Fico muito feliz em atendê-la(o)! 💛' + nl + nl
+    + 'Preparei um link exclusivo do nosso cardápio especialmente para você:' + nl + nl
+    + '🎂 *Acesse aqui e monte o bolo dos seus sonhos:*' + nl
+    + '👉 ' + link + nl + nl
+    + '⏰ _Este link é válido por ' + horas + ' horas_ (até ' + expFmt + ')' + nl + nl
+    + 'Escolha sua massa, recheios e cobertura com calma.' + nl
+    + 'Estou à disposição para qualquer dúvida! 🥣' + nl + nl
+    + '_Com carinho,_' + nl
+    + '_Sucrée Confeitaria — feito com amor e dedicação_ 🎂';
+
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
 // ═══════════════════════════════════════════
