@@ -170,6 +170,14 @@ function goPage(p) {
   if (p === 'estoque') renderEstoque();
   if (p === 'config') renderConfigPage();
   if (p === 'share') renderSharePage();
+  if (p === 'deco') renderDecoPage();
+  if (p === 'calc') renderCalcMassa();
+  if (p === 'portfolio') renderPortfolio();
+  if (p === 'rascunho') renderRascunho();
+  if (p === 'agenda')   renderAgenda();
+  if (p === 'compras')  renderListaCompras();
+  if (p === 'ficha')    renderFichaProducao();
+  if (p === 'metas')    renderMetas();
 }
 
 // ═══════ RENDER HOME ═══════
@@ -185,57 +193,153 @@ function renderHome() {
       </div>`;
     return;
   }
+
   const tot = recipes.length;
   const dc  = recipes.filter(r => r.cat === 'doce').length;
   const sl  = recipes.filter(r => r.cat === 'salgada').length;
-  const avg = tot ? recipes.reduce((a,r) => a + calcAt(r,1).luc, 0) / tot : 0;
-  const shCount = shareConfig.sharedIds.length;
-  const recentes = [...recipes].reverse().slice(0,5);
-  const lucrativas = [...recipes].sort((a,b)=>calcAt(b,1).luc-calcAt(a,1).luc).slice(0,5);
+  const recentes = [...recipes].reverse().slice(0, 5);
+
+  // ── DASHBOARD FINANCEIRO MENSAL ──
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+  const nomeMes = hoje.toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+  const cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  const valorHora   = cfg.valorHora    || 25;
+  const indiretoPct = cfg.indiretoPct  || 15;
+  const margemNeg   = cfg.margemNegocio || 30;
+
+  // Pedidos do mês atual
+  const pedidosMes = (typeof pedidos !== 'undefined' ? pedidos : []).filter(p => {
+    if (!p.data || p.status === 'cancelado') return false;
+    const d = new Date(p.data + 'T12:00:00');
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+  });
+
+  const faturamento  = pedidosMes.reduce((a, p) => a + parseFloat(p.valorTotal||0), 0);
+  const recebido     = pedidosMes.reduce((a, p) => a + parseFloat(p.sinal||0), 0);
+  const aReceber     = faturamento - recebido;
+  const qtdPedidos   = pedidosMes.length;
+
+  // Custo estimado dos pedidos (ingredientes + operacional)
+  const custoEstimado = pedidosMes.reduce((a, p) => {
+    const aro = p.aro || 20;
+    const custoOp = typeof calcCustoOperacional === 'function' ? calcCustoOperacional(aro) : 0;
+    const custoIngr = parseFloat(p.custoEstimado || p.valorBolo * 0.30 || 0);
+    return a + custoOp + custoIngr;
+  }, 0);
+
+  const lucroEstimado = faturamento - custoEstimado;
+  const margemAtual = faturamento > 0 ? (lucroEstimado / faturamento * 100) : 0;
 
   document.getElementById('page-home').innerHTML = `
-    <!-- MÉTRICAS -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
-      <div class="met"><div class="ml">📚 Total</div><div class="mv">${tot}</div></div>
-      <div class="met"><div class="ml">🍰 Doces</div><div class="mv blue">${dc}</div></div>
-      <div class="met"><div class="ml">🥩 Salgadas</div><div class="mv green">${sl}</div></div>
-      <div class="met"><div class="ml">📈 Lucro médio</div><div class="mv coral" style="font-size:13px">${fR(avg)}</div></div>
+    <!-- DASHBOARD MENSAL -->
+    <div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.3);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.1em">📊 Resumo financeiro</div>
+          <div style="font-size:14px;font-weight:700;color:#F5EDD8;text-transform:capitalize;margin-top:2px">${nomeMes}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--text3)">${qtdPedidos} pedido(s)</div>
+          <div style="font-size:11px;color:${margemAtual>=margemNeg?'var(--teal)':'#FF8080'};font-weight:700">margem ${margemAtual.toFixed(0)}%</div>
+        </div>
+      </div>
+
+      <!-- Faturamento -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
+          <div style="font-size:9px;color:rgba(200,163,91,.6);font-weight:700;text-transform:uppercase;margin-bottom:4px">💰 Faturamento</div>
+          <div style="font-size:20px;font-weight:800;color:#C8A35B">${fR(faturamento)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">total do mês</div>
+        </div>
+        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
+          <div style="font-size:9px;color:rgba(200,163,91,.6);font-weight:700;text-transform:uppercase;margin-bottom:4px">💸 Custo estimado</div>
+          <div style="font-size:20px;font-weight:800;color:#FF8080">${fR(custoEstimado)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">ingr + operacional</div>
+        </div>
+      </div>
+
+      <!-- Lucro destaque -->
+      <div style="background:${lucroEstimado>=0?'rgba(15,110,86,.2)':'rgba(255,80,80,.2)'};border:1px solid ${lucroEstimado>=0?'rgba(15,110,86,.4)':'rgba(255,80,80,.4)'};border-radius:8px;padding:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:10px;color:${lucroEstimado>=0?'var(--teal)':'#FF8080'};font-weight:700;text-transform:uppercase;margin-bottom:3px">${lucroEstimado>=0?'📈 Lucro estimado':'⚠️ Prejuízo'}</div>
+          <div style="font-size:24px;font-weight:800;color:${lucroEstimado>=0?'var(--teal)':'#FF8080'}">${fR(Math.abs(lucroEstimado))}</div>
+          <div style="font-size:10px;color:var(--text3)">para reinvestir e crescer</div>
+        </div>
+        <div style="font-size:36px">${lucroEstimado>=0?'🎂':'📉'}</div>
+      </div>
+
+      <!-- Recebido / A receber -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:rgba(15,110,86,.1);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:var(--teal);font-weight:700;margin-bottom:2px">✅ Recebido</div>
+          <div style="font-size:16px;font-weight:700;color:var(--teal)">${fR(recebido)}</div>
+        </div>
+        <div style="background:rgba(200,163,91,.1);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:9px;color:#C8A35B;font-weight:700;margin-bottom:2px">⏳ A receber</div>
+          <div style="font-size:16px;font-weight:700;color:#C8A35B">${fR(aReceber)}</div>
+        </div>
+      </div>
+
+      ${qtdPedidos === 0 ? '<div style="text-align:center;font-size:12px;color:var(--text3);margin-top:10px">Nenhum pedido este mês ainda</div>' : ''}
     </div>
 
     <!-- AÇÕES RÁPIDAS -->
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="btnp" style="flex:1;justify-content:center;font-size:13px" onclick="openNewChoice()">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <button class="btnp" style="justify-content:center;font-size:13px" onclick="openNewChoice()">
         <i class="ti ti-plus"></i> Nova receita
       </button>
-      <button class="btns" style="flex:1;justify-content:center;font-size:13px" onclick="goPage('receitas')">
-        <i class="ti ti-book"></i> Ver receitas
+      <button class="btns" style="justify-content:center;font-size:13px" onclick="goPage('confeitaria')">
+        <i class="ti ti-cake"></i> Novo pedido
+      </button>
+      <button class="btns" style="justify-content:center;font-size:13px" onclick="goPage('agenda')">
+        <i class="ti ti-calendar"></i> Agenda
+      </button>
+      <button class="btns" style="justify-content:center;font-size:13px" onclick="goPage('ficha')">
+        <i class="ti ti-list-check"></i> Ficha semanal
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('compras')">
+        <i class="ti ti-shopping-cart"></i> Lista de compras
+      </button>
+      <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('portfolio')">
+        <i class="ti ti-photo"></i> Portfólio
+      </button>
+      <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('metas')">
+        <i class="ti ti-target"></i> Minha meta
       </button>
     </div>
 
-    ${shCount ? `<div class="success-box" style="margin-bottom:14px"><i class="ti ti-share" style="flex-shrink:0"></i> ${shCount} receita(s) marcada(s) para compartilhar</div>` : ''}
-
-    <!-- RECENTES -->
-    <div class="st"><i class="ti ti-flame"></i> Adicionadas recentemente</div>
-    ${recentes.length ? recentes.map(r => {
-      const p = calcAt(r,1);
-      const photo = r.photos && r.photos[0];
-      return `<div onclick="viewRecipe('${r.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.2);border-radius:10px;margin-bottom:8px;cursor:pointer">
-        <div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#2A1C0A;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">
-          ${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover">` : (r.cat==='doce'?'🍰':'🥩')}
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</div>
-          <div style="display:flex;gap:5px;align-items:center;margin-top:3px">
-            <span class="tag t${r.cat[0]}" style="font-size:9px">${r.cat}</span>
-            ${r.group ? `<span class="badge badge-blue" style="font-size:9px">${r.group}</span>` : ''}
-            <span style="font-size:11px;color:var(--text3)"><i class="ti ti-clock"></i> ${fT(r.time)}</span>
-          </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:12px;font-weight:700;color:var(--teal)">+${fR(p.luc)}</div>
-          <div style="font-size:10px;color:var(--text3)">lucro</div>
-        </div>
-      </div>`;
+    <!-- RECEITAS RECENTES -->
+    <div class="st"><i class="ti ti-flame"></i> Receitas recentes</div>
+    ${recentes.length ? recentes.map(function(r2) {
+      var cfg2 = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+      var vh2 = cfg2.valorHora || 25;
+      var ip2 = cfg2.indiretoPct || 15;
+      var mn2 = cfg2.margemNegocio || 30;
+      var pc2 = calcAt(r2, 1);
+      var horas2 = (r2.time || 60) / 60;
+      var custoT2 = pc2.cost * (1 + ip2/100) + horas2 * vh2;
+      var precoM2 = custoT2 > 0 ? custoT2 / (1 - mn2/100) : 0;
+      var photo2 = r2.photos && r2.photos[0];
+      var rid = r2.id;
+      return '<div onclick="viewRecipe(' + JSON.stringify(rid) + ')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.2);border-radius:10px;margin-bottom:8px;cursor:pointer">'
+        + '<div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#2A1C0A;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">'
+        + (photo2 ? '<img src="' + photo2 + '" style="width:100%;height:100%;object-fit:cover">' : (r2.cat==='doce'?'🍰':'🥩'))
+        + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:14px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r2.name + '</div>'
+        + '<div style="display:flex;gap:5px;align-items:center;margin-top:3px">'
+        + '<span class="tag t' + r2.cat[0] + '" style="font-size:9px">' + r2.cat + '</span>'
+        + (r2.group ? '<span class="badge badge-blue" style="font-size:9px">' + r2.group + '</span>' : '')
+        + '<span style="font-size:10px;color:var(--text3)"><i class="ti ti-clock"></i> ' + fT(r2.time) + '</span>'
+        + '</div></div>'
+        + '<div style="text-align:right;flex-shrink:0">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--gold)">' + fR(precoM2) + '</div>'
+        + '<div style="font-size:9px;color:var(--text3)">preço mín.</div>'
+        + '</div></div>';
     }).join('') : '<div class="est" style="padding:16px"><i class="ti ti-book"></i><p>Nenhuma receita ainda</p></div>'}
 
     <button class="btns" style="width:100%;justify-content:center;font-size:12px;margin-top:4px" onclick="syncNow()">
@@ -828,17 +932,81 @@ function renderViewBody(r) {
       </div>
     </div>`;
 
-  // Custo (só admin vê)
-  const custoSection = !guest ? `
-    <div style="margin-bottom:14px;background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.25);border-radius:10px;padding:12px">
-      <div style="font-size:10px;font-weight:800;color:#C8A35B;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">💰 Custo & Precificação</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">💸 Custo total</div><div style="font-size:16px;font-weight:800;color:#FF8080">${fR(p.cost)}</div></div>
-        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">🍽️ Por porção</div><div style="font-size:16px;font-weight:800;color:#FF8080">${fR(p.cost/Math.max(p.portions,.01))}</div></div>
-        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">💰 Preço venda</div><div style="font-size:16px;font-weight:800;color:#C8A35B">${fR(p.sale)}</div></div>
-        <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:9px;text-align:center"><div style="font-size:10px;color:rgba(200,163,91,.6);margin-bottom:2px">📈 Lucro</div><div style="font-size:16px;font-weight:800;color:#9FE1CB">${fR(p.luc)}</div></div>
+  // Custo completo (só admin vê)
+  var custoSection = '';
+  if (!guest) {
+    var cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+    var valorHora    = cfg.valorHora    || 25;
+    var indiretoPct  = cfg.indiretoPct  || 15;
+    var margemNeg    = cfg.margemNegocio || 30;
+    var horas        = (r.time || 60) / 60;
+    var custoIngr    = p.cost;
+    var custoIndireto = custoIngr * indiretoPct / 100;
+    var custoMdo     = horas * valorHora;
+    var custoTotal   = custoIngr + custoIndireto + custoMdo;
+    var precoMin     = custoTotal / (1 - margemNeg / 100);
+    var lucroMin     = precoMin - custoTotal;
+    var precoAtual   = p.sale;
+    var lucroAtual   = precoAtual - custoTotal;
+    var margemAtual  = custoTotal > 0 ? ((lucroAtual / custoTotal) * 100) : 0;
+    var porcao = Math.max(p.portions, 0.01);
+
+    custoSection = `
+    <div style="margin-bottom:14px;background:rgba(200,163,91,.06);border:1px solid rgba(200,163,91,.2);border-radius:12px;padding:14px">
+      <div style="font-size:10px;font-weight:800;color:#C8A35B;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">💰 Custo & Precificação</div>
+
+      <!-- Breakdown de custos -->
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid rgba(200,163,91,.15)">
+          <span style="color:var(--text2)">🛒 Ingredientes</span>
+          <span style="font-weight:700;color:#FF8080">${fR(custoIngr)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid rgba(200,163,91,.15)">
+          <span style="color:var(--text2)">⚡ Indireto (${indiretoPct}% sobre ingr.)</span>
+          <span style="font-weight:700;color:#FF8080">${fR(custoIndireto)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid rgba(200,163,91,.15)">
+          <span style="color:var(--text2)">👩‍🍳 Mão de obra (${horas.toFixed(1)}h × R$${valorHora})</span>
+          <span style="font-weight:700;color:#FF8080">${fR(custoMdo)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid rgba(200,163,91,.3);font-weight:700">
+          <span style="color:var(--text)">📊 Custo total real</span>
+          <span style="color:#FF8080">${fR(custoTotal)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0">
+          <span style="color:var(--text2)">🍽️ Custo por porção</span>
+          <span style="font-weight:700;color:var(--text2)">${fR(custoTotal/porcao)}</span>
+        </div>
       </div>
-    </div>` : '';
+
+      <!-- Preço sugerido vs atual -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:rgba(15,110,86,.15);border:1px solid rgba(15,110,86,.3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:var(--teal);font-weight:700;text-transform:uppercase;margin-bottom:4px">💡 Preço mínimo (${margemNeg}% lucro)</div>
+          <div style="font-size:18px;font-weight:800;color:var(--teal)">${fR(precoMin)}</div>
+          <div style="font-size:10px;color:var(--teal);opacity:.7">${fR(precoMin/porcao)} / porção</div>
+        </div>
+        <div style="background:rgba(200,163,91,.1);border:1px solid rgba(200,163,91,.3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:#C8A35B;font-weight:700;text-transform:uppercase;margin-bottom:4px">🏷️ Preço cadastrado</div>
+          <div style="font-size:18px;font-weight:800;color:#C8A35B">${fR(precoAtual)}</div>
+          <div style="font-size:10px;color:#C8A35B;opacity:.7">${fR(precoAtual/porcao)} / porção</div>
+        </div>
+      </div>
+
+      <!-- Análise de lucro -->
+      <div style="background:${lucroAtual>=lucroMin?'rgba(15,110,86,.1)':'rgba(255,80,80,.1)'};border:1px solid ${lucroAtual>=lucroMin?'rgba(15,110,86,.3)':'rgba(255,80,80,.3)'};border-radius:8px;padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:11px;color:var(--text2)">Lucro real por lote</div>
+            <div style="font-size:20px;font-weight:800;color:${lucroAtual>=0?'var(--teal)':'#FF8080'}">${fR(Math.abs(lucroAtual))}</div>
+            <div style="font-size:10px;color:var(--text3)">${fR(lucroAtual/porcao)} / porção · margem ${margemAtual.toFixed(0)}%</div>
+          </div>
+          <div style="font-size:28px">${lucroAtual>=lucroMin?'✅':'⚠️'}</div>
+        </div>
+        ${lucroAtual < precoMin - custoTotal ? '<div style="font-size:11px;color:#FF8080;margin-top:6px">Cobrando abaixo do mínimo para '+margemNeg+'% de lucro. Preço ideal: '+fR(precoMin)+'</div>' : '<div style="font-size:11px;color:var(--teal);margin-top:4px">Preço acima do mínimo necessário ✓</div>'}
+      </div>
+    </div>`;
+  }
 
   // Ingredientes com quantidade ANTES do nome e decimal correto
   const ingredSection = p.scaled.length ? `
@@ -1013,3 +1181,1201 @@ async function loadPedidosFromCloud() {
     if(typeof _renderConfeitariaUI==='function')_renderConfeitariaUI();
   }
 })();
+
+// ═══════════════════════════════════════════
+// GERADOR DE DECORAÇÃO DE BOLO (IA)
+// ═══════════════════════════════════════════
+function renderDecoPage() {
+  document.getElementById('page-deco').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8;margin-bottom:4px">✨ Gerador de Decoração</div>
+      <div style="font-size:13px;color:var(--text2)">Preencha os dados do bolo e copie o prompt para o ChatGPT gerar 3 propostas de decoração para o seu cliente.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-cake"></i> Dados do bolo</div>
+      <div class="fr">
+        <div class="fg">
+          <label>Aro do bolo</label>
+          <select id="deco-aro" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+            <option value="10">Aro 10 (até 6 fatias)</option>
+            <option value="15">Aro 15 (até 12 fatias)</option>
+            <option value="20" selected>Aro 20 (até 20 fatias)</option>
+            <option value="25">Aro 25 (até 30 fatias)</option>
+            <option value="30">Aro 30 (até 40 fatias)</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Cobertura</label>
+          <select id="deco-cobertura" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+            <option value="chantininho espatulado">🍦 Chantininho</option>
+            <option value="buttercream espatulado">🧁 Buttercream</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Tema do bolo</label>
+        <input type="text" id="deco-tema" placeholder="Ex: Jardim encantado, Safari, Minimalista floral..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+      </div>
+      <div class="fg">
+        <label>Cores principais</label>
+        <input type="text" id="deco-cores" placeholder="Ex: Rosa nude, dourado e branco..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+      </div>
+      <div class="fg">
+        <label>Ocasião / evento</label>
+        <input type="text" id="deco-ocasiao" placeholder="Ex: Chá de bebê, aniversário 1 ano, casamento..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label>Observações extras (opcional)</label>
+        <textarea id="deco-obs" placeholder="Ex: Cliente gosta de flores naturais, não quer muito dourado..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;min-height:70px;resize:vertical"></textarea>
+      </div>
+    </div>
+
+    <button class="btnp full" onclick="gerarPromptDeco()" style="margin-bottom:10px">
+      <i class="ti ti-sparkles"></i> Gerar prompt para ChatGPT
+    </button>
+
+    <div id="deco-resultado" style="display:none">
+      <div class="success-box" style="margin-bottom:12px">
+        <i class="ti ti-check" style="flex-shrink:0"></i>
+        Prompt gerado! Copie e cole no ChatGPT para receber 3 propostas de decoração.
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.8;white-space:pre-wrap;border:1px solid var(--border)" id="deco-prompt-text"></div>
+      <button class="deco-copy-btn" onclick="copiarPromptDeco()">
+        <i class="ti ti-copy"></i> Copiar prompt
+      </button>
+      <button onclick="abrirChatGPT()" style="width:100%;margin-top:8px;padding:10px;background:#10a37f;color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <i class="ti ti-external-link"></i> Abrir ChatGPT
+      </button>
+    </div>
+  `;
+}
+
+function gerarPromptDeco() {
+  var aro      = document.getElementById('deco-aro').value;
+  var cob      = document.getElementById('deco-cobertura').value;
+  var tema     = document.getElementById('deco-tema').value.trim();
+  var cores    = document.getElementById('deco-cores').value.trim();
+  var ocasiao  = document.getElementById('deco-ocasiao').value.trim();
+  var obs      = document.getElementById('deco-obs').value.trim();
+
+  if (!tema) { toast('Informe o tema do bolo'); return; }
+  if (!cores) { toast('Informe as cores'); return; }
+
+  var prompt = 'PROJETO DE BOLO + PAPELARIA SCRAP\n\n';
+  prompt += 'DADOS DO BOLO:\n';
+  prompt += '• Tamanho: Aro ' + aro + '\n';
+  prompt += '• Cobertura: ' + cob + '\n';
+  prompt += '• Tema: ' + tema + '\n';
+  prompt += '• Cores principais: ' + cores + '\n';
+  if (ocasiao) prompt += '• Ocasião: ' + ocasiao + '\n';
+  if (obs) prompt += '• Observações: ' + obs + '\n';
+  prompt += '\nREGRAS OBRIGATÓRIAS:\n';
+  prompt += '• Manter exatamente o formato e proporção do bolo informado (Aro ' + aro + ')\n';
+  prompt += '• Manter acabamento em ' + cob + '\n';
+  prompt += '• Não utilizar trabalhos complexos de bico\n';
+  prompt += '• Utilizar corante quando for preciso\n';
+  prompt += '• Priorizar papelaria scrap como elemento principal da decoração\n';
+  prompt += '• Pode utilizar: papelaria personalizada, esferas comestíveis discretas, sprinkles, elementos decorativos relacionados ao tema\n';
+  prompt += '\nOBJETIVO:\n';
+  prompt += 'Crie 03 propostas DIFERENTES para apresentar ao cliente.\n';
+  prompt += 'Cada proposta deve conter:\n';
+  prompt += '1. Nome da proposta\n';
+  prompt += '2. Paleta de cores sugerida\n';
+  prompt += '3. Descrição completa da decoração\n';
+  prompt += '4. Descrição do topo de bolo\n';
+  prompt += '5. Descrição dos apliques laterais\n';
+  prompt += '6. Sugestão de elementos extras\n';
+  prompt += '7. Justificativa de venda para o cliente\n';
+  prompt += '\nApós o cliente escolher uma opção:\n';
+  prompt += '• Gerar imagem realista profissional do bolo\n';
+  prompt += '• Criar arte gráfica da papelaria scrap pronta para impressão\n';
+  prompt += '• Organizar os elementos em folha A4 para recorte\n';
+  prompt += '• Informar medidas recomendadas de cada peça\n';
+
+  document.getElementById('deco-prompt-text').textContent = prompt;
+  document.getElementById('deco-resultado').style.display = 'block';
+  document.getElementById('deco-resultado').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copiarPromptDeco() {
+  var txt = document.getElementById('deco-prompt-text').textContent;
+  navigator.clipboard.writeText(txt).then(function() {
+    toast('✅ Prompt copiado! Cole no ChatGPT.');
+  }).catch(function() {
+    var el = document.createElement('textarea');
+    el.value = txt;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    toast('✅ Prompt copiado!');
+  });
+}
+
+function abrirChatGPT() {
+  window.open('https://chat.openai.com', '_blank');
+}
+
+// ═══════════════════════════════════════════
+// CALCULADORA DE MASSA POR ARO
+// ═══════════════════════════════════════════
+
+// Receitas base (rendimento = 900g de massa crua)
+var MASSAS_BASE = {
+  paodelo: {
+    nome: 'Pão de Ló Fofinha',
+    emoji: '🍥',
+    rendimento: 590,
+    ingredientes: [
+      { nome: 'Ovos inteiros',        qty: 160, unit: 'g'  },
+      { nome: 'Açúcar refinado',      qty: 150, unit: 'g'  },
+      { nome: 'Óleo',                 qty: 50,  unit: 'ml' },
+      { nome: 'Pitada de sal',        qty: 1,   unit: 'g'  },
+      { nome: 'Leite integral morno', qty: 110, unit: 'ml' },
+      { nome: 'Farinha de trigo',     qty: 175, unit: 'g'  },
+      { nome: 'Fermento químico',     qty: 10,  unit: 'g'  },
+    ],
+    obs: 'Forno 180°C por ~35 min. 2 formas de 15x5cm na receita base.'
+  },
+  branca: {
+    nome: 'Massa Branca (Amanteigada)',
+    emoji: '🍰',
+    rendimento: 900,
+    ingredientes: [
+      { nome: 'Açúcar',                   qty: 200, unit: 'g' },
+      { nome: 'Margarina',                qty: 200, unit: 'g' },
+      { nome: 'Ovos',                     qty: 4,   unit: 'un' },
+      { nome: 'Farinha de trigo s/ ferm.',qty: 200, unit: 'g' },
+      { nome: 'Fermento em pó',           qty: 10,  unit: 'g' },
+      { nome: 'Creme de leite',           qty: 100, unit: 'g' }
+    ],
+    obs: 'Pode acrescentar pasta ou essência de baunilha a gosto.'
+  },
+  chocolate: {
+    nome: 'Massa Chocolate (Amanteigada)',
+    emoji: '🍫',
+    rendimento: 900,
+    ingredientes: [
+      { nome: 'Açúcar',                   qty: 200, unit: 'g' },
+      { nome: 'Margarina',                qty: 200, unit: 'g' },
+      { nome: 'Ovos',                     qty: 4,   unit: 'un' },
+      { nome: 'Farinha de trigo s/ ferm.',qty: 180, unit: 'g' },
+      { nome: 'Cacau em pó 100%',         qty: 30,  unit: 'g' },
+      { nome: 'Chocolate em pó 50%',      qty: 20,  unit: 'g' },
+      { nome: 'Fermento em pó',           qty: 10,  unit: 'g' },
+      { nome: 'Creme de leite',           qty: 100, unit: 'g' }
+    ],
+    obs: ''
+  }
+};
+
+// Multiplicador por aro (quantas receitas base de 900g)
+// Multiplicadores Pão de Ló = mesmos do amanteigado (por área)
+var ARO_MULTIPLICADOR_PAODELO = {
+  10: 0.5, 15: 1.0, 20: 1.75, 25: 2.75, 30: 4.0
+};
+var ARO_MULTIPLICADOR = {
+  10: 0.25,   // 1/4 da receita (1 ovo)
+  15: 1,      // 1 receita
+  18: 1.5,    // 1 e meia
+  20: 1.5,    // 1 e meia
+  25: 2.5,    // 2 e meia
+  30: 3.5     // 3 e meia
+};
+
+// Massa necessária em gramas por aro
+var ARO_MASSA_G = {
+  10: 225,    // ~1/4 da receita
+  15: 900,
+  18: 1350,
+  20: 1350,
+  25: 2250,
+  30: 3150
+};
+
+function renderCalcMassa() {
+  document.getElementById('page-calc').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8;margin-bottom:4px">⚖️ Calculadora de Massa</div>
+      <div style="font-size:13px;color:var(--text2)">Selecione o tipo de massa e o aro do bolo para calcular os ingredientes.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-cake"></i> Configuração</div>
+      <div class="fr">
+        <div class="fg">
+          <label>Tipo de massa</label>
+          <select id="calc-tipo" onchange="calcularMassa()"
+            style="width:100%;padding:11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+            <option value="branca">🍰 Massa Branca (Amanteigada)</option>
+            <option value="chocolate">🍫 Massa Chocolate (Amanteigada)</option>
+            <option value="paodelo">🍥 Pão de Ló Fofinha</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Aro do bolo</label>
+          <select id="calc-aro" onchange="calcularMassa()"
+            style="width:100%;padding:11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+            <option value="10">Aro 10 cm</option>
+            <option value="15">Aro 15 cm</option>
+            <option value="18">Aro 18 cm</option>
+            <option value="20" selected>Aro 20 cm</option>
+            <option value="25">Aro 25 cm</option>
+            <option value="30">Aro 30 cm</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="calc-resultado"></div>
+  `;
+  calcularMassa();
+}
+
+function calcularMassa() {
+  var tipo = document.getElementById('calc-tipo').value;
+  var aro  = parseInt(document.getElementById('calc-aro').value);
+  var massa = MASSAS_BASE[tipo];
+  var mult  = (tipo === 'paodelo' ? ARO_MULTIPLICADOR_PAODELO : ARO_MULTIPLICADOR)[aro] || 1;
+  var massaTotal = ARO_MASSA_G[aro] || 900;
+
+  var ingrsHTML = massa.ingredientes.map(function(ig) {
+    var qtd = ig.qty * mult;
+    var unit = ig.unit;
+    // Format nicely
+    var qtdStr;
+    if (unit === 'un') {
+      qtdStr = qtd % 1 === 0 ? qtd.toFixed(0) : qtd.toFixed(1);
+      if (qtd < 1) qtdStr = '1/4 (aproximado)';
+      else if (qtd === 0.5) qtdStr = '½';
+    } else {
+      qtdStr = qtd % 1 === 0 ? qtd.toFixed(0) + 'g' : qtd.toFixed(0) + 'g';
+    }
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(200,163,91,.15)">'
+      + '<span style="font-size:14px;color:#F0E6CC">' + ig.nome + '</span>'
+      + '<span style="font-size:16px;font-weight:800;color:#C8A35B;min-width:80px;text-align:right">' + qtdStr + ' ' + (unit !== 'g' ? unit : '') + '</span>'
+      + '</div>';
+  }).join('');
+
+  var multDesc = mult === 0.25 ? '¼ de receita (1 ovo)' :
+                 mult === 0.5  ? '½ receita' :
+                 mult === 1    ? '1 receita inteira' :
+                 mult === 1.5  ? '1½ receitas' :
+                 mult === 2.5  ? '2½ receitas' :
+                 mult === 3.5  ? '3½ receitas' : mult + 'x';
+
+  document.getElementById('calc-resultado').innerHTML = `
+    <div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.3);border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:#F5EDD8">${massa.emoji} ${massa.nome}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Para Aro ${aro} cm — ${multDesc}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--text3)">Massa total</div>
+          <div style="font-size:18px;font-weight:800;color:var(--gold)">${massaTotal}g</div>
+        </div>
+      </div>
+      ${ingrsHTML}
+      ${massa.obs ? '<div style="margin-top:10px;padding:8px 10px;background:rgba(200,163,91,.08);border-radius:7px;font-size:12px;color:var(--text2);font-style:italic">💡 '+massa.obs+'</div>' : ''}
+    </div>
+
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:12px;color:var(--text2)">
+      <div style="font-weight:700;color:var(--text);margin-bottom:6px">📋 Referência de rendimento</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">
+        ${Object.keys(ARO_MULTIPLICADOR).map(function(a) {
+          var m = ARO_MULTIPLICADOR[a];
+          var mStr = m === 0.25 ? '¼' : m === 0.5 ? '½' : m === 1 ? '1' : m === 1.5 ? '1½' : m === 2.5 ? '2½' : m === 3.5 ? '3½' : m;
+          var isActive = parseInt(a) === aro;
+          return '<div style="background:'+(isActive?'var(--gold)':'rgba(255,255,255,.05)')+';border-radius:6px;padding:6px">'
+            + '<div style="font-size:11px;font-weight:700;color:'+(isActive?'#fff':'var(--text2)')+'">Aro '+a+'</div>'
+            + '<div style="font-size:13px;font-weight:800;color:'+(isActive?'#fff':'var(--gold)')+'">'+mStr+'x</div>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>
+
+    <button class="btnp full" onclick="imprimirCalcMassa('${tipo}', ${aro})">
+      <i class="ti ti-printer"></i> Imprimir ficha de produção
+    </button>
+  `;
+}
+
+function imprimirCalcMassa(tipo, aro) {
+  var massa = MASSAS_BASE[tipo];
+  var mult  = (tipo === 'paodelo' ? ARO_MULTIPLICADOR_PAODELO : ARO_MULTIPLICADOR)[aro] || 1;
+  var massaTotal = ARO_MASSA_G[aro] || 900;
+  var multDesc = mult === 0.25 ? '¼ de receita' : mult === 1 ? '1 receita' : mult + ' receitas';
+  var win = window.open('', '_blank');
+  if (!win) { toast('Permita pop-ups'); return; }
+  var ingrsH = massa.ingredientes.map(function(ig) {
+    var qtd = ig.qty * mult;
+    var qtdStr = ig.unit === 'un' ? (qtd < 1 ? '1' : qtd.toFixed(qtd%1?1:0)) : qtd.toFixed(0) + 'g';
+    return '<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:15px">' + ig.nome + '</td>'
+      + '<td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:16px;font-weight:700;color:#C8A35B;text-align:right">' + qtdStr + '</td></tr>';
+  }).join('');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha de Produção</title>'
+    + '<style>body{font-family:sans-serif;padding:20px;max-width:400px;margin:0 auto}'
+    + 'h1{font-size:20px;color:#2C1800}h2{font-size:14px;color:#C8A35B;font-weight:400}'
+    + 'table{width:100%;border-collapse:collapse}.ftr{text-align:center;color:#aaa;font-size:11px;margin-top:20px}'
+    + '@media print{body{padding:0}}</style></head><body>'
+    + '<div style="text-align:center;margin-bottom:16px">'
+    + '<img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="height:60px">'
+    + '<h1>' + massa.emoji + ' ' + massa.nome + '</h1>'
+    + '<h2>Aro ' + aro + ' cm &nbsp;·&nbsp; ' + multDesc + ' &nbsp;·&nbsp; ' + massaTotal + 'g total</h2></div>'
+    + '<table>' + ingrsH + '</table>'
+    + (massa.obs ? '<p style="font-size:12px;color:#666;font-style:italic;margin-top:10px">💡 ' + massa.obs + '</p>' : '')
+    + '<div class="ftr">Sucrée Confeitaria · ' + new Date().toLocaleDateString("pt-BR") + '</div>'
+    + '<script>window.onload=function(){window.print()}</' + 'script></body></html>');
+  win.document.close();
+}
+
+
+// ═══════════════════════════════════════════
+// PORTFÓLIO DE BOLOS
+// ═══════════════════════════════════════════
+function renderPortfolio() {
+  var fotos = [];
+  try { fotos = JSON.parse(localStorage.getItem('mr_portfolio') || '[]'); } catch(e) {}
+
+  document.getElementById('page-portfolio').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8;margin-bottom:4px">📸 Portfólio Sucrée</div>
+      <div style="font-size:13px;color:var(--text2)">Suas fotos de bolos para mostrar aos clientes.</div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btnp" style="flex:1;justify-content:center" onclick="document.getElementById('portfolio-input').click()">
+        <i class="ti ti-camera-plus"></i> Adicionar foto
+      </button>
+      <a href="https://www.instagram.com/" target="_blank"
+        style="flex:1;padding:12px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none">
+        <i class="ti ti-brand-instagram"></i> Instagram
+      </a>
+    </div>
+    <input type="file" id="portfolio-input" accept="image/*" multiple style="display:none" onchange="addPortfolioFotos(event)">
+
+    ${fotos.length === 0
+      ? '<div class="est"><i class="ti ti-photo"></i><p>Nenhuma foto ainda.</p><p style="font-size:12px">Adicione fotos dos seus bolos para criar seu portfólio!</p></div>'
+      : '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px" id="portfolio-grid">'
+        + fotos.map(function(f, i) {
+            return '<div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#2A1C0A">'
+              + '<img src="' + f.src + '" style="width:100%;height:100%;object-fit:cover" onclick="verFotoPortfolio(' + i + ')">'
+              + (f.titulo ? '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.7));padding:8px;font-size:11px;font-weight:700;color:#fff">' + f.titulo + '</div>' : '')
+              + '<button onclick="removerFotoPortfolio(' + i + ')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center"><i class="ti ti-x"></i></button>'
+              + '</div>';
+          }).join('')
+        + '</div>'
+    }
+  `;
+}
+
+function addPortfolioFotos(e) {
+  var files = Array.from(e.target.files);
+  if (!files.length) return;
+  var fotos = [];
+  try { fotos = JSON.parse(localStorage.getItem('mr_portfolio') || '[]'); } catch(e2) {}
+  var count = 0;
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      fotos.push({ src: ev.target.result, titulo: '', data: new Date().toLocaleDateString('pt-BR') });
+      count++;
+      if (count === files.length) {
+        localStorage.setItem('mr_portfolio', JSON.stringify(fotos));
+        renderPortfolio();
+        toast(files.length + ' foto(s) adicionada(s)!');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function removerFotoPortfolio(idx) {
+  if (!confirm('Remover esta foto?')) return;
+  var fotos = [];
+  try { fotos = JSON.parse(localStorage.getItem('mr_portfolio') || '[]'); } catch(e) {}
+  fotos.splice(idx, 1);
+  localStorage.setItem('mr_portfolio', JSON.stringify(fotos));
+  renderPortfolio();
+}
+
+function verFotoPortfolio(idx) {
+  var fotos = [];
+  try { fotos = JSON.parse(localStorage.getItem('mr_portfolio') || '[]'); } catch(e) {}
+  var f = fotos[idx];
+  if (!f) return;
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column';
+  overlay.onclick = function() { document.body.removeChild(overlay); };
+  overlay.innerHTML = '<img src="' + f.src + '" style="max-width:95vw;max-height:85vh;object-fit:contain;border-radius:8px">'
+    + (f.titulo ? '<div style="color:#fff;font-size:14px;margin-top:10px">' + f.titulo + '</div>' : '')
+    + '<button onclick="this.parentElement.remove()" style="margin-top:14px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;cursor:pointer">Fechar</button>';
+  document.body.appendChild(overlay);
+}
+
+// ═══════════════════════════════════════════
+// BLOCO DE RASCUNHO
+// ═══════════════════════════════════════════
+function getRascunhos() {
+  try { return JSON.parse(localStorage.getItem('mr_rascunhos') || '[]'); } catch(e) { return []; }
+}
+function saveRascunhos(list) {
+  localStorage.setItem('mr_rascunhos', JSON.stringify(list));
+}
+
+function renderRascunho() {
+  var list = getRascunhos();
+  document.getElementById('page-rascunho').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8">📝 Rascunhos</div>
+        <div style="font-size:12px;color:var(--text2)">Anote enquanto testa, converta em receita depois.</div>
+      </div>
+      <button class="btnp" onclick="novoRascunho()" style="padding:10px 14px;font-size:13px">
+        <i class="ti ti-plus"></i> Novo
+      </button>
+    </div>
+
+    ${list.length === 0
+      ? '<div class="est"><i class="ti ti-pencil"></i><p>Nenhum rascunho ainda.</p><p style="font-size:12px">Toque em "+ Novo" para começar a anotar sua receita em teste.</p></div>'
+      : list.map(function(r, i) {
+          var data = r.data ? new Date(r.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+          var preview = (r.notas||'').split('\n')[0].substring(0,60);
+          return '<div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.22);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer" onclick="abrirRascunho('+i+')">'
+            + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:15px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;margin-bottom:4px">'+(r.nome||'Sem título')+'</div>'
+            + (preview ? '<div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+preview+'</div>' : '')
+            + '<div style="font-size:10px;color:var(--text3);margin-top:6px">'+data+'</div>'
+            + '</div>'
+            + '<div style="display:flex;gap:6px;flex-shrink:0">'
+            + '<button onclick="event.stopPropagation();converterEmReceita('+i+')" title="Converter em receita" style="background:rgba(15,110,86,.2);border:1px solid rgba(15,110,86,.4);color:var(--teal);border-radius:7px;padding:6px 8px;cursor:pointer;font-size:12px;font-family:inherit;display:flex;align-items:center;gap:4px"><i class="ti ti-arrow-right"></i> Receita</button>'
+            + '<button onclick="event.stopPropagation();excluirRascunho('+i+')" style="background:none;border:none;color:#A32D2D;font-size:18px;cursor:pointer;padding:4px"><i class="ti ti-trash"></i></button>'
+            + '</div></div></div>';
+        }).join('')
+    }
+  `;
+}
+
+function novoRascunho() {
+  var list = getRascunhos();
+  var novo = {
+    id: 'rasc_' + Date.now(),
+    nome: 'Receita ' + new Date().toLocaleDateString('pt-BR'),
+    data: new Date().toISOString(),
+    cat: 'doce',
+    notas: '',
+    ingredientes: [],  // [{nome, qty, unit, obs}]
+    versoes: []        // histórico de ajustes
+  };
+  list.unshift(novo);
+  saveRascunhos(list);
+  abrirRascunho(0);
+}
+
+function abrirRascunho(idx) {
+  var list = getRascunhos();
+  var r = list[idx];
+  if (!r) return;
+
+  document.getElementById('page-rascunho').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button onclick="renderRascunho()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px"><i class="ti ti-arrow-left"></i></button>
+      <input type="text" value="${r.nome||''}" placeholder="Nome da receita em teste..."
+        onchange="atualizarRascunho(${idx},'nome',this.value)"
+        style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;background:var(--surface);color:var(--text);font-family:Georgia,serif">
+      <select onchange="atualizarRascunho(${idx},'cat',this.value)"
+        style="padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit">
+        <option value="doce" ${r.cat==='doce'?'selected':''}>🍰 Doce</option>
+        <option value="salgada" ${r.cat==='salgada'?'selected':''}>🥩 Salgada</option>
+      </select>
+    </div>
+
+    <!-- INGREDIENTES EM TESTE -->
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">
+        ⚖️ Ingredientes testados
+      </div>
+      <div id="rasc-ingrs-${idx}">
+        ${renderIngrsRascunho(r.ingredientes, idx)}
+      </div>
+      <button onclick="addIngrRascunho(${idx})"
+        style="width:100%;margin-top:8px;padding:9px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);background:none;color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer">
+        <i class="ti ti-plus"></i> Adicionar ingrediente
+      </button>
+    </div>
+
+    <!-- ANOTAÇÕES LIVRES -->
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">
+        📋 Anotações e observações
+      </div>
+      <textarea
+        placeholder="Anote tudo aqui: temperatura do forno, tempo, ajustes que fez, o que funcionou, o que mudou..."
+        onchange="atualizarRascunho(${idx},'notas',this.value)"
+        style="width:100%;min-height:160px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;line-height:1.7"
+      >${r.notas||''}</textarea>
+    </div>
+
+    <!-- HISTÓRICO DE VERSÕES -->
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em">🕐 Histórico de ajustes</div>
+        <button onclick="salvarVersao(${idx})" style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);color:var(--gold);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer">
+          <i class="ti ti-bookmark"></i> Salvar versão
+        </button>
+      </div>
+      ${(r.versoes||[]).length === 0
+        ? '<div style="font-size:12px;color:var(--text3)">Nenhuma versão salva. Toque em "Salvar versão" para guardar o estado atual antes de fazer ajustes.</div>'
+        : (r.versoes||[]).slice().reverse().map(function(v,vi) {
+            return '<div style="padding:8px 10px;border-bottom:0.5px solid rgba(200,163,91,.12);font-size:12px">'
+              + '<div style="display:flex;align-items:center;justify-content:space-between">'
+              + '<span style="font-weight:700;color:var(--text2)">v' + (r.versoes.length - vi) + ' — ' + new Date(v.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + '</span>'
+              + '<button onclick="restaurarVersao('+idx+','+vi+')" style="background:none;border:none;color:var(--blue);font-size:11px;cursor:pointer;font-family:inherit">Restaurar</button>'
+              + '</div>'
+              + (v.nota ? '<div style="color:var(--text3);margin-top:3px">'+v.nota+'</div>' : '')
+              + '</div>';
+          }).join('')
+      }
+    </div>
+
+    <!-- CONVERTER EM RECEITA -->
+    <button onclick="converterEmReceita(${idx})" class="btnp full" style="margin-bottom:10px">
+      <i class="ti ti-arrow-right"></i> Converter em receita oficial
+    </button>
+    <button onclick="renderRascunho()" class="btns" style="width:100%;justify-content:center;font-size:13px">
+      <i class="ti ti-arrow-left"></i> Voltar para rascunhos
+    </button>
+  `;
+}
+
+function renderIngrsRascunho(ingrs, idx) {
+  if (!ingrs || !ingrs.length) return '<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Nenhum ingrediente ainda</div>';
+  var html = '';
+  ingrs.forEach(function(ig, i) {
+    html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap">';
+    html += '<input type="text" value="' + (ig.nome||'') + '" placeholder="Ingrediente" data-idx="'+idx+'" data-i="'+i+'" data-campo="nome" onblur="atualizarIngrBlur(this)" style="flex:2;min-width:100px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:inherit">';
+    html += '<input type="number" value="' + (ig.qty||0) + '" placeholder="Qtd" data-idx="'+idx+'" data-i="'+i+'" data-campo="qty" onblur="atualizarIngrBlur(this)" style="width:70px;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:inherit;text-align:center">';
+    html += '<input type="text" value="' + (ig.unit||'g') + '" placeholder="g/ml" data-idx="'+idx+'" data-i="'+i+'" data-campo="unit" onblur="atualizarIngrBlur(this)" style="width:50px;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:inherit;text-align:center">';
+    html += '<input type="text" value="' + (ig.obs||'') + '" placeholder="Obs..." data-idx="'+idx+'" data-i="'+i+'" data-campo="obs" onblur="atualizarIngrBlur(this)" style="flex:2;min-width:80px;padding:7px 9px;border:1px dashed var(--border);border-radius:var(--radius-sm);font-size:11px;background:var(--bg);color:var(--text2);font-family:inherit;font-style:italic">';
+    html += '<button onclick="remIngrRascunho(' + idx + ',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:18px;cursor:pointer;padding:2px"><i class="ti ti-trash"></i></button>';
+    html += '</div>';
+  });
+  return html;
+}
+
+function atualizarIngrBlur(el) {
+  var idx   = parseInt(el.dataset.idx);
+  var i     = parseInt(el.dataset.i);
+  var campo = el.dataset.campo;
+  var val   = campo === 'qty' ? (parseFloat(el.value)||0) : el.value;
+  atualizarIngr(idx, i, campo, val);
+}
+
+
+function addIngrRascunho(idx) {
+  var list = getRascunhos();
+  if (!list[idx].ingredientes) list[idx].ingredientes = [];
+  list[idx].ingredientes.push({ nome:'', qty:0, unit:'g', obs:'' });
+  saveRascunhos(list);
+  var el = document.getElementById('rasc-ingrs-'+idx);
+  if (el) el.innerHTML = renderIngrsRascunho(list[idx].ingredientes, idx);
+}
+
+function remIngrRascunho(idx, i) {
+  var list = getRascunhos();
+  list[idx].ingredientes.splice(i, 1);
+  saveRascunhos(list);
+  var el = document.getElementById('rasc-ingrs-'+idx);
+  if (el) el.innerHTML = renderIngrsRascunho(list[idx].ingredientes, idx);
+}
+
+function atualizarIngr(idx, i, campo, val) {
+  var list = getRascunhos();
+  list[idx].ingredientes[i][campo] = val;
+  saveRascunhos(list);
+}
+
+function atualizarRascunho(idx, campo, val) {
+  var list = getRascunhos();
+  list[idx][campo] = val;
+  list[idx].data = new Date().toISOString();
+  saveRascunhos(list);
+}
+
+function salvarVersao(idx) {
+  var nota = prompt('Descreva o ajuste feito (opcional):') || '';
+  var list = getRascunhos();
+  if (!list[idx].versoes) list[idx].versoes = [];
+  list[idx].versoes.push({
+    data: new Date().toISOString(),
+    nota: nota,
+    ingredientes: JSON.parse(JSON.stringify(list[idx].ingredientes||[])),
+    notas: list[idx].notas || ''
+  });
+  saveRascunhos(list);
+  toast('✅ Versão salva!');
+  abrirRascunho(idx);
+}
+
+function restaurarVersao(idx, vIdx) {
+  if (!confirm('Restaurar esta versão? As informações atuais serão substituídas.')) return;
+  var list = getRascunhos();
+  var versoes = list[idx].versoes || [];
+  var v = versoes[versoes.length - 1 - vIdx]; // reversed display
+  if (!v) return;
+  list[idx].ingredientes = JSON.parse(JSON.stringify(v.ingredientes||[]));
+  list[idx].notas = v.notas || '';
+  saveRascunhos(list);
+  toast('✅ Versão restaurada!');
+  abrirRascunho(idx);
+}
+
+function excluirRascunho(idx) {
+  if (!confirm('Excluir este rascunho?')) return;
+  var list = getRascunhos();
+  list.splice(idx, 1);
+  saveRascunhos(list);
+  renderRascunho();
+}
+
+function converterEmReceita(idx) {
+  var list = getRascunhos();
+  var r = list[idx];
+  if (!r) return;
+  // Pre-fill the new recipe form with rascunho data
+  cm('page-rascunho'); // not a modal, just navigate
+  openNewRecipe(r.cat || 'doce', '', {
+    name:     r.nome || '',
+    preparo:  r.notas || '',
+    time:     60,
+    yield:    6,
+    unit:     'porção',
+    comment:  'Convertido do rascunho em ' + new Date().toLocaleDateString('pt-BR'),
+    ingredients: (r.ingredientes||[]).filter(function(ig){ return ig.nome; }).map(function(ig){
+      return { name: ig.nome, qty: ig.qty||0, unit: ig.unit||'g', price: 0, isBase: false, obs: ig.obs||'' };
+    })
+  });
+  toast('📝 Rascunho carregado! Revise e salve como receita.');
+}
+
+// ═══════════════════════════════════════════
+// 1. AGENDA VISUAL — CALENDÁRIO MENSAL
+// ═══════════════════════════════════════════
+function renderAgenda() {
+  var hoje = new Date();
+  var mesRef = window._agendaMes || { m: hoje.getMonth(), y: hoje.getFullYear() };
+  window._agendaMes = mesRef;
+
+  var primeiroDia = new Date(mesRef.y, mesRef.m, 1);
+  var ultimoDia   = new Date(mesRef.y, mesRef.m + 1, 0);
+  var nomeMes = primeiroDia.toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+
+  // Map pedidos by date
+  var pedidosPorDia = {};
+  (typeof pedidos !== 'undefined' ? pedidos : []).forEach(function(p) {
+    if (!p.data) return;
+    var d = p.data; // YYYY-MM-DD
+    if (!pedidosPorDia[d]) pedidosPorDia[d] = [];
+    pedidosPorDia[d].push(p);
+  });
+
+  // Build calendar grid
+  var diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var grid = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">';
+  diasSemana.forEach(function(d) {
+    grid += '<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text2);padding:4px">' + d + '</div>';
+  });
+  grid += '</div>';
+  grid += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+
+  // Empty cells before first day
+  var inicio = primeiroDia.getDay();
+  for (var e = 0; e < inicio; e++) {
+    grid += '<div style="min-height:52px"></div>';
+  }
+
+  // Day cells
+  for (var dia = 1; dia <= ultimoDia.getDate(); dia++) {
+    var dateStr = mesRef.y + '-' + String(mesRef.m+1).padStart(2,'0') + '-' + String(dia).padStart(2,'0');
+    var pedsDia = pedidosPorDia[dateStr] || [];
+    var isHoje = dia === hoje.getDate() && mesRef.m === hoje.getMonth() && mesRef.y === hoje.getFullYear();
+    var temPed = pedsDia.length > 0;
+    var urgente = pedsDia.some(function(p){ return p.status !== 'entregue' && p.status !== 'cancelado'; });
+
+    grid += '<div onclick="verDiaAgenda(\'' + dateStr + '\')" style="min-height:52px;border-radius:8px;padding:4px;background:' +
+      (isHoje ? 'rgba(200,163,91,.25)' : temPed ? 'rgba(30,20,8,.9)' : 'rgba(30,20,8,.5)') +
+      ';border:1px solid ' + (isHoje ? 'var(--gold)' : temPed ? 'rgba(200,163,91,.3)' : 'rgba(200,163,91,.1)') +
+      ';cursor:' + (temPed ? 'pointer' : 'default') + '">';
+    grid += '<div style="font-size:12px;font-weight:' + (isHoje?'800':'600') + ';color:' + (isHoje?'var(--gold)':'var(--text2)') + ';margin-bottom:2px">' + dia + '</div>';
+    if (temPed) {
+      pedsDia.slice(0,2).forEach(function(p) {
+        var cor = p.status==='entregue'?'#888': p.status==='producao'?'var(--gold)':p.status==='pronto'?'var(--blue)':'var(--teal)';
+        grid += '<div style="font-size:9px;font-weight:700;color:' + cor + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(0,0,0,.3);border-radius:3px;padding:1px 4px;margin-bottom:1px">' + (p.cliente||'?').split(' ')[0] + '</div>';
+      });
+      if (pedsDia.length > 2) grid += '<div style="font-size:9px;color:var(--text3)">+' + (pedsDia.length-2) + '</div>';
+    }
+    grid += '</div>';
+  }
+  grid += '</div>';
+
+  document.getElementById('page-agenda').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button onclick="mudarMesAgenda(-1)" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px"><i class="ti ti-chevron-left"></i></button>
+      <div style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:#F5EDD8;text-transform:capitalize">${nomeMes}</div>
+      <button onclick="mudarMesAgenda(1)" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px"><i class="ti ti-chevron-right"></i></button>
+    </div>
+
+    <!-- Legenda -->
+    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:10px;color:var(--teal)">● Confirmado</span>
+      <span style="font-size:10px;color:var(--gold)">● Produção</span>
+      <span style="font-size:10px;color:var(--blue)">● Pronto</span>
+      <span style="font-size:10px;color:#888">● Entregue</span>
+    </div>
+
+    ${grid}
+
+    <!-- Pedidos do mês -->
+    <div style="margin-top:14px">
+      <div class="st"><i class="ti ti-list"></i> Pedidos do mês (${Object.values(pedidosPorDia).flat().length})</div>
+      ${Object.keys(pedidosPorDia).sort().map(function(d) {
+        var peds = pedidosPorDia[d];
+        var dtFmt = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+        return '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;text-transform:capitalize">📅 ' + dtFmt + '</div>'
+          + peds.map(function(p) {
+              return '<div onclick="viewPedido(\'' + p.id + '\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border-radius:8px;margin-bottom:4px;cursor:pointer;border-left:3px solid var(--teal)">'
+                + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + (p.cliente||'?') + '</div>'
+                + '<div style="font-size:11px;color:var(--text2)">Aro ' + (p.aro||'?') + ' · R$ ' + parseFloat(p.valorTotal||0).toFixed(2) + '</div></div>'
+                + '<span class="status-badge sb-' + p.status + '" style="font-size:9px">' + p.status + '</span>'
+                + '</div>';
+            }).join('')
+          + '</div>';
+      }).join('') || '<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px">Nenhum pedido este mês</div>'}
+    </div>
+  `;
+}
+
+function mudarMesAgenda(delta) {
+  var ref = window._agendaMes || { m: new Date().getMonth(), y: new Date().getFullYear() };
+  ref.m += delta;
+  if (ref.m > 11) { ref.m = 0; ref.y++; }
+  if (ref.m < 0)  { ref.m = 11; ref.y--; }
+  window._agendaMes = ref;
+  renderAgenda();
+}
+
+function verDiaAgenda(dateStr) {
+  var pedsDia = (typeof pedidos !== 'undefined' ? pedidos : []).filter(function(p){ return p.data === dateStr; });
+  if (!pedsDia.length) return;
+  if (pedsDia.length === 1) { viewPedido(pedsDia[0].id); return; }
+  // Multiple — show list
+  var dtFmt = new Date(dateStr+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  toast(pedsDia.length + ' pedidos em ' + dtFmt);
+}
+
+
+// ═══════════════════════════════════════════
+// 2. LISTA DE COMPRAS AUTOMÁTICA
+// ═══════════════════════════════════════════
+function renderListaCompras() {
+  var pedidosPendentes = (typeof pedidos !== 'undefined' ? pedidos : [])
+    .filter(function(p){ return p.status !== 'entregue' && p.status !== 'cancelado'; })
+    .sort(function(a,b){ return (a.data||'') < (b.data||'') ? -1 : 1; });
+
+  document.getElementById('page-compras').innerHTML = `
+    <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8;margin-bottom:4px">🛒 Lista de Compras</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Selecione os pedidos e gere a lista de ingredientes automaticamente.</div>
+
+    ${pedidosPendentes.length === 0
+      ? '<div class="est"><i class="ti ti-shopping-cart"></i><p>Nenhum pedido ativo.</p></div>'
+      : `<div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="st" style="margin-bottom:0"><i class="ti ti-cake"></i> Pedidos ativos</div>
+            <button onclick="selecionarTodosCompras()" class="btns" style="font-size:11px;padding:5px 10px">Todos</button>
+          </div>
+          ${pedidosPendentes.map(function(p) {
+            var dtFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
+            return '<label style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px;cursor:pointer">'
+              + '<input type="checkbox" class="compra-check" data-id="'+p.id+'" style="width:18px;height:18px;accent-color:var(--gold)">'
+              + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">'+p.cliente+'</div>'
+              + '<div style="font-size:11px;color:var(--text2)">'+dtFmt+' · Aro '+(p.aro||'?')+'</div></div>'
+              + '<span style="font-size:12px;font-weight:700;color:var(--gold)">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</span>'
+              + '</label>';
+          }).join('')}
+        </div>
+        <button class="btnp full" onclick="gerarListaCompras()" style="margin-bottom:12px">
+          <i class="ti ti-list-check"></i> Gerar lista de ingredientes
+        </button>`
+    }
+    <div id="lista-compras-resultado"></div>
+  `;
+}
+
+function selecionarTodosCompras() {
+  document.querySelectorAll('.compra-check').forEach(function(cb){ cb.checked = true; });
+}
+
+function gerarListaCompras() {
+  var ids = [];
+  document.querySelectorAll('.compra-check:checked').forEach(function(cb){ ids.push(cb.dataset.id); });
+  if (!ids.length) { toast('Selecione pelo menos um pedido'); return; }
+
+  var pedsSel = (typeof pedidos !== 'undefined' ? pedidos : []).filter(function(p){ return ids.includes(p.id); });
+
+  // Aggregate ingredients from recipes
+  var mapa = {}; // key: nome_unit → {nome, qty, unit}
+
+  pedsSel.forEach(function(p) {
+    // Find recipes for recheio1, recheio2
+    [p.recheio1, p.recheio2].forEach(function(nomeRec) {
+      if (!nomeRec) return;
+      var rec = recipes.find(function(r){ return r.name === nomeRec; });
+      if (!rec) return;
+      (rec.ingredients||[]).forEach(function(ig) {
+        if (!ig.name) return;
+        var key = ig.name.toLowerCase() + '_' + (ig.unit||'g');
+        if (!mapa[key]) mapa[key] = { nome: ig.name, qty: 0, unit: ig.unit||'g' };
+        mapa[key].qty += parseFloat(ig.qty||0);
+      });
+    });
+  });
+
+  var itens = Object.values(mapa).sort(function(a,b){ return a.nome.localeCompare(b.nome,'pt-BR'); });
+
+  // Also add operational items
+  var extras = [
+    { nome: 'Caixas para bolo', qty: pedsSel.length, unit: 'un' },
+    { nome: 'Tábuas MDF', qty: pedsSel.length, unit: 'un' },
+    { nome: 'Papel manteiga', qty: pedsSel.length * 2, unit: 'folhas' }
+  ];
+
+  var el = document.getElementById('lista-compras-resultado');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px">
+      <div class="st"><i class="ti ti-carrot"></i> Ingredientes (${pedsSel.length} pedido(s))</div>
+      ${itens.length ? itens.map(function(ig) {
+        var qtdFmt = ig.qty >= 1000 && ig.unit === 'g' ? (ig.qty/1000).toFixed(2).replace('.',',') + ' kg' :
+                     ig.qty >= 1000 && ig.unit === 'ml' ? (ig.qty/1000).toFixed(2).replace('.',',') + ' L' :
+                     ig.qty.toFixed(0) + ' ' + ig.unit;
+        return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid rgba(200,163,91,.12);align-items:center">'
+          + '<div style="display:flex;align-items:center;gap:8px">'
+          + '<input type="checkbox" style="width:16px;height:16px;accent-color:var(--gold)">'
+          + '<span style="font-size:14px;color:#F0E6CC">'+ig.nome+'</span></div>'
+          + '<span style="font-size:14px;font-weight:700;color:var(--gold)">'+qtdFmt+'</span>'
+          + '</div>';
+      }).join('') : '<div style="font-size:12px;color:var(--text3)">Nenhum ingrediente mapeado. Cadastre os ingredientes nas receitas de recheios.</div>'}
+
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(200,163,91,.2)">
+        <div class="st" style="font-size:10px"><i class="ti ti-package"></i> Materiais</div>
+        ${extras.map(function(e) {
+          return '<div style="display:flex;justify-content:space-between;padding:6px 0;align-items:center">'
+            + '<div style="display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:16px;height:16px;accent-color:var(--gold)"><span style="font-size:13px;color:var(--text2)">'+e.nome+'</span></div>'
+            + '<span style="font-size:13px;font-weight:700;color:var(--text2)">'+e.qty+' '+e.unit+'</span>'
+            + '</div>';
+        }).join('')}
+      </div>
+    </div>
+    <button onclick="imprimirListaCompras()" class="btnp full">
+      <i class="ti ti-printer"></i> Imprimir lista
+    </button>
+  `;
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+function imprimirListaCompras() {
+  var win = window.open('','_blank');
+  if (!win) { toast('Permita pop-ups'); return; }
+  var conteudo = document.getElementById('lista-compras-resultado').innerHTML;
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista de Compras</title>'
+    + '<style>body{font-family:sans-serif;padding:20px;max-width:400px}h1{font-size:18px}@media print{body{padding:0}}</style></head><body>'
+    + '<h1>🛒 Lista de Compras — Sucrée</h1>'
+    + '<p style="color:#666;font-size:12px">' + new Date().toLocaleDateString('pt-BR') + '</p>'
+    + conteudo
+    + '<script>window.onload=function(){window.print()}</' + 'script></body></html>');
+  win.document.close();
+}
+
+
+// ═══════════════════════════════════════════
+// 3. FICHA DE PRODUÇÃO SEMANAL
+// ═══════════════════════════════════════════
+function renderFichaProducao() {
+  var hoje = new Date();
+  var diaSemana = hoje.getDay();
+  var segunda = new Date(hoje);
+  segunda.setDate(hoje.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+  var domingo = new Date(segunda);
+  domingo.setDate(segunda.getDate() + 6);
+
+  var toISO = function(d) { return d.toISOString().split('T')[0]; };
+  var inicioSem = toISO(segunda);
+  var fimSem    = toISO(domingo);
+
+  var pedsSemana = (typeof pedidos !== 'undefined' ? pedidos : [])
+    .filter(function(p){ return p.data >= inicioSem && p.data <= fimSem && p.status !== 'cancelado'; })
+    .sort(function(a,b){ return a.data < b.data ? -1 : 1; });
+
+  var diasNomes = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  var diasFmt = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(segunda);
+    d.setDate(segunda.getDate() + i);
+    diasFmt.push({ iso: toISO(d), nome: diasNomes[i], num: d.getDate(), mes: d.toLocaleDateString('pt-BR',{month:'short'}) });
+  }
+
+  document.getElementById('page-ficha').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8">📋 Ficha Semanal</div>
+        <div style="font-size:12px;color:var(--text2)">${segunda.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})} a ${domingo.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}</div>
+      </div>
+      <button onclick="imprimirFichaProducao()" class="btnp" style="padding:10px 14px;font-size:13px">
+        <i class="ti ti-printer"></i> Imprimir
+      </button>
+    </div>
+
+    ${pedsSemana.length === 0
+      ? '<div class="est"><i class="ti ti-calendar-off"></i><p>Nenhum pedido esta semana.</p></div>'
+      : diasFmt.map(function(dia) {
+          var pedsDia = pedsSemana.filter(function(p){ return p.data === dia.iso; });
+          if (!pedsDia.length) return '';
+          return '<div style="margin-bottom:14px">'
+            + '<div style="font-size:12px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">'
+            + '📅 ' + dia.nome + ', ' + dia.num + ' de ' + dia.mes + '</div>'
+            + pedsDia.map(function(p) {
+                var recheios = (p.recheios||[]).map(function(r){return r.nome;}).join(' + ') || p.recheio1 || '—';
+                var statusCor = p.status==='entregue'?'#888':p.status==='pronto'?'var(--blue)':p.status==='producao'?'var(--gold)':'var(--teal)';
+                return '<div style="background:var(--surface);border-radius:10px;padding:12px;margin-bottom:8px;border-left:4px solid '+statusCor+'">'
+                  + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+                  + '<div><div style="font-size:15px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif">'+p.cliente+'</div>'
+                  + '<div style="font-size:11px;color:var(--text2)">'+p.hora+' · '+(p.retira?'Retira':'Entrega')+'</div></div>'
+                  + '<span style="font-size:10px;font-weight:700;padding:3px 8px;background:'+statusCor+';color:#fff;border-radius:10px">'+p.status+'</span>'
+                  + '</div>'
+                  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">'
+                  + '<div><span style="color:var(--text3)">Aro</span> <strong style="color:#F5EDD8">'+p.aro+'cm</strong></div>'
+                  + '<div><span style="color:var(--text3)">Massa</span> <strong style="color:#F5EDD8">'+(p.massaNome||'—')+'</strong></div>'
+                  + '<div style="grid-column:1/-1"><span style="color:var(--text3)">Recheios</span> <strong style="color:#F5EDD8">'+recheios+'</strong></div>'
+                  + '<div><span style="color:var(--text3)">Cobertura</span> <strong style="color:#F5EDD8">'+(p.coberturaNome||'—')+'</strong></div>'
+                  + '<div><span style="color:var(--text3)">Total</span> <strong style="color:var(--gold)">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</strong></div>'
+                  + (p.tema ? '<div style="grid-column:1/-1"><span style="color:var(--text3)">Tema</span> <strong style="color:#F5EDD8">'+p.tema+'</strong></div>' : '')
+                  + (p.obs ? '<div style="grid-column:1/-1;margin-top:4px;padding:6px 8px;background:rgba(200,163,91,.08);border-radius:6px;font-style:italic;color:var(--text2)">💬 '+p.obs+'</div>' : '')
+                  + '</div></div>';
+              }).join('')
+            + '</div>';
+        }).join('')
+    }
+
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:12px;margin-top:4px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">📊 Resumo da semana</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+        <div><div style="font-size:10px;color:var(--text3)">Pedidos</div><div style="font-size:20px;font-weight:800;color:var(--gold)">${pedsSemana.length}</div></div>
+        <div><div style="font-size:10px;color:var(--text3)">Faturamento</div><div style="font-size:14px;font-weight:800;color:var(--teal)">R$ ${pedsSemana.reduce(function(a,p){return a+parseFloat(p.valorTotal||0);},0).toFixed(2)}</div></div>
+        <div><div style="font-size:10px;color:var(--text3)">A entregar</div><div style="font-size:20px;font-weight:800;color:#F5EDD8">${pedsSemana.filter(function(p){return p.status!=='entregue';}).length}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function imprimirFichaProducao() {
+  var win = window.open('','_blank');
+  if (!win) { toast('Permita pop-ups'); return; }
+  var conteudo = document.getElementById('page-ficha').innerHTML;
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha de Produção</title>'
+    + '<style>body{font-family:sans-serif;padding:20px;max-width:500px;color:#222}'
+    + '.btnp,.btns,button{display:none!important}'
+    + '@media print{body{padding:0}}</style></head><body>'
+    + conteudo
+    + '<script>window.onload=function(){window.print()}</' + 'script></body></html>');
+  win.document.close();
+}
+
+
+// ═══════════════════════════════════════════
+// PAINEL DE METAS — SONHO CLT → PJ
+// ═══════════════════════════════════════════
+function getMetas() {
+  try { return JSON.parse(localStorage.getItem('mr_metas') || 'null'); } catch(e) { return null; }
+}
+function saveMetas(m) {
+  localStorage.setItem('mr_metas', JSON.stringify(m));
+}
+
+function renderMetas() {
+  var metas = getMetas() || {
+    metaMensal: 5000,
+    descricao: 'Renda líquida mensal após custos',
+    historico: []
+  };
+
+  var hoje = new Date();
+  var mes = hoje.getMonth();
+  var ano = hoje.getFullYear();
+  var nomeMes = hoje.toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
+
+  // Calcular lucro real do mês atual (dos pedidos)
+  var cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  var pedidosMes = (typeof pedidos !== 'undefined' ? pedidos : []).filter(function(p) {
+    if (!p.data || p.status === 'cancelado') return false;
+    var d = new Date(p.data + 'T12:00:00');
+    return d.getMonth() === mes && d.getFullYear() === ano;
+  });
+
+  var faturamento = pedidosMes.reduce(function(a,p){ return a + parseFloat(p.valorTotal||0); }, 0);
+  var custoTotal  = pedidosMes.reduce(function(a,p){
+    var aro = p.aro || 20;
+    var op  = typeof calcCustoOperacional === 'function' ? calcCustoOperacional(aro) : 0;
+    return a + op + parseFloat(p.custoEstimado||0);
+  }, 0);
+  var lucroMes    = faturamento - custoTotal;
+  var meta        = metas.metaMensal || 5000;
+  var pct         = meta > 0 ? Math.min((lucroMes / meta) * 100, 100) : 0;
+  var falta       = Math.max(meta - lucroMes, 0);
+  var lucroMedio  = pedidosMes.length ? (lucroMes / pedidosMes.length) : 0;
+  var bolosNecessarios = lucroMedio > 0 ? Math.ceil(falta / lucroMedio) : '—';
+
+  // Build histórico dos últimos 6 meses
+  var historicoHTML = '';
+  var maxLucro = 0;
+  var historico6 = [];
+  for (var i = 5; i >= 0; i--) {
+    var d = new Date(ano, mes - i, 1);
+    var m2 = d.getMonth(), y2 = d.getFullYear();
+    var pMes = (typeof pedidos !== 'undefined' ? pedidos : []).filter(function(p) {
+      if (!p.data || p.status === 'cancelado') return false;
+      var dd = new Date(p.data + 'T12:00:00');
+      return dd.getMonth() === m2 && dd.getFullYear() === y2;
+    });
+    var fat2 = pMes.reduce(function(a,p){ return a+parseFloat(p.valorTotal||0); },0);
+    var cust2 = pMes.reduce(function(a,p){
+      var ar = p.aro||20;
+      var op = typeof calcCustoOperacional==='function'?calcCustoOperacional(ar):0;
+      return a+op+parseFloat(p.custoEstimado||0);
+    },0);
+    var luc2 = fat2 - cust2;
+    if (luc2 > maxLucro) maxLucro = luc2;
+    historico6.push({ mes: d.toLocaleDateString('pt-BR',{month:'short'}), ano: y2, lucro: luc2, fat: fat2, qtd: pMes.length });
+  }
+  maxLucro = Math.max(maxLucro, meta, 1);
+
+  historicoHTML = historico6.map(function(h) {
+    var barPct = Math.max((h.lucro / maxLucro) * 100, 0);
+    var metaPct = (meta / maxLucro) * 100;
+    var cor = h.lucro >= meta ? 'var(--teal)' : h.lucro > 0 ? 'var(--gold)' : 'rgba(200,163,91,.2)';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">'
+      + '<div style="font-size:10px;font-weight:700;color:' + cor + '">' + (h.lucro > 0 ? 'R$' + Math.round(h.lucro/1000) + 'k' : '—') + '</div>'
+      + '<div style="width:100%;height:80px;background:rgba(255,255,255,.05);border-radius:6px;position:relative;overflow:hidden">'
+      + '<div style="position:absolute;bottom:0;left:0;right:0;height:' + barPct + '%;background:' + cor + ';border-radius:4px;transition:height .3s"></div>'
+      + '<div style="position:absolute;left:0;right:0;bottom:' + metaPct + '%;border-top:1px dashed rgba(200,163,91,.5)"></div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:var(--text3)">' + h.mes + '</div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('page-metas').innerHTML = `
+    <div style="font-family:Georgia,serif;font-size:20px;color:#F5EDD8;margin-bottom:4px">🎯 Minha Meta</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Sua jornada do CLT para o PJ pelos bolos.</div>
+
+    <!-- META PRINCIPAL -->
+    <div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.35);border-radius:14px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#C8A35B;text-transform:uppercase;letter-spacing:.1em">🎯 Meta mensal</div>
+          <div style="font-size:28px;font-weight:800;color:#C8A35B;margin-top:2px">R$ ${meta.toLocaleString('pt-BR')}</div>
+          <div style="font-size:11px;color:var(--text3)">${metas.descricao||'Renda líquida após custos'}</div>
+        </div>
+        <button onclick="editarMeta()" style="background:rgba(200,163,91,.15);border:1px solid rgba(200,163,91,.3);color:var(--gold);border-radius:8px;padding:8px 12px;font-size:12px;font-family:inherit;cursor:pointer"><i class="ti ti-pencil"></i></button>
+      </div>
+
+      <!-- Barra de progresso -->
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:6px">
+          <span>Lucro este mês</span>
+          <span style="font-weight:700;color:${pct>=100?'var(--teal)':'var(--gold)'}">${pct.toFixed(0)}%</span>
+        </div>
+        <div style="height:14px;background:rgba(255,255,255,.08);border-radius:7px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${pct>=100?'var(--teal)':'linear-gradient(90deg,var(--gold),#E8C97A)'};border-radius:7px;transition:width .5s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px">
+          <span>R$ 0</span>
+          <span>R$ ${meta.toLocaleString('pt-BR')}</span>
+        </div>
+      </div>
+
+      <!-- Números -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px">💰 Lucro</div>
+          <div style="font-size:16px;font-weight:800;color:${lucroMes>=0?'var(--teal)':'#FF8080'}">${fR(lucroMes)}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px">⏳ Falta</div>
+          <div style="font-size:16px;font-weight:800;color:${falta===0?'var(--teal)':'#C8A35B'}">${falta===0?'✅':fR(falta)}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:3px">🎂 Bolos</div>
+          <div style="font-size:16px;font-weight:800;color:#F5EDD8">${pedidosMes.length}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUANTO FALTA -->
+    ${falta > 0 ? `
+    <div style="background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.2);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#C8A35B;margin-bottom:8px">📊 O que falta para a meta?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:2">
+        ${lucroMedio > 0 ? `Seu lucro médio por bolo este mês é <strong style="color:#F5EDD8">${fR(lucroMedio)}</strong>.<br>
+        Você precisa vender mais <strong style="color:var(--gold)">${bolosNecessarios} bolo(s)</strong> para atingir sua meta.<br>` : ''}
+        Faltam <strong style="color:var(--gold)">${fR(falta)}</strong> para os R$ ${meta.toLocaleString('pt-BR')}.
+      </div>
+    </div>` : `
+    <div style="background:rgba(15,110,86,.15);border:1px solid rgba(15,110,86,.4);border-radius:12px;padding:14px;margin-bottom:14px;text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">🎉</div>
+      <div style="font-size:16px;font-weight:700;color:var(--teal)">Meta atingida este mês!</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Parabéns! Você está construindo seu sonho! 🎂</div>
+    </div>`}
+
+    <!-- HISTÓRICO 6 MESES -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="st"><i class="ti ti-chart-bar"></i> Evolução — últimos 6 meses</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;padding:8px 0">
+        ${historicoHTML}
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:4px">
+        — linha pontilhada = sua meta de R$ ${meta.toLocaleString('pt-BR')}
+      </div>
+    </div>
+
+    <!-- MOTIVAÇÃO -->
+    <div style="background:linear-gradient(135deg,rgba(200,163,91,.1),rgba(200,163,91,.05));border:1px solid rgba(200,163,91,.2);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">
+      <div style="font-size:20px;margin-bottom:8px">💛</div>
+      <div style="font-family:Georgia,serif;font-size:14px;color:#F5EDD8;line-height:1.8;font-style:italic">
+        "Cada bolo que você faz é um passo para a sua liberdade.<br>Continue — você está construindo algo lindo!"
+      </div>
+      <div style="font-size:11px;color:#C8A35B;margin-top:8px">— Sucrée Confeitaria</div>
+    </div>
+
+    <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="syncNow()">
+      <i class="ti ti-refresh"></i> Atualizar dados
+    </button>
+  `;
+}
+
+function editarMeta() {
+  var metas = getMetas() || { metaMensal: 5000, descricao: 'Renda líquida mensal após custos', historico: [] };
+  var nova = prompt('Qual é a sua meta mensal de lucro líquido? (R$)', metas.metaMensal);
+  if (nova === null) return;
+  var valor = parseFloat(nova);
+  if (isNaN(valor) || valor <= 0) { toast('Valor inválido'); return; }
+  var desc = prompt('Descreva sua meta (opcional):', metas.descricao) || metas.descricao;
+  metas.metaMensal = valor;
+  metas.descricao  = desc;
+  saveMetas(metas);
+  toast('🎯 Meta atualizada!');
+  renderMetas();
+}
