@@ -365,6 +365,21 @@ button{font-family:inherit;cursor:pointer}
 /* ── FIX ihl: ingrediente principal texto visível ── */
 tr.ihl td { color: #1a3a6b !important; }
 tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
+
+/* ── GERADOR DE DECORAÇÃO ── */
+.deco-option {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.deco-option:hover { border-color: var(--gold); }
+.deco-option h3 { font-size:15px; font-weight:700; color:#F5EDD8; font-family:Georgia,serif; margin-bottom:6px; }
+.deco-option p  { font-size:13px; color:var(--text2); line-height:1.6; }
+.deco-copy-btn  { background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm); padding:10px 18px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:6px; width:100%; justify-content:center; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -462,6 +477,14 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <div class="page" id="page-estoque"></div>
   <div class="page" id="page-config"></div>
   <div class="page" id="page-share"></div>
+  <div class="page" id="page-deco"></div>
+  <div class="page" id="page-calc"></div>
+  <div class="page" id="page-portfolio"></div>
+  <div class="page" id="page-rascunho"></div>
+  <div class="page" id="page-agenda"></div>
+  <div class="page" id="page-compras"></div>
+  <div class="page" id="page-ficha"></div>
+  <div class="page" id="page-metas"></div>
 </div>
 <div class="bottomnav" id="bottomnav">
   <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
@@ -471,7 +494,10 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <span style="color:var(--gold);font-weight:700">Nova</span>
 </button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+  <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
   <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
+  <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
+  <button class="bni" onclick="goPage('rascunho')" id="nav-rascunho" title="Rascunhos"><i class="ti ti-pencil"></i><span>Rascunho</span></button>
 </div>
 
 <!-- CARDAPIO SHARE BOTTOM SHEET -->
@@ -897,9 +923,9 @@ if("serviceWorker" in navigator){
 }
 </script>
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=6"></script>
-<script src="js/app-features.js?v=6"></script>
-<script src="js/version.js?v=6"></script>
+<script src="js/app-core.js?v=14"></script>
+<script src="js/app-features.js?v=14"></script>
+<script src="js/version.js?v=14"></script>
 
 </body>
 </html>
