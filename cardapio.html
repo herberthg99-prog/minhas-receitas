@@ -14,7 +14,7 @@
   --radius:14px;--radius-sm:9px;--shadow:0 2px 16px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F5EDD8;min-height:100vh;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 60%,#1A1208 100%);background-attachment:fixed;background-image:url('https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg');background-size:cover;background-position:center top;background-blend-mode:multiply}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F5EDD8;min-height:100vh;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 60%,#1A1208 100%);background-attachment:fixed;background-image:url('https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg');background-size:cover;background-position:80% 12%;background-blend-mode:multiply}
 button{font-family:inherit;cursor:pointer}
 
 /* HEADER */
@@ -150,14 +150,17 @@ button{font-family:inherit;cursor:pointer}
 <body>
 
 <!-- BOAS-VINDAS OVERLAY -->
-<div id="boas-vindas" style="position:fixed;top:0;left:0;right:0;bottom:0;background-image:url('https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg');background-size:cover;background-position:center top;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;overflow:hidden">
+<div id="boas-vindas" style="position:fixed;top:0;left:0;right:0;bottom:0;background-image:url('https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg');background-size:cover;background-position:80% 12%;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;overflow:hidden">
   <!-- Decorative circles -->
   <div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(184,151,42,.12)"></div>
   <div style="position:absolute;bottom:-40px;left:-40px;width:150px;height:150px;border-radius:50%;background:rgba(184,151,42,.08)"></div>
   <div style="position:absolute;top:40%;right:10px;width:60px;height:60px;border-radius:50%;background:rgba(184,151,42,.07)"></div>
 
   <!-- Dark overlay -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,rgba(10,6,0,.72) 0%,rgba(20,12,2,.55) 50%,rgba(10,6,0,.75) 100%)"></div>
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(to right,rgba(5,3,0,.97) 0%,rgba(5,3,0,.7) 30%,rgba(5,3,0,.3) 60%,rgba(0,0,0,.1) 100%),
+             linear-gradient(to bottom,rgba(5,3,0,.2) 0%,rgba(5,3,0,.5) 60%,rgba(5,3,0,.9) 100%)">
+</div>
   <div style="position:relative;z-index:1;max-width:360px">
     <!-- Logo -->
     <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:260px;max-width:85%;height:auto;margin-bottom:8px;filter:brightness(1.9) saturate(0.85) drop-shadow(0 4px 28px rgba(200,163,91,.85)) drop-shadow(0 0 60px rgba(200,163,91,.3))">
@@ -173,13 +176,13 @@ button{font-family:inherit;cursor:pointer}
     <div style="font-size:22px;color:#F5EDD0;font-weight:300;margin-bottom:10px;line-height:1.4;letter-spacing:.02em">
       Seja muito bem-vinda(o)! 🥣
     </div>
-    <div style="font-size:14px;color:#C8B89A;line-height:1.9;margin-bottom:8px">
+    <div style="font-size:14px;color:#F0E8D8;line-height:1.9;margin-bottom:8px;text-shadow:0 1px 6px rgba(0,0,0,.9)">
       Que alegria tê-la(o) aqui!<br>
       Cada bolo que fazemos é preparado com<br>
       <em style="color:#C8A35B">amor, dedicação e muito carinho</em> —<br>
       para que o seu momento seja inesquecível.
     </div>
-    <div style="font-size:13px;color:#A09070;line-height:1.7;margin-bottom:28px">
+    <div style="font-size:13px;color:#D4C8B0;line-height:1.7;margin-bottom:28px;text-shadow:0 1px 6px rgba(0,0,0,.9)">
       Monte o bolo dos seus sonhos,<br>
       escolhendo cada detalhe com calma. 🎂
     </div>
