@@ -14,17 +14,10 @@
   --radius:14px;--radius-sm:9px;--shadow:0 2px 16px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F5EDD8;min-height:100vh;background:linear-gradient(160deg,#1A1208 0%,#2C1E0A 60%,#1A1208 100%);background-attachment:fixed;background:#0F0800;background-blend-mode:multiply}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F5EDD8;min-height:100vh;background:#0F0800}
 button{font-family:inherit;cursor:pointer}
 
-/* HEADER */
 .header{background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);color:#fff;padding:28px 20px 24px;text-align:center}
-.header-logo{font-size:32px;margin-bottom:4px}
-.header-brand{font-size:26px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:2px}
-.header-sub{font-size:12px;letter-spacing:.25em;color:var(--text3);text-transform:uppercase}
-.header-tagline{font-size:13px;color:#C8B89A;margin-top:10px;font-style:italic}
-
-/* PROGRESS */
 .progress-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
 .progress-steps{display:flex;align-items:center;justify-content:center;gap:0}
 .ps{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;position:relative}
@@ -40,11 +33,9 @@ button{font-family:inherit;cursor:pointer}
 .content{max-width:480px;margin:0 auto;padding:16px}
 .step{display:none}.step.act{display:block}
 
-/* CARDS */
 .card{background:rgba(44,30,10,.85);border:1px solid rgba(200,163,91,.25);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 2px 16px rgba(0,0,0,.06);backdrop-filter:blur(4px)}
-.section-title{font-size:13px;font-weight:800;color:var(--gold-dark);letter-spacing:.06em;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section-title{font-size:13px;font-weight:800;color:var(--gold-dark);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
 
-/* TAMANHO SELECTOR */
 .tamanho-grid{display:flex;flex-direction:column;gap:8px}
 .tamanho-btn{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;transition:all .2s;text-align:left}
 .tamanho-btn.sel{border-color:var(--gold);background:var(--gold-light)}
@@ -55,7 +46,6 @@ button{font-family:inherit;cursor:pointer}
 .tamanho-btn .tam-p-trad{font-size:13px;font-weight:700;color:var(--teal)}
 .tamanho-btn .tam-p-prem{font-size:12px;color:var(--coral);margin-top:1px}
 
-/* MASSA / COBERTURA */
 .opcao-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
 .opcao-btn{border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;background:var(--surface);cursor:pointer;transition:all .2s;text-align:center}
 .opcao-btn.sel{border-color:var(--gold);background:var(--gold-light)}
@@ -64,7 +54,6 @@ button{font-family:inherit;cursor:pointer}
 .opcao-btn .op-desc{font-size:11px;color:var(--text2);line-height:1.4}
 .opcao-btn .op-preco{font-size:11px;color:var(--coral);font-weight:700;margin-top:4px;display:block}
 
-/* RECHEIO */
 .recheio-section{margin-bottom:14px}
 .recheio-tipo-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;padding:4px 10px;border-radius:20px;display:inline-block}
 .label-trad{background:var(--teal-light,#E1F5EE);color:var(--teal)}
@@ -83,7 +72,6 @@ button{font-family:inherit;cursor:pointer}
 .rs-item.trad{background:#E1F5EE;color:var(--teal)}
 .rs-item.prem{background:#FEF3D0;color:var(--gold-dark)}
 
-/* DECORAÇÃO */
 .deco-opcao{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;background:var(--surface);transition:all .2s}
 .deco-opcao.sel{border-color:var(--gold);background:var(--gold-light)}
 .deco-left{display:flex;align-items:center;gap:10px}
@@ -92,27 +80,23 @@ button{font-family:inherit;cursor:pointer}
 .deco-desc{font-size:12px;color:var(--text2)}
 .deco-preco{font-size:14px;font-weight:800;color:var(--coral)}
 
-/* EXTRAS */
 .extra-btn{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;background:var(--surface);transition:all .2s}
 .extra-btn.sel{border-color:var(--gold);background:var(--gold-light)}
 .extra-left{display:flex;align-items:center;gap:8px}
 .extra-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s}
 .extra-btn.sel .extra-check{background:var(--gold);border-color:var(--gold);color:#fff}
 
-/* FOTO */
 .photo-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;background:#FAFAF7;transition:all .2s;margin-bottom:10px}
 .photo-zone:active{border-color:var(--gold);background:var(--gold-light)}
 .photo-zone i{font-size:28px;color:var(--gold);display:block;margin-bottom:6px}
 .photo-zone p{font-size:13px;color:var(--text2);font-weight:600}
 .photo-zone small{font-size:11px;color:var(--text3)}
 
-/* RESUMO / TOTAL */
 .resumo-row{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:1px solid var(--border)}
 .resumo-row:last-child{border-bottom:none}
 .resumo-total{display:flex;justify-content:space-between;font-size:19px;font-weight:800;color:var(--gold-dark);padding:10px 0 0;border-top:2px solid var(--gold);margin-top:6px}
 .sinal-box{background:var(--gold-light);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:13px;color:var(--gold-dark)}
 
-/* FORM FIELDS */
 .fg{margin-bottom:12px}
 .fg label{font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
 .fg input,.fg select,.fg textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;-webkit-appearance:none}
@@ -120,23 +104,18 @@ button{font-family:inherit;cursor:pointer}
 .fg textarea{resize:vertical;min-height:70px;line-height:1.6}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* RETIRA TOGGLE */
 .retira-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .retira-btn{padding:13px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s}
 .retira-btn.sel{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
 
-/* BUTTONS */
 .btn-next{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:800;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;box-shadow:0 3px 12px rgba(184,151,42,.3);transition:opacity .2s}
 .btn-next:active{opacity:.85}
 .btn-next:disabled{opacity:.4;cursor:default}
 .btn-back{width:100%;padding:13px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;font-family:inherit}
 
-/* REGRAS BOX */
 .regras{background:var(--gold-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--gold-dark);line-height:1.7}
 .regras p{margin-bottom:4px;display:flex;gap:6px;align-items:flex-start}
-.regras strong{color:var(--gold-dark)}
 
-/* SUCCESS */
 .success-screen{text-align:center;padding:32px 20px}
 .success-screen i{font-size:56px;color:var(--teal);display:block;margin-bottom:14px}
 .success-screen h2{font-size:22px;font-weight:800;color:var(--gold-dark);margin-bottom:8px}
@@ -150,50 +129,52 @@ button{font-family:inherit;cursor:pointer}
 <body>
 
 <!-- BOAS-VINDAS OVERLAY -->
-<div id="boas-vindas" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0F0800;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;overflow:hidden">
-  <!-- Decorative circles -->
-  <div style="position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(184,151,42,.12)"></div>
-  <div style="position:absolute;bottom:-40px;left:-40px;width:150px;height:150px;border-radius:50%;background:rgba(184,151,42,.08)"></div>
-  <div style="position:absolute;top:40%;right:10px;width:60px;height:60px;border-radius:50%;background:rgba(184,151,42,.07)"></div>
+<div id="boas-vindas" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;overflow:hidden">
 
-  <!-- Dark overlay -->
-  <!-- Chef photo on right side only, cropped to show face -->
-  <div style="position:absolute;top:0;right:0;bottom:0;width:55%;background-image:url(https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg);background-size:cover;background-position:75% top;mask-image:linear-gradient(to right,transparent 0%,black 30%);-webkit-mask-image:linear-gradient(to right,transparent 0%,black 30%)"></div>
-  <!-- Dark overlay on top for text readability -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(5,3,0,1) 0%,rgba(5,3,0,.95) 25%,rgba(5,3,0,.5) 50%,rgba(0,0,0,.1) 100%),linear-gradient(to bottom,rgba(0,0,0,.1) 0%,rgba(5,3,0,.7) 80%,rgba(5,3,0,.95) 100%)"></div>
-  <div style="position:relative;z-index:1;max-width:360px">
-    <!-- Logo -->
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:260px;max-width:85%;height:auto;margin-bottom:8px;filter:brightness(1.9) saturate(0.85) drop-shadow(0 4px 28px rgba(200,163,91,.85)) drop-shadow(0 0 60px rgba(200,163,91,.3))">
+  <!-- FOTO DE FUNDO OCUPANDO TELA TODA -->
+  <div style="position:absolute;inset:0;background-image:url(https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg);background-size:cover;background-position:center 20%"></div>
+
+  <!-- SOMBRA LEVE SÓ NO TOPO (para a logo aparecer) -->
+  <div style="position:absolute;top:0;left:0;right:0;height:180px;background:linear-gradient(to bottom,rgba(5,2,0,.75) 0%,rgba(5,2,0,0) 100%)"></div>
+
+  <!-- SOMBRA FORTE SÓ EMBAIXO (para o texto e botão) -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:65%;background:linear-gradient(to top,rgba(5,2,0,.97) 0%,rgba(5,2,0,.92) 40%,rgba(5,2,0,.5) 70%,rgba(5,2,0,0) 100%)"></div>
+
+  <!-- LOGO CANTO SUPERIOR ESQUERDO -->
+  <div style="position:absolute;top:24px;left:20px;z-index:2">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
+      style="height:90px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 20px rgba(200,163,91,1))">
+  </div>
+
+  <!-- TEXTO E BOTÃO NO RODAPÉ -->
+  <div style="position:absolute;bottom:0;left:0;right:0;z-index:2;padding:0 24px 40px;text-align:center">
 
     <!-- Divider ornament -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
-      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,#C8A35B)"></div>
-      <div style="color:#C8A35B;font-size:18px">✦</div>
-      <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,#C8A35B)"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(200,163,91,.6))"></div>
+      <div style="color:#C8A35B;font-size:16px">✦</div>
+      <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(200,163,91,.6))"></div>
     </div>
 
-    <!-- Welcome text -->
-    <div style="font-size:22px;color:#F5EDD0;font-weight:300;margin-bottom:10px;line-height:1.4;letter-spacing:.02em">
+    <div style="font-size:21px;color:#F5EDD0;font-weight:300;margin-bottom:10px;line-height:1.4;letter-spacing:.02em">
       Seja muito bem-vinda(o)! 🥣
     </div>
-    <div style="font-size:14px;color:#F0E8D8;line-height:1.9;margin-bottom:8px;text-shadow:0 1px 6px rgba(0,0,0,.9)">
+    <div style="font-size:14px;color:#F0E8D8;line-height:1.9;margin-bottom:8px">
       Que alegria tê-la(o) aqui!<br>
       Cada bolo que fazemos é preparado com<br>
       <em style="color:#C8A35B">amor, dedicação e muito carinho</em> —<br>
       para que o seu momento seja inesquecível.
     </div>
-    <div style="font-size:13px;color:#D4C8B0;line-height:1.7;margin-bottom:28px;text-shadow:0 1px 6px rgba(0,0,0,.9)">
+    <div style="font-size:13px;color:#D4C8B0;line-height:1.7;margin-bottom:24px">
       Monte o bolo dos seus sonhos,<br>
       escolhendo cada detalhe com calma. 🎂
     </div>
 
-    <!-- CTA Button -->
-    <button onclick="document.getElementById('boas-vindas').style.display='none'" 
-      style="width:100%;padding:16px 24px;background:linear-gradient(135deg,#C8A35B 0%,#7A6030 100%);color:#fff;border:none;border-radius:50px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.05em;box-shadow:0 4px 20px rgba(184,151,42,.4);margin-bottom:12px;transition:opacity .2s"
-      onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+    <button onclick="document.getElementById('boas-vindas').style.display='none'"
+      style="width:100%;padding:16px 24px;background:linear-gradient(135deg,#C8A35B 0%,#7A6030 100%);color:#fff;border:none;border-radius:50px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.05em;box-shadow:0 4px 20px rgba(184,151,42,.4);margin-bottom:12px">
       Montar meu bolo ✨
     </button>
-    <div style="font-size:11px;color:#7A6A4A;letter-spacing:.05em">
+    <div style="font-size:11px;color:rgba(200,163,91,.5);letter-spacing:.05em">
       — Feito com amor em cada detalhe —
     </div>
   </div>
@@ -227,21 +208,14 @@ button{font-family:inherit;cursor:pointer}
 
 <!-- STEP 0: TAMANHO + MASSA -->
 <div class="step act" id="step-0">
-
-  <!-- AJUDA TAMANHO -->
   <div class="card" id="ajuda-tamanho-box">
     <div class="section-title">🎂 Tamanho do bolo</div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="tamanho-btn" onclick="setModoTamanho('sei')" id="modo-sei" style="justify-content:center;font-size:14px;font-weight:700;padding:14px">
-        ✅ Já sei o tamanho que quero
-      </button>
-      <button class="tamanho-btn" onclick="setModoTamanho('ajuda')" id="modo-ajuda" style="justify-content:center;font-size:14px;font-weight:700;padding:14px">
-        🤔 Preciso de ajuda para escolher
-      </button>
+      <button class="tamanho-btn" onclick="setModoTamanho('sei')" id="modo-sei" style="justify-content:center;font-size:14px;font-weight:700;padding:14px">✅ Já sei o tamanho que quero</button>
+      <button class="tamanho-btn" onclick="setModoTamanho('ajuda')" id="modo-ajuda" style="justify-content:center;font-size:14px;font-weight:700;padding:14px">🤔 Preciso de ajuda para escolher</button>
     </div>
   </div>
 
-  <!-- AJUDA: QUANTIDADE CONVIDADOS -->
   <div id="box-convidados" style="display:none">
     <div class="card">
       <div class="section-title">👥 Quantos convidados?</div>
@@ -256,17 +230,12 @@ button{font-family:inherit;cursor:pointer}
         <div style="font-size:13px;color:var(--gold-dark);margin-bottom:4px">✨ Sugerimos</div>
         <div style="font-size:20px;font-weight:800;color:var(--gold-dark)" id="sugestao-texto"></div>
         <div style="font-size:12px;color:var(--text2);margin-top:4px" id="sugestao-desc"></div>
-        <button id="sugestao-btn" onclick="usarSugestao()" style="margin-top:10px;padding:9px 20px;background:var(--gold);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">
-          Usar esta sugestão ✓
-        </button>
+        <button id="sugestao-btn" onclick="usarSugestao()" style="margin-top:10px;padding:9px 20px;background:var(--gold);color:#fff;border:none;border-radius:20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">Usar esta sugestão ✓</button>
       </div>
-      <button onclick="setModoTamanho('sei')" style="width:100%;margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;color:var(--text2);font-family:inherit;cursor:pointer;font-size:13px">
-        Prefiro escolher eu mesmo
-      </button>
+      <button onclick="setModoTamanho('sei')" style="width:100%;margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;color:var(--text2);font-family:inherit;cursor:pointer;font-size:13px">Prefiro escolher eu mesmo</button>
     </div>
   </div>
 
-  <!-- LISTA DE TAMANHOS -->
   <div id="box-tamanhos" style="display:none">
   <div class="card">
     <div class="section-title">🎂 Selecione o tamanho</div>
@@ -293,38 +262,23 @@ button{font-family:inherit;cursor:pointer}
       </button>
     </div>
   </div>
-  </div><!-- /box-tamanhos -->
+  </div>
 
   <div id="box-massa" style="display:none">
   <div class="card">
     <div class="section-title">🧁 Tipo de massa</div>
     <div class="opcao-grid">
       <div id="massas-container">
-        <button class="opcao-btn" onclick="setMassa('fofinha','Massa Fofinha')" id="massa-fofinha">
-          <span class="op-icon">☁️</span><span class="op-nome">Massa Fofinha</span>
-          <span class="op-desc">Pão de ló — leve, suave e aerada</span>
-        </button>
-        <button class="opcao-btn" onclick="setMassa('fofinha-chocolate','Massa Fofinha Chocolate')" id="massa-fofinha-chocolate">
-          <span class="op-icon">🍫</span><span class="op-nome">Massa Fofinha Chocolate</span>
-          <span class="op-desc">Pão de ló de chocolate — leve e aerada</span>
-        </button>
-        <button class="opcao-btn" onclick="setMassa('classica','Massa Clássica')" id="massa-classica">
-          <span class="op-icon">🧈</span><span class="op-nome">Massa Clássica</span>
-          <span class="op-desc">Amanteigada — macia, úmida e saborosa</span>
-        </button>
-        <button class="opcao-btn" onclick="setMassa('classica-chocolate','Massa Clássica Chocolate')" id="massa-classica-chocolate">
-          <span class="op-icon">🍫🧈</span><span class="op-nome">Massa Clássica Chocolate</span>
-          <span class="op-desc">Amanteigada de chocolate — encorpada e achocolatada</span>
-        </button>
+        <button class="opcao-btn" onclick="setMassa('fofinha','Massa Fofinha')" id="massa-fofinha"><span class="op-icon">☁️</span><span class="op-nome">Massa Fofinha</span><span class="op-desc">Pão de ló — leve, suave e aerada</span></button>
+        <button class="opcao-btn" onclick="setMassa('fofinha-chocolate','Massa Fofinha Chocolate')" id="massa-fofinha-chocolate"><span class="op-icon">🍫</span><span class="op-nome">Massa Fofinha Chocolate</span><span class="op-desc">Pão de ló de chocolate — leve e aerada</span></button>
+        <button class="opcao-btn" onclick="setMassa('classica','Massa Clássica')" id="massa-classica"><span class="op-icon">🧈</span><span class="op-nome">Massa Clássica</span><span class="op-desc">Amanteigada — macia, úmida e saborosa</span></button>
+        <button class="opcao-btn" onclick="setMassa('classica-chocolate','Massa Clássica Chocolate')" id="massa-classica-chocolate"><span class="op-icon">🍫🧈</span><span class="op-nome">Massa Clássica Chocolate</span><span class="op-desc">Amanteigada de chocolate — encorpada</span></button>
       </div>
-</div>
+    </div>
+  </div>
   </div>
 
-  </div><!-- /box-massa -->
-
-  <button class="btn-next" onclick="nextStep(0)" id="btn-next-0" disabled>
-    Próximo: Recheios <i class="ti ti-arrow-right"></i>
-  </button>
+  <button class="btn-next" onclick="nextStep(0)" id="btn-next-0" disabled>Próximo: Recheios <i class="ti ti-arrow-right"></i></button>
 </div>
 
 <!-- STEP 1: RECHEIOS -->
@@ -332,12 +286,7 @@ button{font-family:inherit;cursor:pointer}
   <div class="card">
     <div class="section-title">🍓 Escolha até 2 recheios</div>
     <div class="recheio-info"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Toque para selecionar. Na combinação de 1 tradicional + 1 premium, aplica-se o valor premium.</div>
-
-    <div id="recheio-selecionados" class="recheio-selecionados">
-      <div class="rs-label">SELECIONADOS:</div>
-      <div class="rs-items" id="rs-items-list"></div>
-    </div>
-
+    <div id="recheio-selecionados" class="recheio-selecionados"><div class="rs-label">SELECIONADOS:</div><div class="rs-items" id="rs-items-list"></div></div>
     <div class="recheio-section">
       <div class="recheio-tipo-label label-trad">🟢 Tradicional</div>
       <div class="recheio-list">
@@ -354,7 +303,6 @@ button{font-family:inherit;cursor:pointer}
         <button class="recheio-tag" onclick="toggleRecheio('Olho de Sogra','trad')">Olho de Sogra</button>
       </div>
     </div>
-
     <div class="recheio-section">
       <div class="recheio-tipo-label label-prem">⭐ Premium</div>
       <div class="recheio-list">
@@ -375,13 +323,9 @@ button{font-family:inherit;cursor:pointer}
   <button class="btn-next" onclick="nextStep(1)" id="btn-next-1" disabled>Próximo: Cobertura <i class="ti ti-arrow-right"></i></button>
 </div>
 
-<!-- ALERTA RECHEIO PREMIUM -->
 <div id="alerta-recheio-prem" style="display:none;margin:0 14px 14px;background:#FEF3D0;border:1.5px solid #C8A830;border-radius:12px;padding:14px;gap:10px;align-items:flex-start;flex-direction:row">
   <span style="font-size:24px;flex-shrink:0">⭐</span>
-  <div>
-    <div style="font-size:13px;font-weight:700;color:#7A6010;margin-bottom:3px">Recheio Premium selecionado!</div>
-    <div style="font-size:12px;color:#9A7A20;line-height:1.6">O valor do seu bolo já reflete o preço com recheio premium, conforme nossa tabela. <strong>Nenhuma cobrança adicional surpresa!</strong> O valor exibido no resumo é o valor final. 🌟</div>
-  </div>
+  <div><div style="font-size:13px;font-weight:700;color:#7A6010;margin-bottom:3px">Recheio Premium selecionado!</div><div style="font-size:12px;color:#9A7A20;line-height:1.6">O valor do seu bolo já reflete o preço com recheio premium. <strong>Nenhuma cobrança adicional surpresa!</strong> 🌟</div></div>
 </div>
 
 <!-- STEP 2: COBERTURA -->
@@ -389,18 +333,8 @@ button{font-family:inherit;cursor:pointer}
   <div class="card">
     <div class="section-title">✨ Cobertura</div>
     <div class="opcao-grid">
-      <button class="opcao-btn" onclick="setCobertura('chantininho','Chantininho')" id="cob-chantininho">
-        <span class="op-icon">🍦</span>
-        <span class="op-nome">Chantininho</span>
-        <span class="op-desc">Chantilly com leite ninho — suave e delicioso</span>
-        <span class="op-preco">Incluso</span>
-      </button>
-      <button class="opcao-btn" onclick="setCobertura('buttercream','Buttercream')" id="cob-buttercream">
-        <span class="op-icon">🧁</span>
-        <span class="op-nome">Buttercream</span>
-        <span class="op-desc">Creme de manteiga suave — acabamento premium</span>
-        <span class="op-preco">+ R$ 50,00</span>
-      </button>
+      <button class="opcao-btn" onclick="setCobertura('chantininho','Chantininho')" id="cob-chantininho"><span class="op-icon">🍦</span><span class="op-nome">Chantininho</span><span class="op-desc">Chantilly com leite ninho — suave e delicioso</span><span class="op-preco">Incluso</span></button>
+      <button class="opcao-btn" onclick="setCobertura('buttercream','Buttercream')" id="cob-buttercream"><span class="op-icon">🧁</span><span class="op-nome">Buttercream</span><span class="op-desc">Creme de manteiga suave — acabamento premium</span><span class="op-preco">+ R$ 50,00</span></button>
     </div>
   </div>
   <button class="btn-back" onclick="prevStep(2)"><i class="ti ti-arrow-left"></i> Voltar</button>
@@ -409,10 +343,7 @@ button{font-family:inherit;cursor:pointer}
 
 <div id="alerta-buttercream" style="display:none;margin:0 14px 14px;background:#FFF8E6;border:1.5px solid #C8A35B;border-radius:12px;padding:14px;gap:10px;align-items:flex-start;flex-direction:row">
   <span style="font-size:24px;flex-shrink:0">✨</span>
-  <div>
-    <div style="font-size:13px;font-weight:700;color:#7A6030;margin-bottom:3px">Buttercream Premium selecionado!</div>
-    <div style="font-size:12px;color:#9A7A30;line-height:1.6">Acabamento sofisticado e elegante. Um acréscimo de <strong>R$ 50,00</strong> será adicionado ao valor. 🧁</div>
-  </div>
+  <div><div style="font-size:13px;font-weight:700;color:#7A6030;margin-bottom:3px">Buttercream Premium selecionado!</div><div style="font-size:12px;color:#9A7A30;line-height:1.6">Acabamento sofisticado e elegante. Um acréscimo de <strong>R$ 50,00</strong> será adicionado ao valor. 🧁</div></div>
 </div>
 
 <!-- STEP 3: DECORAÇÃO -->
@@ -424,62 +355,30 @@ button{font-family:inherit;cursor:pointer}
       <div class="deco-preco">Incluso</div>
     </div>
     <div class="deco-opcao" onclick="setDeco('tematico')" id="deco-tematico">
-      <div class="deco-left"><div class="deco-icon">🎉</div><div>
-        <div class="deco-nome">Temático + Topo do Bolo</div>
-        <div class="deco-desc">Tema personalizado com topo incluído</div>
-      </div></div>
+      <div class="deco-left"><div class="deco-icon">🎉</div><div><div class="deco-nome">Temático + Topo do Bolo</div><div class="deco-desc">Tema personalizado com topo incluído</div></div></div>
       <div class="deco-preco">R$ 45,00</div>
     </div>
     <div id="tema-box" style="display:none;margin-top:10px">
       <div style="background:var(--gold-light);border:1.5px solid var(--gold);border-radius:var(--radius-sm);padding:14px">
         <label style="font-size:12px;font-weight:800;color:var(--gold-dark);display:block;margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase">✏️ Qual o tema do bolo?</label>
-        <input type="text" id="tema-input" placeholder="Ex: Frozen, Safari, Dinossauro, Princesas..."
-          style="width:100%;padding:11px 13px;border:1.5px solid var(--gold);border-radius:var(--radius-sm);font-size:15px;font-weight:600;background:var(--surface);color:var(--text);font-family:inherit">
+        <input type="text" id="tema-input" placeholder="Ex: Frozen, Safari, Dinossauro, Princesas..." style="width:100%;padding:11px 13px;border:1.5px solid var(--gold);border-radius:var(--radius-sm);font-size:15px;font-weight:600;background:var(--surface);color:var(--text);font-family:inherit">
         <p style="font-size:11px;color:var(--gold-dark);margin-top:6px">💡 Quanto mais detalhes, melhor conseguimos personalizar!</p>
       </div>
-
-      <!-- PERGUNTA: QUER AJUDA COM O TEMA? -->
       <div style="margin-top:12px;background:#F0F9F5;border:1.5px solid #9FE1CB;border-radius:10px;padding:14px">
         <div style="font-size:13px;font-weight:700;color:#0F6E56;margin-bottom:10px">🎨 Quer ajuda para definir a decoração do tema?</div>
-        <p style="font-size:12px;color:#2A6A50;margin-bottom:10px;line-height:1.6">Podemos criar sugestões personalizadas de decoração para você! Depois do pedido entraremos em contato com as opções.</p>
+        <p style="font-size:12px;color:#2A6A50;margin-bottom:10px;line-height:1.6">Podemos criar sugestões personalizadas de decoração para você!</p>
         <div style="display:flex;gap:8px">
-          <button id="btn-ajuda-sim" onclick="setAjudaTema(true)"
-            style="flex:1;padding:10px;border-radius:8px;border:2px solid #9FE1CB;background:white;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#0F6E56;transition:all .2s">
-            ✅ Sim, quero!
-          </button>
-          <button id="btn-ajuda-nao" onclick="setAjudaTema(false)"
-            style="flex:1;padding:10px;border-radius:8px;border:2px solid #ddd;background:#f5f5f5;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#999;transition:all .2s">
-            ❌ Não preciso
-          </button>
+          <button id="btn-ajuda-sim" onclick="setAjudaTema(true)" style="flex:1;padding:10px;border-radius:8px;border:2px solid #9FE1CB;background:white;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#0F6E56;transition:all .2s">✅ Sim, quero!</button>
+          <button id="btn-ajuda-nao" onclick="setAjudaTema(false)" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ddd;background:#f5f5f5;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#999;transition:all .2s">❌ Não preciso</button>
         </div>
       </div>
-
-      <!-- PERGUNTAS DE DECORAÇÃO (aparecem ao dizer Sim) -->
       <div id="ajuda-tema-box" style="display:none;margin-top:12px;background:#FFF8E6;border:1.5px solid #C8A35B;border-radius:10px;padding:14px">
         <div style="font-size:12px;font-weight:700;color:#7A6030;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">✨ Conte um pouco mais</div>
-        <div style="margin-bottom:10px">
-          <label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Cores preferidas</label>
-          <input type="text" id="ajuda-cores" placeholder="Ex: Rosa, dourado e branco"
-            style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white">
-        </div>
-        <div style="margin-bottom:10px">
-          <label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Elementos que não podem faltar</label>
-          <input type="text" id="ajuda-obrigatorios" placeholder="Ex: Nome da criança, borboletas..."
-            style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white">
-        </div>
-        <div style="margin-bottom:10px">
-          <label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Algo que NÃO pode aparecer</label>
-          <input type="text" id="ajuda-proibidos" placeholder="Ex: Sem personagens, sem azul..."
-            style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white">
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Observações extras</label>
-          <textarea id="ajuda-obs" placeholder="Ex: Prefere algo delicado e minimalista..."
-            style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white;resize:none;min-height:60px;line-height:1.5"></textarea>
-        </div>
-        <div style="margin-top:10px;background:rgba(200,163,91,.12);border-radius:7px;padding:10px 12px;font-size:11px;color:#7A6030;line-height:1.6">
-          ⚠️ <strong>Importante:</strong> As sugestões são apenas <em>inspiração visual</em>. Não garantimos resultado idêntico às imagens geradas.
-        </div>
+        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Cores preferidas</label><input type="text" id="ajuda-cores" placeholder="Ex: Rosa, dourado e branco" style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white"></div>
+        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Elementos que não podem faltar</label><input type="text" id="ajuda-obrigatorios" placeholder="Ex: Nome da criança, borboletas..." style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white"></div>
+        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Algo que NÃO pode aparecer</label><input type="text" id="ajuda-proibidos" placeholder="Ex: Sem personagens, sem azul..." style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white"></div>
+        <div><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Observações extras</label><textarea id="ajuda-obs" placeholder="Ex: Prefere algo delicado e minimalista..." style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white;resize:none;min-height:60px;line-height:1.5"></textarea></div>
+        <div style="margin-top:10px;background:rgba(200,163,91,.12);border-radius:7px;padding:10px 12px;font-size:11px;color:#7A6030;line-height:1.6">⚠️ <strong>Importante:</strong> As sugestões são apenas <em>inspiração visual</em>. Não garantimos resultado idêntico às imagens geradas.</div>
       </div>
     </div>
   </div>
@@ -487,21 +386,14 @@ button{font-family:inherit;cursor:pointer}
   <div class="card">
     <div class="section-title">✨ Adicionais</div>
     <div class="extra-btn" onclick="toggleExtra('flores')" id="extra-flores">
-      <div class="extra-left">
-        <div class="extra-check">✓</div>
-        <div><div style="font-size:14px;font-weight:700">💐 Flores Naturais</div><div style="font-size:12px;color:var(--text2)">Arranjo de flores naturais</div></div>
-      </div>
+      <div class="extra-left"><div class="extra-check">✓</div><div><div style="font-size:14px;font-weight:700">💐 Flores Naturais</div><div style="font-size:12px;color:var(--text2)">Arranjo de flores naturais</div></div></div>
       <div style="font-size:15px;font-weight:800;color:var(--coral)">R$ 50,00</div>
     </div>
   </div>
 
   <div class="card">
     <div class="section-title">📸 Foto de inspiração (opcional)</div>
-    <div class="photo-zone" onclick="document.getElementById('inspi-file').click()">
-      <i class="ti ti-photo-search"></i>
-      <p>Adicionar foto de inspiração</p>
-      <small>Selecione da galeria do seu celular</small>
-    </div>
+    <div class="photo-zone" onclick="document.getElementById('inspi-file').click()"><i class="ti ti-photo-search"></i><p>Adicionar foto de inspiração</p><small>Selecione da galeria do seu celular</small></div>
     <input type="file" id="inspi-file" accept="image/*" style="display:none" onchange="addInspiPhoto(event)">
     <div id="inspi-preview"></div>
     <div class="fg" style="margin-top:8px"><label>Observações da decoração</label><textarea id="obs-deco" placeholder="Cores preferidas, detalhes especiais..."></textarea></div>
@@ -518,7 +410,6 @@ button{font-family:inherit;cursor:pointer}
     <div class="fg"><label>Nome completo</label><input type="text" id="cli-nome" placeholder="Seu nome"></div>
     <div class="fg"><label>WhatsApp</label><input type="tel" id="cli-tel" placeholder="(27) 99999-9999"></div>
   </div>
-
   <div class="card">
     <div class="section-title">📅 Data e horário</div>
     <div class="fr">
@@ -536,50 +427,21 @@ button{font-family:inherit;cursor:pointer}
       <div style="background:var(--gold-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px">
         <div style="font-size:12px;font-weight:800;color:var(--gold-dark);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📍 Endereço de entrega</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <div style="flex:1">
-            <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">CEP</label>
-            <input type="text" id="ent-cep" placeholder="00000-000" maxlength="9"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)"
-              oninput="formatCep(this)" onblur="buscarCep(this.value)">
-          </div>
-          <div style="display:flex;align-items:flex-end;padding-bottom:0">
-            <div id="cep-loading" style="display:none;font-size:20px;padding-bottom:8px">⏳</div>
-            <div id="cep-ok" style="display:none;font-size:20px;padding-bottom:8px">✅</div>
-          </div>
+          <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">CEP</label><input type="text" id="ent-cep" placeholder="00000-000" maxlength="9" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)" oninput="formatCep(this)" onblur="buscarCep(this.value)"></div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:0"><div id="cep-loading" style="display:none;font-size:20px;padding-bottom:8px">⏳</div><div id="cep-ok" style="display:none;font-size:20px;padding-bottom:8px">✅</div></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <div style="flex:1">
-            <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Rua / Avenida</label>
-            <input type="text" id="ent-rua" placeholder="Nome da rua"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)">
-          </div>
-          <div style="width:80px">
-            <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Número</label>
-            <input type="text" id="ent-numero" placeholder="Nº"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)">
-          </div>
+          <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Rua / Avenida</label><input type="text" id="ent-rua" placeholder="Nome da rua" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
+          <div style="width:80px"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Número</label><input type="text" id="ent-numero" placeholder="Nº" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <div style="flex:1">
-            <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Bairro</label>
-            <input type="text" id="ent-bairro" placeholder="Bairro"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)">
-          </div>
-          <div style="flex:1">
-            <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Cidade</label>
-            <input type="text" id="ent-cidade" placeholder="Cidade"
-              style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)">
-          </div>
+          <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Bairro</label><input type="text" id="ent-bairro" placeholder="Bairro" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
+          <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Cidade</label><input type="text" id="ent-cidade" placeholder="Cidade" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
         </div>
-        <div>
-          <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Complemento</label>
-          <input type="text" id="ent-complemento" placeholder="Apto, bloco, referência..."
-            style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)">
-        </div>
+        <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px">Complemento</label><input type="text" id="ent-complemento" placeholder="Apto, bloco, referência..." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
       </div>
     </div>
   </div>
-
   <div class="card">
     <div class="regras">
       <p>📅 <span>Pedidos com <strong>mínimo 3 dias</strong> de antecedência</span></p>
@@ -587,38 +449,24 @@ button{font-family:inherit;cursor:pointer}
       <p>📱 <span>PIX: <strong>(27) 9 9521-3194</strong></span></p>
     </div>
   </div>
-
   <button class="btn-back" onclick="prevStep(4)"><i class="ti ti-arrow-left"></i> Voltar</button>
   <button class="btn-next" onclick="nextStep(4)" id="btn-next-4">Ver resumo <i class="ti ti-arrow-right"></i></button>
 </div>
 
 <!-- STEP 5: RESUMO -->
 <div class="step" id="step-5">
-  <div class="card">
-    <div class="section-title">🎂 Resumo do pedido</div>
-    <div id="resumo-content"></div>
-  </div>
-  <div class="card">
-    <div class="section-title">💰 Total</div>
-    <div id="total-content"></div>
-  </div>
-  <!-- COMPROVANTE UPLOAD (opcional) -->
+  <div class="card"><div class="section-title">🎂 Resumo do pedido</div><div id="resumo-content"></div></div>
+  <div class="card"><div class="section-title">💰 Total</div><div id="total-content"></div></div>
   <div class="card" style="border:1.5px dashed var(--gold);background:var(--gold-light)">
     <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">💳 Comprovante de pagamento <span style="font-size:11px;font-weight:400;color:var(--text3)">(opcional)</span></div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Você pode enviar agora ou depois. O pedido fica salvo mesmo se você fechar o app!</p>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Você pode enviar agora ou depois.</p>
     <div id="comp-preview-cliente" style="margin-bottom:8px"></div>
-    <button onclick="document.getElementById('comp-file-cliente').click()" 
-      style="width:100%;padding:11px;background:rgba(200,163,91,.15);color:var(--gold-dark);border:1.5px solid var(--gold);border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-      <i class="ti ti-upload"></i> <span id="comp-btn-txt">Adicionar comprovante (foto ou PDF)</span>
-    </button>
+    <button onclick="document.getElementById('comp-file-cliente').click()" style="width:100%;padding:11px;background:rgba(200,163,91,.15);color:var(--gold-dark);border:1.5px solid var(--gold);border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-upload"></i> <span id="comp-btn-txt">Adicionar comprovante (foto ou PDF)</span></button>
     <input type="file" id="comp-file-cliente" accept="image/*,application/pdf" style="display:none" onchange="addCompCliente(event)">
     <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">PIX: (27) 9 9521-3194 · Sinal de 50%</div>
   </div>
-
   <button class="btn-back" onclick="prevStep(5)"><i class="ti ti-arrow-left"></i> Voltar e ajustar</button>
-  <button class="btn-next" onclick="enviarPedido()" id="btn-enviar">
-    <i class="ti ti-send"></i> Confirmar pedido
-  </button>
+  <button class="btn-next" onclick="enviarPedido()" id="btn-enviar"><i class="ti ti-send"></i> Confirmar pedido</button>
 </div>
 
 <!-- STEP 6: SUCESSO -->
@@ -629,835 +477,90 @@ button{font-family:inherit;cursor:pointer}
     <p>Seu pedido foi recebido pela Sucrée Confeitaria. Entraremos em contato pelo WhatsApp para confirmar e enviar os dados para o pagamento do sinal.</p>
     <div id="aviso-decoracao-sucesso" style="display:none;background:#FFF8E6;border:1.5px solid #C8A35B;border-radius:12px;padding:14px;margin:14px 0;text-align:left">
       <div style="font-size:13px;font-weight:700;color:#7A6030;margin-bottom:6px">🎨 Sugestões de decoração a caminho!</div>
-      <div style="font-size:12px;color:#9A7A30;line-height:1.7">Vamos criar <strong>3 propostas exclusivas</strong> de decoração para o seu tema e enviar pelo WhatsApp em breve.<br><br>
-      ⚠️ <em>As imagens são apenas inspiração visual. Não garantimos que o resultado final será idêntico às sugestões geradas.</em></div>
+      <div style="font-size:12px;color:#9A7A30;line-height:1.7">Vamos criar <strong>3 propostas exclusivas</strong> de decoração para o seu tema e enviar pelo WhatsApp em breve.<br><br>⚠️ <em>As imagens são apenas inspiração visual.</em></div>
     </div>
-    <div class="pix-box">
-      💳 PIX para sinal (50%)<br>
-      <span style="font-size:17px;letter-spacing:.05em">(27) 9 9521-3194</span>
-    </div>
+    <div class="pix-box">💳 PIX para sinal (50%)<br><span style="font-size:17px;letter-spacing:.05em">(27) 9 9521-3194</span></div>
     <p style="font-size:13px;color:var(--text3)">Obrigada por escolher a Sucrée! Com amor e carinho em cada detalhe. 🤍</p>
   </div>
 </div>
 
-</div><!-- /content -->
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
-// ═══════════════════════════════
-// SUPABASE CONFIG
-// ═══════════════════════════════
 const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
+var NTFY_CANAL = 'sucree_6a6490b03a94';
+var WHATSAPP_SUCREE = '5527995213194';
 
-// ═══════════════════════════════
-// STATE
-// ═══════════════════════════════
-// Restore pedido from localStorage if exists
 let pedido = {};
 try {
   const saved = localStorage.getItem('sucree_pedido_em_andamento');
-  if(saved) {
-    pedido = JSON.parse(saved);
-    console.log('Pedido restaurado do localStorage!');
-  } else {
-    pedido = {aro:null,precoTrad:0,precoPrem:0,massa:null,massaNome:null,recheios:[],cobertura:null,coberturaNome:null,deco:null,tema:null,topo:false,flores:false,inspiPhoto:null,obsDeco:null,retira:true,nome:null,tel:null,data:null,hora:null,endereco:null,comprovante:null};
-  }
+  if(saved) { pedido = JSON.parse(saved); } 
+  else { pedido = {aro:null,precoTrad:0,precoPrem:0,massa:null,massaNome:null,recheios:[],cobertura:null,coberturaNome:null,deco:null,tema:null,topo:false,flores:false,inspiPhoto:null,obsDeco:null,retira:true,nome:null,tel:null,data:null,hora:null,endereco:null,comprovante:null}; }
 } catch(e) {
   pedido = {aro:null,precoTrad:0,precoPrem:0,massa:null,massaNome:null,recheios:[],cobertura:null,coberturaNome:null,deco:null,tema:null,topo:false,flores:false,inspiPhoto:null,obsDeco:null,retira:true,nome:null,tel:null,data:null,hora:null,endereco:null,comprovante:null};
 }
 
-function savePedidoLocal() {
-  try { localStorage.setItem('sucree_pedido_em_andamento', JSON.stringify(pedido)); } catch(e) {}
-}
+function savePedidoLocal(){try{localStorage.setItem('sucree_pedido_em_andamento',JSON.stringify(pedido));}catch(e){}}
+function clearPedidoLocal(){try{localStorage.removeItem('sucree_pedido_em_andamento');}catch(e){}}
 
-function clearPedidoLocal() {
-  try { localStorage.removeItem('sucree_pedido_em_andamento'); } catch(e) {}
-}
+let curStep=0;
+function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function updateProgress(step){for(let i=0;i<6;i++){const dot=document.getElementById('pd-'+i);const lbl=document.getElementById('pl-'+i);if(!dot||!lbl)continue;if(i<step){dot.className='ps-dot done';dot.innerHTML='✓';lbl.className='ps-label done';}else if(i===step){dot.className='ps-dot active';dot.innerHTML=i+1;lbl.className='ps-label active';}else{dot.className='ps-dot';dot.innerHTML=i+1;lbl.className='ps-label';}}}
+function goStep(n){document.querySelectorAll('.step').forEach(s=>s.classList.remove('act'));document.getElementById('step-'+n).classList.add('act');updateProgress(n);curStep=n;window.scrollTo(0,0);if(n===5)renderResumo();}
+function nextStep(from){if(from===0&&(!pedido.aro||!pedido.massa)){toast('Selecione o tamanho e a massa');return;}if(from===1&&pedido.recheios.length===0){toast('Selecione pelo menos 1 recheio');return;}if(from===2&&!pedido.cobertura){toast('Selecione a cobertura');return;}if(from===4){if(!document.getElementById('cli-nome').value.trim()){toast('Informe seu nome');return;}if(!document.getElementById('ent-data').value){toast('Informe a data de entrega');return;}pedido.nome=document.getElementById('cli-nome').value.trim();pedido.tel=document.getElementById('cli-tel').value.trim();pedido.data=document.getElementById('ent-data').value;pedido.hora=document.getElementById('ent-hora').value;pedido.tema=document.getElementById('tema-input').value.trim();pedido.obsDeco=document.getElementById('obs-deco').value.trim();if(!pedido.retira){const rua=document.getElementById('ent-rua').value.trim();const num=document.getElementById('ent-numero').value.trim();const bairro=document.getElementById('ent-bairro').value.trim();const cidade=document.getElementById('ent-cidade').value.trim();const cep=document.getElementById('ent-cep').value.trim();const comp=document.getElementById('ent-complemento').value.trim();pedido.endereco=[rua+(num?' '+num:''),bairro,cidade,cep,comp].filter(Boolean).join(', ');pedido.enderecoObj={cep,rua,numero:num,bairro,cidade,complemento:comp};}}goStep(from+1);}
+function prevStep(from){goStep(from-1);}
 
-let curStep = 0;
-const TOTAL_STEPS = 6;
+function setModoTamanho(modo){document.getElementById('ajuda-tamanho-box').style.display='none';if(modo==='ajuda'){document.getElementById('box-convidados').style.display='block';document.getElementById('box-tamanhos').style.display='none';document.getElementById('box-massa').style.display='none';}else{document.getElementById('box-convidados').style.display='none';document.getElementById('box-tamanhos').style.display='block';document.getElementById('box-massa').style.display='block';}}
 
-function toast(msg, dur=2500) {
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),dur);
-}
+const CONVIDADOS_MAP=[{max:3,aro:10,trad:110,prem:140,fatias:'até 3 fatias'},{max:10,aro:15,trad:200,prem:240,fatias:'até 10 fatias'},{max:20,aro:20,trad:250,prem:280,fatias:'até 20 fatias'},{max:30,aro:25,trad:300,prem:335,fatias:'até 30 fatias'},{max:999,aro:30,trad:350,prem:390,fatias:'até 45 fatias'}];
+let sugestaoAtual=null,sugestaoAtual2=null;
 
-function updateProgress(step) {
-  for(let i=0;i<6;i++){
-    const dot=document.getElementById('pd-'+i);
-    const lbl=document.getElementById('pl-'+i);
-    if(!dot||!lbl)continue;
-    if(i<step){dot.className='ps-dot done';dot.innerHTML='✓';lbl.className='ps-label done';}
-    else if(i===step){dot.className='ps-dot active';dot.innerHTML=i+1;lbl.className='ps-label active';}
-    else{dot.className='ps-dot';dot.innerHTML=i+1;lbl.className='ps-label';}
-  }
-}
+function sugerirTamanho(){const qtd=parseInt(document.getElementById('qtd-convidados').value)||0;const box=document.getElementById('sugestao-box');if(!qtd){box.style.display='none';return;}if(qtd>45){const s1=CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];sugestaoAtual=s1;document.getElementById('sugestao-texto').innerHTML='🎂 2 bolos Aro 30 cm';document.getElementById('sugestao-desc').innerHTML='Para '+qtd+' convidados sugerimos <strong>2 bolos</strong>!';document.getElementById('sugestao-btn').textContent='Sim, quero 2 bolos!';}else{const sug=CONVIDADOS_MAP.find(m=>qtd<=m.max)||CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];sugestaoAtual=sug;document.getElementById('sugestao-texto').textContent='Aro '+sug.aro+' cm';document.getElementById('sugestao-desc').textContent=sug.fatias+' · R$ '+sug.trad.toFixed(2)+' (tradicional) / R$ '+sug.prem.toFixed(2)+' (premium)';document.getElementById('sugestao-btn').textContent='Usar esta sugestão ✓';}box.style.display='block';}
 
-function goStep(n) {
-  document.querySelectorAll('.step').forEach(s=>s.classList.remove('act'));
-  document.getElementById('step-'+n).classList.add('act');
-  updateProgress(n);
-  curStep=n;
-  window.scrollTo(0,0);
-  if(n===5) renderResumo();
-}
+function usarSugestao(){if(!sugestaoAtual)return;const s=sugestaoAtual;setTamanho(s.aro,s.trad,s.prem);document.getElementById('box-convidados').style.display='none';document.getElementById('box-tamanhos').style.display='block';document.getElementById('box-massa').style.display='block';document.querySelectorAll('.tamanho-btn').forEach(b=>b.classList.remove('sel'));document.getElementById('tam-'+s.aro).classList.add('sel');toast('✨ Aro '+s.aro+' selecionado!');}
 
-function nextStep(from) {
-  // Validations
-  if(from===0 && (!pedido.aro||!pedido.massa)){toast('Selecione o tamanho e a massa');return;}
-  if(from===1 && pedido.recheios.length===0){toast('Selecione pelo menos 1 recheio');return;}
-  if(from===2 && !pedido.cobertura){toast('Selecione a cobertura');return;}
-  if(from===4){
-    if(!document.getElementById('cli-nome').value.trim()){toast('Informe seu nome');return;}
-    if(!document.getElementById('ent-data').value){toast('Informe a data de entrega');return;}
-    pedido.nome = document.getElementById('cli-nome').value.trim();
-    pedido.tel = document.getElementById('cli-tel').value.trim();
-    pedido.data = document.getElementById('ent-data').value;
-    pedido.hora = document.getElementById('ent-hora').value;
-    pedido.tema = document.getElementById('tema-input').value.trim();
-    pedido.obsDeco = document.getElementById('obs-deco').value.trim();
-    if(!pedido.retira) {
-      const rua = document.getElementById('ent-rua').value.trim();
-      const num = document.getElementById('ent-numero').value.trim();
-      const bairro = document.getElementById('ent-bairro').value.trim();
-      const cidade = document.getElementById('ent-cidade').value.trim();
-      const cep = document.getElementById('ent-cep').value.trim();
-      const comp = document.getElementById('ent-complemento').value.trim();
-      pedido.endereco = [rua+(num?' '+num:''), bairro, cidade, cep, comp].filter(Boolean).join(', ');
-      pedido.enderecoObj = {cep, rua, numero:num, bairro, cidade, complemento:comp};
-    }
-  }
-  goStep(from+1);
-}
+function setTamanho(aro,trad,prem){pedido.aro=aro;pedido.precoTrad=trad;pedido.precoPrem=prem;document.querySelectorAll('.tamanho-btn').forEach(b=>b.classList.remove('sel'));document.getElementById('tam-'+aro).classList.add('sel');document.getElementById('box-tamanhos').style.display='block';document.getElementById('box-massa').style.display='block';savePedidoLocal();checkStep0();}
+function setMassa(id,nome){pedido.massa=id;pedido.massaNome=nome;document.querySelectorAll('.opcao-btn').forEach(b=>b.classList.remove('sel'));var el=document.getElementById('massa-'+id);if(el)el.classList.add('sel');checkStep0();}
+function checkStep0(){savePedidoLocal();document.getElementById('btn-next-0').disabled=!(pedido.aro&&pedido.massa);}
 
-function prevStep(from) { goStep(from-1); }
+function toggleRecheio(nome,tipo){const idx=pedido.recheios.findIndex(r=>r.nome===nome);if(idx>=0){pedido.recheios.splice(idx,1);}else{if(pedido.recheios.length>=2){toast('Máximo 2 recheios');return;}pedido.recheios.push({nome,tipo});}renderRecheioTags();renderRecheioSelecionados();document.getElementById('btn-next-1').disabled=pedido.recheios.length===0;const temPrem=pedido.recheios.some(r=>r.tipo==='prem');const alertaPrem=document.getElementById('alerta-recheio-prem');if(alertaPrem)alertaPrem.style.display=temPrem?'flex':'none';}
+function renderRecheioTags(){const selecionados=pedido.recheios.map(r=>r.nome);document.querySelectorAll('.recheio-tag').forEach(btn=>{const nome=btn.textContent.trim();const idx=selecionados.indexOf(nome);btn.className=btn.className.replace(/\s*sel-[12]/g,'');if(idx===0)btn.className+=' sel-1';else if(idx===1)btn.className+=' sel-2';});}
+function renderRecheioSelecionados(){const box=document.getElementById('recheio-selecionados');const list=document.getElementById('rs-items-list');if(pedido.recheios.length===0){box.style.display='none';return;}box.style.display='block';list.innerHTML=pedido.recheios.map(r=>`<span class="rs-item ${r.tipo}">${r.nome} ${r.tipo==='prem'?'⭐':''}</span>`).join('');}
 
-// ═══════════════════════════════
-// STEP 0: TAMANHO + MASSA
-// ═══════════════════════════════
-// ─── MODO TAMANHO ───
-function setModoTamanho(modo) {
-  document.getElementById('ajuda-tamanho-box').style.display='none';
-  if(modo==='ajuda'){
-    document.getElementById('box-convidados').style.display='block';
-    document.getElementById('box-tamanhos').style.display='none';
-    document.getElementById('box-massa').style.display='none';
-  } else {
-    document.getElementById('box-convidados').style.display='none';
-    document.getElementById('box-tamanhos').style.display='block';
-    document.getElementById('box-massa').style.display='block';
-  }
-}
+let pedidoAjudaTema=false;
+function setAjudaTema(quer){pedidoAjudaTema=quer;const sim=document.getElementById('btn-ajuda-sim');const nao=document.getElementById('btn-ajuda-nao');const box=document.getElementById('ajuda-tema-box');if(quer){sim.style.background='#0F6E56';sim.style.color='#fff';sim.style.borderColor='#0F6E56';nao.style.background='#f5f5f5';nao.style.color='#999';nao.style.borderColor='#ddd';box.style.display='block';}else{nao.style.background='#C8503A';nao.style.color='#fff';nao.style.borderColor='#C8503A';sim.style.background='white';sim.style.color='#0F6E56';sim.style.borderColor='#9FE1CB';box.style.display='none';}}
 
-const CONVIDADOS_MAP = [
-  {max:3, aro:10, trad:110, prem:140, fatias:'até 3 fatias'},
-  {max:10, aro:15, trad:200, prem:240, fatias:'até 10 fatias'},
-  {max:20, aro:20, trad:250, prem:280, fatias:'até 20 fatias'},
-  {max:30, aro:25, trad:300, prem:335, fatias:'até 30 fatias'},
-  {max:999, aro:30, trad:350, prem:390, fatias:'até 45 fatias'},
-];
+function setCobertura(id,nome){pedido.cobertura=id;pedido.coberturaNome=nome;document.querySelectorAll('#step-2 .opcao-btn').forEach(b=>b.classList.remove('sel'));document.getElementById('cob-'+id).classList.add('sel');document.getElementById('btn-next-2').disabled=false;savePedidoLocal();const alerta=document.getElementById('alerta-buttercream');if(alerta)alerta.style.display=id==='buttercream'?'flex':'none';}
+function setDeco(tipo){pedido.deco=tipo;if(tipo==='tematico')pedido.topo=true;else pedido.topo=false;document.querySelectorAll('.deco-opcao').forEach(b=>b.classList.remove('sel'));document.getElementById('deco-'+tipo).classList.add('sel');document.getElementById('tema-box').style.display=tipo==='tematico'?'block':'none';}
+function toggleExtra(tipo){pedido[tipo]=!pedido[tipo];const btn=document.getElementById('extra-'+tipo);btn.classList.toggle('sel',pedido[tipo]);btn.querySelector('.extra-check').innerHTML=pedido[tipo]?'✓':'';}
+function addInspiPhoto(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{pedido.inspiPhoto=ev.target.result;document.getElementById('inspi-preview').innerHTML=`<img src="${ev.target.result}" style="width:100%;border-radius:var(--radius-sm);max-height:200px;object-fit:cover;margin-top:8px"><button onclick="pedido.inspiPhoto=null;document.getElementById('inspi-preview').innerHTML=''" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;color:var(--text2);font-family:inherit;cursor:pointer;margin-top:6px;font-size:13px">Remover foto</button>`;};reader.readAsDataURL(file);e.target.value='';}
 
-let sugestaoAtual = null;
+function setRetira(val){pedido.retira=val;const sim=document.getElementById('btn-retira-sim');const nao=document.getElementById('btn-retira-nao');const endBox=document.getElementById('endereco-box');if(val){sim.classList.add('sel');nao.classList.remove('sel');endBox.style.display='none';}else{nao.classList.add('sel');sim.classList.remove('sel');endBox.style.display='block';}}
 
-function sugerirTamanho() {
-  const qtd = parseInt(document.getElementById('qtd-convidados').value)||0;
-  const box = document.getElementById('sugestao-box');
-  if(!qtd){box.style.display='none';return;}
-  
-  // Max capacity is aro 30 = 45 fatias
-  const maxCap = 45;
-  
-  if(qtd > maxCap) {
-    // Need 2 cakes
-    const metade = Math.ceil(qtd/2);
-    const sug1 = CONVIDADOS_MAP.find(m=>metade<=m.max) || CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];
-    const sug2 = CONVIDADOS_MAP.find(m=>(qtd-sug1.max)<=m.max) || CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];
-    sugestaoAtual = sug1;
-    sugestaoAtual2 = sug2;
-    document.getElementById('sugestao-texto').innerHTML = `🎂 Bolo 1: Aro ${sug1.aro} cm + 🎂 Bolo 2: Aro ${sug2.aro} cm`;
-    document.getElementById('sugestao-desc').innerHTML = `Para ${qtd} convidados sugerimos <strong>2 bolos</strong>!<br>Cada um atende parte dos convidados.<br>Total: R$ ${(sug1.trad+sug2.trad).toFixed(2)} (trad) / R$ ${(sug1.prem+sug2.prem).toFixed(2)} (prem)`;
-    document.getElementById('sugestao-btn').textContent = 'Sim, quero 2 bolos!';
-    box.style.display='block';
-  } else {
-    const sug = CONVIDADOS_MAP.find(m=>qtd<=m.max) || CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];
-    sugestaoAtual = sug;
-    sugestaoAtual2 = null;
-    document.getElementById('sugestao-texto').textContent = `Aro ${sug.aro} cm`;
-    document.getElementById('sugestao-desc').textContent = `${sug.fatias} · R$ ${sug.trad.toFixed(2)} (tradicional) / R$ ${sug.prem.toFixed(2)} (premium)`;
-    document.getElementById('sugestao-btn').textContent = 'Usar esta sugestão ✓';
-    box.style.display='block';
-  }
-}
+function formatCep(el){let v=el.value.replace(/\D/g,'').slice(0,8);if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5);el.value=v;if(v.replace('-','').length===8)buscarCep(v);}
+async function buscarCep(cep){const digits=cep.replace(/\D/g,'');if(digits.length!==8)return;const loading=document.getElementById('cep-loading');const ok=document.getElementById('cep-ok');loading.style.display='block';ok.style.display='none';try{const r=await fetch('https://viacep.com.br/ws/'+digits+'/json/');const d=await r.json();loading.style.display='none';if(d.erro){toast('CEP não encontrado');return;}document.getElementById('ent-rua').value=d.logradouro||'';document.getElementById('ent-bairro').value=d.bairro||'';document.getElementById('ent-cidade').value=d.localidade||'';ok.style.display='block';document.getElementById('ent-numero').focus();toast('✅ Endereço preenchido!');}catch(e){loading.style.display='none';toast('Digite o endereço manualmente');}}
 
-let sugestaoAtual2 = null;
+function calcTotal(){const hasPrem=pedido.recheios.some(r=>r.tipo==='prem');const precoBase=hasPrem?pedido.precoPrem:pedido.precoTrad;const plusButtercream=pedido.cobertura==='buttercream'?50:0;const plusTopo=(pedido.topo||pedido.deco==='tematico')?45:0;const plusFlores=pedido.flores?50:0;const total=precoBase+plusButtercream+plusTopo+plusFlores;const sinal=total*0.5;return{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem};}
 
-function usarSugestao() {
-  if(!sugestaoAtual)return;
-  if(sugestaoAtual2) {
-    // 2 cakes mode - set up first cake and flag for second
-    pedido._is2bolos = true;
-    pedido._sug2 = sugestaoAtual2;
-  }
-  const s=sugestaoAtual;
-  setTamanho(s.aro, s.trad, s.prem);
-  document.getElementById('box-convidados').style.display='none';
-  document.getElementById('box-tamanhos').style.display='block';
-  document.getElementById('box-massa').style.display='block';
-  document.querySelectorAll('.tamanho-btn').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('tam-'+s.aro).classList.add('sel');
-  if(sugestaoAtual2) {
-    toast('🎂 Monte o 1º bolo! O 2º vem depois.');
-  } else {
-    toast('✨ Aro '+s.aro+' selecionado!');
-  }
-}
+function renderResumo(){const{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem}=calcTotal();const dataFmt=pedido.data?new Date(pedido.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const recheioNomes=pedido.recheios.map(r=>r.nome+(r.tipo==='prem'?' ⭐':'')).join(' + ');document.getElementById('resumo-content').innerHTML=`<div class="resumo-row"><span>📐 Tamanho</span><span><b>Aro ${pedido.aro} cm</b></span></div><div class="resumo-row"><span>🧁 Massa</span><span>${pedido.massaNome||'—'}</span></div><div class="resumo-row"><span>🍓 Recheio(s)</span><span style="text-align:right;max-width:60%">${recheioNomes||'—'}</span></div><div class="resumo-row"><span>✨ Cobertura</span><span>${pedido.coberturaNome||'—'}</span></div><div class="resumo-row"><span>🎨 Decoração</span><span>${pedido.deco==='tematico'?'Temático'+(pedido.tema?' — '+pedido.tema:''):'Espatulado'}</span></div>${pedido.flores?'<div class="resumo-row"><span>💐 Flores Naturais</span><span>Sim</span></div>':''}<div class="resumo-row"><span>👤 Cliente</span><span>${pedido.nome||'—'}</span></div><div class="resumo-row"><span>📅 Entrega</span><span>${dataFmt} ${pedido.hora?'às '+pedido.hora:''}</span></div><div class="resumo-row"><span>📍 Retirada</span><span>${pedido.retira?'Sim, retira':'Não, entrego'}</span></div>`;document.getElementById('total-content').innerHTML=`<div class="resumo-row"><span>Bolo ${pedido.aro}cm ${hasPrem?'(premium)':'(tradicional)'}</span><span>R$ ${precoBase.toFixed(2)}</span></div>${plusButtercream?`<div class="resumo-row"><span>Buttercream</span><span>R$ ${plusButtercream.toFixed(2)}</span></div>`:''} ${plusTopo?`<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''} ${plusFlores?`<div class="resumo-row"><span>💐 Flores</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}<div class="resumo-total"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div><div class="sinal-box">💰 Sinal para confirmar (50%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: (27) 9 9521-3194</div>`;}
 
-function setTamanho(aro, trad, prem) {
-  pedido.aro=aro; pedido.precoTrad=trad; pedido.precoPrem=prem;
-  document.querySelectorAll('.tamanho-btn').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('tam-'+aro).classList.add('sel');
-  document.getElementById('box-tamanhos').style.display='block';
-  document.getElementById('box-massa').style.display='block';
-  savePedidoLocal();
-  checkStep0();
-}
+function addCompCliente(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{pedido.comprovante=ev.target.result;savePedidoLocal();const prev=document.getElementById('comp-preview-cliente');const isImg=file.type.startsWith('image/');if(isImg){prev.innerHTML=`<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px">`;}else{prev.innerHTML=`<div style="background:#fff;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:var(--gold-dark);margin-bottom:6px">📄 ${file.name}</div>`;}document.getElementById('comp-btn-txt').textContent='Trocar comprovante';toast('✅ Comprovante adicionado!');};reader.readAsDataURL(file);e.target.value='';}
 
-function setMassa(id, nome) {
-  pedido.massa=id; pedido.massaNome=nome;
-  document.querySelectorAll('.opcao-btn').forEach(b=>b.classList.remove('sel'));
-  var el = document.getElementById('massa-'+id);
-  if (el) el.classList.add('sel');
-  checkStep0();
-}
+async function enviarPedido(){const btn=document.getElementById('btn-enviar');btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Enviando...';if(pedidoAjudaTema){pedido.ajudaTema=true;pedido.ajudaCores=document.getElementById('ajuda-cores')?.value||'';pedido.ajudaObrigatorios=document.getElementById('ajuda-obrigatorios')?.value||'';pedido.ajudaProibidos=document.getElementById('ajuda-proibidos')?.value||'';pedido.ajudaObs=document.getElementById('ajuda-obs')?.value||'';}const{total,sinal}=calcTotal();const hasPrem=pedido.recheios.some(r=>r.tipo==='prem');const novoPedido={id:'cp_'+Date.now().toString(36)+Math.random().toString(36).slice(2),cliente:pedido.nome,telefone:pedido.tel,data:pedido.data,hora:pedido.hora,retira:pedido.retira,endereco:pedido.endereco||null,aro:pedido.aro,massa:pedido.massaNome,recheio1:pedido.recheios[0]?.nome||null,recheio2:pedido.recheios[1]?.nome||null,recheio1tipo:pedido.recheios[0]?.tipo||null,recheio2tipo:pedido.recheios[1]?.tipo||null,cobertura:pedido.coberturaNome,deco:pedido.deco,tema:pedido.tema||null,topo:pedido.topo,flores:pedido.flores,obsDeco:pedido.obsDeco||null,enderecoObj:pedido.enderecoObj||null,inspiPhoto:pedido.inspiPhoto||null,valorBolo:hasPrem?pedido.precoPrem:pedido.precoTrad,valorTotal:total,sinal:sinal,status:'pendente',origem:'cardapio_online',user_id:'herberth_admin'};try{const resp=await fetch(SUPABASE_URL+'/rest/v1/pedidos_confeitaria',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},body:JSON.stringify({id:novoPedido.id,user_id:novoPedido.user_id,cliente:novoPedido.cliente,telefone:novoPedido.telefone,data:novoPedido.data||null,hora:novoPedido.hora||null,retira:novoPedido.retira,endereco:novoPedido.endereco||null,aro:novoPedido.aro,massa:novoPedido.massa,recheio1:novoPedido.recheio1,recheio2:novoPedido.recheio2,recheio1tipo:novoPedido.recheio1tipo,recheio2tipo:novoPedido.recheio2tipo,cobertura:novoPedido.cobertura,deco:novoPedido.deco,tema:novoPedido.tema||null,topo:novoPedido.topo,flores:novoPedido.flores,obs_deco:novoPedido.obsDeco||null,inspi_photo:novoPedido.inspiPhoto||null,valor_bolo:novoPedido.valorBolo,valor_total:novoPedido.valorTotal,sinal:novoPedido.sinal,status:'pendente',origem:'cardapio_online'})});if(resp.ok||resp.status===201||resp.status===200){clearPedidoLocal();goStep(6);if(pedidoAjudaTema){const aviso=document.getElementById('aviso-decoracao-sucesso');if(aviso)aviso.style.display='block';}setTimeout(()=>notificarWhatsApp(novoPedido),1500);setTimeout(()=>enviarFichaCozinha(novoPedido),2000);}else{throw new Error('Erro '+resp.status);}}catch(e){let pendentes=[];try{pendentes=JSON.parse(localStorage.getItem('pedidos_pendentes')||'[]');}catch(er){}pendentes.push(novoPedido);localStorage.setItem('pedidos_pendentes',JSON.stringify(pendentes));goStep(6);}}
 
-function checkStep0() { savePedidoLocal();
-  document.getElementById('btn-next-0').disabled = !(pedido.aro && pedido.massa);
-}
-
-// ═══════════════════════════════
-// STEP 1: RECHEIOS
-// ═══════════════════════════════
-function toggleRecheio(nome, tipo) {
-  const idx = pedido.recheios.findIndex(r=>r.nome===nome);
-  if(idx>=0) {
-    pedido.recheios.splice(idx,1);
-  } else {
-    if(pedido.recheios.length>=2){toast('Máximo 2 recheios');return;}
-    pedido.recheios.push({nome,tipo});
-  }
-  renderRecheioTags();
-  renderRecheioSelecionados();
-  document.getElementById('btn-next-1').disabled = pedido.recheios.length===0;
-  // Alerta recheio premium
-  const temPrem = pedido.recheios.some(r=>r.tipo==='prem');
-  const alertaPrem = document.getElementById('alerta-recheio-prem');
-  if(alertaPrem) alertaPrem.style.display = temPrem ? 'flex' : 'none';
-}
-
-function renderRecheioTags() {
-  const selecionados = pedido.recheios.map(r=>r.nome);
-  document.querySelectorAll('.recheio-tag').forEach(btn => {
-    const nome = btn.textContent.trim();
-    const idx = selecionados.indexOf(nome);
-    btn.className = btn.className.replace(/\s*sel-[12]/g,'');
-    if(idx===0) btn.className += ' sel-1';
-    else if(idx===1) btn.className += ' sel-2';
-    if(btn.onclick.toString().includes("'prem'")) btn.className = btn.className.includes('prem') ? btn.className : btn.className + ' prem';
-  });
-}
-
-function renderRecheioSelecionados() {
-  const box = document.getElementById('recheio-selecionados');
-  const list = document.getElementById('rs-items-list');
-  if(pedido.recheios.length===0){box.style.display='none';return;}
-  box.style.display='block';
-  list.innerHTML = pedido.recheios.map(r=>
-    `<span class="rs-item ${r.tipo}">${r.nome} ${r.tipo==='prem'?'⭐':''}</span>`
-  ).join('');
-}
-
-// ═══════════════════════════════
-// STEP 2: COBERTURA
-// ═══════════════════════════════
-
-// ═══ AJUDA PARA TEMA ═══
-let pedidoAjudaTema = false;
-
-function setAjudaTema(quer) {
-  pedidoAjudaTema = quer;
-  const sim = document.getElementById('btn-ajuda-sim');
-  const nao = document.getElementById('btn-ajuda-nao');
-  const box = document.getElementById('ajuda-tema-box');
-  if (quer) {
-    sim.style.background = '#0F6E56'; sim.style.color = '#fff'; sim.style.borderColor = '#0F6E56';
-    nao.style.background = '#f5f5f5'; nao.style.color = '#999'; nao.style.borderColor = '#ddd';
-    box.style.display = 'block';
-  } else {
-    nao.style.background = '#C8503A'; nao.style.color = '#fff'; nao.style.borderColor = '#C8503A';
-    sim.style.background = 'white'; sim.style.color = '#0F6E56'; sim.style.borderColor = '#9FE1CB';
-    box.style.display = 'none';
-  }
-}
-
-function setCobertura(id, nome) {
-  pedido.cobertura=id; pedido.coberturaNome=nome;
-  document.querySelectorAll('#step-2 .opcao-btn').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('cob-'+id).classList.add('sel');
-  document.getElementById('btn-next-2').disabled=false;
-  savePedidoLocal();
-  const alerta = document.getElementById('alerta-buttercream');
-  if(alerta) alerta.style.display = id==='buttercream' ? 'flex' : 'none';
-}
-
-// ═══════════════════════════════
-// STEP 3: DECORAÇÃO
-// ═══════════════════════════════
-function setDeco(tipo) {
-  pedido.deco=tipo;
-  if(tipo==='tematico') pedido.topo=true;
-  else pedido.topo=false;
-  document.querySelectorAll('.deco-opcao').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('deco-'+tipo).classList.add('sel');
-  document.getElementById('tema-box').style.display = tipo==='tematico'?'block':'none';
-}
-
-function toggleExtra(tipo) {
-  pedido[tipo] = !pedido[tipo];
-  const btn = document.getElementById('extra-'+tipo);
-  btn.classList.toggle('sel', pedido[tipo]);
-  btn.querySelector('.extra-check').innerHTML = pedido[tipo]?'✓':'';
-}
-
-function addInspiPhoto(e) {
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    pedido.inspiPhoto=ev.target.result;
-    document.getElementById('inspi-preview').innerHTML=
-      `<img src="${ev.target.result}" style="width:100%;border-radius:var(--radius-sm);max-height:200px;object-fit:cover;margin-top:8px">
-       <button onclick="pedido.inspiPhoto=null;document.getElementById('inspi-preview').innerHTML=''" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:none;color:var(--text2);font-family:inherit;cursor:pointer;margin-top:6px;font-size:13px">Remover foto</button>`;
-  };
-  reader.readAsDataURL(file);
-  e.target.value='';
-}
-
-// ═══════════════════════════════
-// STEP 4: ENTREGA
-// ═══════════════════════════════
-function setRetira(val) {
-  pedido.retira=val;
-  const sim=document.getElementById('btn-retira-sim');
-  const nao=document.getElementById('btn-retira-nao');
-  const endBox=document.getElementById('endereco-box');
-  if(val){sim.classList.add('sel');nao.classList.remove('sel');endBox.style.display='none';}
-  else{nao.classList.add('sel');sim.classList.remove('sel');endBox.style.display='block';}
-}
-
-function formatCep(el) {
-  let v = el.value.replace(/\D/g,'').slice(0,8);
-  if(v.length>5) v = v.slice(0,5)+'-'+v.slice(5);
-  el.value = v;
-  if(v.replace('-','').length===8) buscarCep(v);
-}
-
-async function buscarCep(cep) {
-  const digits = cep.replace(/\D/g,'');
-  if(digits.length!==8) return;
-  const loading=document.getElementById('cep-loading');
-  const ok=document.getElementById('cep-ok');
-  loading.style.display='block'; ok.style.display='none';
-  // Use JSONP via script tag to avoid CORS issues
-  const script = document.createElement('script');
-  window._cepCallback = function(d) {
-    document.head.removeChild(script);
-    delete window._cepCallback;
-    loading.style.display='none';
-    if(d.erro) { toast('CEP não encontrado'); return; }
-    document.getElementById('ent-rua').value = d.logradouro||'';
-    document.getElementById('ent-bairro').value = d.bairro||'';
-    document.getElementById('ent-cidade').value = d.localidade||'';
-    if(d.complemento && !document.getElementById('ent-complemento').value) {
-      document.getElementById('ent-complemento').value = d.complemento;
-    }
-    ok.style.display='block';
-    document.getElementById('ent-numero').focus();
-    toast('✅ Endereço preenchido!');
-  };
-  script.onerror = function() {
-    document.head.removeChild(script);
-    delete window._cepCallback;
-    loading.style.display='none';
-    // Fallback: try fetch directly
-    fetch('https://viacep.com.br/ws/'+digits+'/json/')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.erro){toast('CEP não encontrado');return;}
-        document.getElementById('ent-rua').value=d.logradouro||'';
-        document.getElementById('ent-bairro').value=d.bairro||'';
-        document.getElementById('ent-cidade').value=d.localidade||'';
-        ok.style.display='block';
-        document.getElementById('ent-numero').focus();
-        toast('✅ Endereço preenchido!');
-      })
-      .catch(()=>toast('Digite o endereço manualmente'));
-  };
-  script.src = 'https://viacep.com.br/ws/'+digits+'/json/?callback=_cepCallback';
-  document.head.appendChild(script);
-  // Timeout
-  setTimeout(()=>{ if(window._cepCallback){ loading.style.display='none'; toast('Timeout CEP — tente manualmente'); } }, 5000);
-}
-
-// ═══════════════════════════════
-// STEP 5: RESUMO
-// ═══════════════════════════════
-function calcTotal() {
-  const hasPrem = pedido.recheios.some(r=>r.tipo==='prem');
-  const precoBase = hasPrem ? pedido.precoPrem : pedido.precoTrad;
-  const plusButtercream = pedido.cobertura==='buttercream' ? 50 : 0;
-  const plusTopo = (pedido.topo || pedido.deco==='tematico') ? 45 : 0;
-  const plusFlores = pedido.flores ? 50 : 0;
-  const total = precoBase + plusButtercream + plusTopo + plusFlores;
-  const sinal = total * 0.5;
-  return {precoBase, plusButtercream, plusTopo, plusFlores, total, sinal, hasPrem};
-}
-
-function renderResumo() {
-  const {precoBase, plusButtercream, plusTopo, plusFlores, total, sinal, hasPrem} = calcTotal();
-  const dataFmt = pedido.data ? new Date(pedido.data+'T12:00:00').toLocaleDateString('pt-BR') : '—';
-  const recheioNomes = pedido.recheios.map(r=>r.nome+(r.tipo==='prem'?' ⭐':'')).join(' + ');
-
-  document.getElementById('resumo-content').innerHTML = `
-    <div class="resumo-row"><span>📐 Tamanho</span><span><b>Aro ${pedido.aro} cm</b></span></div>
-    <div class="resumo-row"><span>🧁 Massa</span><span>${pedido.massaNome||'—'}</span></div>
-    <div class="resumo-row"><span>🍓 Recheio(s)</span><span style="text-align:right;max-width:60%">${recheioNomes||'—'}</span></div>
-    <div class="resumo-row"><span>✨ Cobertura</span><span>${pedido.coberturaNome||'—'}</span></div>
-    <div class="resumo-row"><span>🎨 Decoração</span><span>${pedido.deco==='tematico'?'Temático'+(pedido.tema?' — '+pedido.tema:''):'Espatulado'}</span></div>
-    ${(pedido.topo||pedido.deco==='tematico')?'<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>Incluso no temático</span></div>':''}
-    ${pedido.flores?'<div class="resumo-row"><span>💐 Flores Naturais</span><span>Sim</span></div>':''}
-    <div class="resumo-row"><span>👤 Cliente</span><span>${pedido.nome||'—'}</span></div>
-    <div class="resumo-row"><span>📅 Entrega</span><span>${dataFmt} ${pedido.hora?'às '+pedido.hora:''}</span></div>
-    <div class="resumo-row"><span>📍 Retirada</span><span>${pedido.retira?'Sim, retira':'Não, entrego'}</span></div>
-    ${!pedido.retira&&pedido.enderecoObj?`
-      <div class="resumo-row"><span>📍 CEP</span><span>${pedido.enderecoObj.cep||'—'}</span></div>
-      <div class="resumo-row"><span>🏠 Endereço</span><span style="text-align:right;max-width:55%">${pedido.enderecoObj.rua} ${pedido.enderecoObj.numero}</span></div>
-      <div class="resumo-row"><span>Bairro</span><span>${pedido.enderecoObj.bairro}</span></div>
-      <div class="resumo-row"><span>Cidade</span><span>${pedido.enderecoObj.cidade}</span></div>
-      ${pedido.enderecoObj.complemento?`<div class="resumo-row"><span>Complemento</span><span>${pedido.enderecoObj.complemento}</span></div>`:''}
-    `:''}
-  `;
-
-  document.getElementById('total-content').innerHTML = `
-    <div class="resumo-row"><span>Bolo ${pedido.aro}cm ${hasPrem?'(recheio premium)':'(recheio tradicional)'}</span><span>R$ ${precoBase.toFixed(2)}</span></div>
-    ${plusButtercream?`<div class="resumo-row"><span>Buttercream (acréscimo)</span><span>R$ ${plusButtercream.toFixed(2)}</span></div>`:''}
-    ${plusTopo?`<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''}
-    ${plusFlores?`<div class="resumo-row"><span>💐 Flores Naturais</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}
-    <div class="resumo-total"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
-    <div class="sinal-box">💰 Sinal para confirmar (50%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: (27) 9 9521-3194</div>
-  `;
-}
-
-// ═══════════════════════════════
-// ENVIAR PEDIDO → SUPABASE
-// ═══════════════════════════════
-function addCompCliente(e) {
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pedido.comprovante = ev.target.result;
-    savePedidoLocal();
-    const prev = document.getElementById('comp-preview-cliente');
-    const isImg = file.type.startsWith('image/');
-    if(isImg) {
-      prev.innerHTML = `<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px">`;
-    } else {
-      prev.innerHTML = `<div style="background:#fff;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:var(--gold-dark);margin-bottom:6px">📄 ${file.name}</div>`;
-    }
-    document.getElementById('comp-btn-txt').textContent = 'Trocar comprovante';
-    toast('✅ Comprovante adicionado!');
-  };
-  reader.readAsDataURL(file);
-  e.target.value='';
-}
-
-async function enviarPedido() {
-  const btn = document.getElementById('btn-enviar');
-  btn.disabled=true; btn.innerHTML='<i class="ti ti-loader"></i> Enviando...';
-  // Salvar dados de ajuda tema se solicitado
-  if (pedidoAjudaTema) {
-    pedido.ajudaTema = true;
-    pedido.ajudaCores = document.getElementById('ajuda-cores')?.value || '';
-    pedido.ajudaObrigatorios = document.getElementById('ajuda-obrigatorios')?.value || '';
-    pedido.ajudaProibidos = document.getElementById('ajuda-proibidos')?.value || '';
-    pedido.ajudaObs = document.getElementById('ajuda-obs')?.value || '';
-  }
-
-  const {total, sinal} = calcTotal();
-  const hasPrem = pedido.recheios.some(r=>r.tipo==='prem');
-
-  const novoPedido = {
-    id: 'cp_'+Date.now().toString(36)+Math.random().toString(36).slice(2),
-    cliente: pedido.nome,
-    telefone: pedido.tel,
-    data: pedido.data,
-    hora: pedido.hora,
-    retira: pedido.retira,
-    endereco: pedido.endereco || null,
-    aro: pedido.aro,
-    massa: pedido.massaNome,
-    recheio1: pedido.recheios[0]?.nome || null,
-    recheio2: pedido.recheios[1]?.nome || null,
-    recheio1tipo: pedido.recheios[0]?.tipo || null,
-    recheio2tipo: pedido.recheios[1]?.tipo || null,
-    cobertura: pedido.coberturaNome,
-    deco: pedido.deco,
-    tema: pedido.tema || null,
-    topo: pedido.topo,
-    flores: pedido.flores,
-    obsDeco: pedido.obsDeco || null,
-    enderecoObj: pedido.enderecoObj || null,
-    inspiPhoto: pedido.inspiPhoto || null,
-    valorBolo: hasPrem ? pedido.precoPrem : pedido.precoTrad,
-    valorTotal: total,
-    sinal: sinal,
-    status: 'pendente',
-    origem: 'cardapio_online',
-    user_id: 'herberth_admin'
-  };
-
-  try {
-    // Save to Supabase pedidos table
-    const resp = await fetch(SUPABASE_URL+'/rest/v1/pedidos_confeitaria', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer '+SUPABASE_KEY,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-      id: novoPedido.id,
-      user_id: novoPedido.user_id,
-      cliente: novoPedido.cliente,
-      telefone: novoPedido.telefone,
-      data: novoPedido.data || null,
-      hora: novoPedido.hora || null,
-      retira: novoPedido.retira,
-      endereco: novoPedido.endereco || null,
-      aro: novoPedido.aro,
-      massa: novoPedido.massa,
-      recheio1: novoPedido.recheio1,
-      recheio2: novoPedido.recheio2,
-      recheio1tipo: novoPedido.recheio1tipo,
-      recheio2tipo: novoPedido.recheio2tipo,
-      cobertura: novoPedido.cobertura,
-      deco: novoPedido.deco,
-      tema: novoPedido.tema || null,
-      topo: novoPedido.topo,
-      flores: novoPedido.flores,
-      obs_deco: novoPedido.obsDeco || null,
-      inspi_photo: novoPedido.inspiPhoto || null,
-      valor_bolo: novoPedido.valorBolo,
-      valor_total: novoPedido.valorTotal,
-      sinal: novoPedido.sinal,
-      status: 'pendente',
-      origem: 'cardapio_online'
-    })
-    });
-
-    if(resp.ok || resp.status===201 || resp.status===200) {
-      clearPedidoLocal();
-      if(pedido._is2bolos && pedido._sug2) {
-        // Show option to add 2nd cake
-        const s2 = pedido._sug2;
-        document.getElementById('step-6').innerHTML += `
-          <div style="margin-top:16px;background:rgba(200,163,91,.15);border:1.5px solid var(--gold);border-radius:12px;padding:16px;text-align:center">
-            <div style="font-size:16px;font-weight:700;color:var(--gold-dark);margin-bottom:6px">🎂 Montar o 2º bolo?</div>
-            <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Sugerimos Aro ${s2.aro} para complementar os convidados restantes.</p>
-            <button onclick="iniciar2oBolo(${s2.aro},${s2.trad},${s2.prem})" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">
-              Montar o 2º bolo
-            </button>
-          </div>`;
-      }
-      goStep(6);
-  if (pedidoAjudaTema) {
-    const aviso = document.getElementById('aviso-decoracao-sucesso');
-    if (aviso) aviso.style.display = 'block';
-  }
-  // Notificar Herberth pelo WhatsApp
-  setTimeout(() => notificarWhatsApp(novoPedido), 1500);
-  setTimeout(() => enviarFichaCozinha(novoPedido), 2000);
-    } else {
-      const errText = await resp.text();
-      console.error('Supabase error:', resp.status, errText);
-      throw new Error('Erro '+resp.status);
-    }
-  } catch(e) {
-    // Save in localStorage as fallback
-    let pendentes = [];
-    try { pendentes = JSON.parse(localStorage.getItem('pedidos_pendentes')||'[]'); } catch(er){}
-    pendentes.push(novoPedido);
-    localStorage.setItem('pedidos_pendentes', JSON.stringify(pendentes));
-    goStep(6);
-  }
-}
-
-// Init - restore saved state if exists
-setRetira(pedido.retira !== false);
+setRetira(pedido.retira!==false);
 updateProgress(0);
+if(pedido.aro){setTamanho(pedido.aro,pedido.precoTrad,pedido.precoPrem);document.getElementById('ajuda-tamanho-box').style.display='none';document.getElementById('box-tamanhos').style.display='block';document.getElementById('box-massa').style.display='block';}
+if(pedido.massa)setMassa(pedido.massa,pedido.massaNome);
+if(pedido.cobertura)setCobertura(pedido.cobertura,pedido.coberturaNome);
+if(pedido.deco)setDeco(pedido.deco);
+if(pedido.recheios&&pedido.recheios.length>0){renderRecheioTags();renderRecheioSelecionados();document.getElementById('btn-next-1').disabled=false;}
 
-// If we have a pedido in progress, restore UI
-if(pedido.aro) {
-  // Restore tamanho
-  setTamanho(pedido.aro, pedido.precoTrad, pedido.precoPrem);
-  document.getElementById('ajuda-tamanho-box').style.display='none';
-  document.getElementById('box-tamanhos').style.display='block';
-  document.getElementById('box-massa').style.display='block';
-}
-if(pedido.massa) setMassa(pedido.massa, pedido.massaNome);
-if(pedido.cobertura) setCobertura(pedido.cobertura, pedido.coberturaNome);
-if(pedido.deco) setDeco(pedido.deco);
-if(pedido.flores) setFlores(true);
-if(pedido.recheios && pedido.recheios.length > 0) {
-  renderRecheioTags();
-  renderRecheioSelecionados();
-  document.getElementById('btn-next-1').disabled=false;
-}
-if(pedido.nome || pedido.aro) {
-  toast('📋 Pedido em andamento restaurado!', 3000);
-}
+function notificarWhatsApp(p){try{const dataFmt=p.data?new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const msg=encodeURIComponent('🎂 *NOVO PEDIDO — Sucrée Confeitaria*\n\n'+'👤 *Cliente:* '+(p.cliente||'—')+'\n'+'📱 *WhatsApp:* '+(p.telefone||'—')+'\n'+'📅 *Entrega:* '+dataFmt+' às '+(p.hora||'—')+'\n'+'🚗 *Retirada:* '+(p.retira?'Sim, cliente retira':'Não — entrego no endereço')+'\n'+(p.endereco?'📍 *Endereço:* '+p.endereco+'\n':'')+'\n🎂 *Bolo:*\n'+'• Tamanho: Aro '+(p.aro||'—')+'\n'+'• Massa: '+(p.massa||'—')+'\n'+'• Recheio 1: '+(p.recheio1||'—')+'\n'+'• Recheio 2: '+(p.recheio2||'—')+'\n'+'• Cobertura: '+(p.cobertura||'—')+'\n'+(p.tema?'• Tema: '+p.tema+'\n':'')+'\n💰 *Total:* R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'\n💰 *Sinal (50%):* R$ '+parseFloat(p.sinal||0).toFixed(2)+'\n\n🆔 Pedido: '+p.id);window.open('https://wa.me/'+WHATSAPP_SUCREE+'?text='+msg,'_blank');}catch(e){console.log('WhatsApp erro:',e);}try{fetch('https://ntfy.sh/'+NTFY_CANAL,{method:'POST',headers:{'Title':'🎂 Novo Pedido - Sucree','Priority':'high','Tags':'cake,moneybag','Content-Type':'text/plain'},body:(p.cliente||'Cliente')+' · Aro '+(p.aro||'?')+' · R$ '+parseFloat(p.valorTotal||0).toFixed(2)}).then(r=>console.log('Ntfy:',r.status)).catch(e=>console.log('Ntfy erro:',e));}catch(e2){console.log('Ntfy erro:',e2);}}
 
-// ═══════════════════════════════════════════
-// VALIDAÇÃO DO LINK TEMPORÁRIO
-// ═══════════════════════════════════════════
-(function validarLinkTemporario() {
-  var params = new URLSearchParams(window.location.search);
-  var token  = params.get('token');
-  var exp    = parseInt(params.get('exp') || '0');
-
-  // Se não tem token, é o link público normal — deixa passar
-  if (!token) return;
-
-  // Verificar se expirou
-  var agora = Date.now();
-  if (exp && agora > exp) {
-    // Link expirado — mostrar tela elegante
-    document.body.innerHTML = `
-      <div style="min-height:100vh;background:#0F0800;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Georgia,serif">
-        <div style="text-align:center;max-width:340px">
-          <img src="logo.png" alt="Sucrée" style="height:80px;filter:brightness(2) drop-shadow(0 4px 20px rgba(200,163,91,.5));margin-bottom:24px">
-          <div style="font-size:28px;margin-bottom:12px">⏰</div>
-          <h1 style="font-size:22px;color:#C8A35B;margin-bottom:10px">Link expirado</h1>
-          <p style="font-size:14px;color:#A89070;line-height:1.7;margin-bottom:24px">
-            Este link de acesso ao cardápio não é mais válido.<br><br>
-            Entre em contato com a <strong style="color:#C8A35B">Sucrée Confeitaria</strong> para receber um novo link.
-          </p>
-          <a href="https://wa.me/5527995213194?text=Olá!%20Preciso%20de%20um%20novo%20link%20do%20cardápio%20🎂"
-            target="_blank"
-            style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:25px;padding:14px 24px;font-size:15px;font-weight:700;font-family:Georgia,serif;text-decoration:none">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Solicitar novo link
-          </a>
-          <p style="font-size:11px;color:#6B5A40;margin-top:20px">Sucrée Confeitaria · Vitória – ES</p>
-        </div>
-      </div>`;
-    return;
-  }
-
-  // Token válido — verificar na lista de tokens do admin (localStorage compartilhado)
-  // Como é mesmo domínio, o localStorage é acessível
-  var tokens = [];
-  try { tokens = JSON.parse(localStorage.getItem('mr_tokens_ativos') || '[]'); } catch(e) {}
-  var tokenValido = tokens.some(function(t){ return t.token === token && t.exp > agora; });
-
-  if (!tokenValido && token) {
-    // Token não encontrado — pode ser dispositivo diferente, verificar só pela exp
-    if (!exp || agora > exp) {
-      document.body.innerHTML = document.body.innerHTML; // trigger expired screen above
-    }
-    // Se exp ainda válido mas token não está na lista local, deixa passar
-    // (cliente em outro dispositivo)
-  }
-})();
-
-// ═══════════════════════════════════════════
-// CONFIGURAÇÃO DINÂMICA DO CARDÁPIO
-// ═══════════════════════════════════════════
-async function carregarConfigCardapio() {
-  try {
-    var resp = await fetch(SUPABASE_URL + '/rest/v1/config?select=cardapio_config&user_id=eq.herberth_admin&limit=1', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    var data = await resp.json();
-    if (data && data[0] && data[0].cardapio_config) {
-      var cfg = typeof data[0].cardapio_config === 'string'
-        ? JSON.parse(data[0].cardapio_config)
-        : data[0].cardapio_config;
-      aplicarConfigCardapio(cfg);
-    }
-  } catch(e) { console.log('Config cardapio:', e); }
-}
-
-function aplicarConfigCardapio(cfg) {
-  // Massas
-  if (cfg.massas && cfg.massas.length) {
-    var cont = document.getElementById('massas-container');
-    if (cont) {
-      cont.innerHTML = cfg.massas.map(function(m) {
-        return '<button class="opcao-btn" onclick="setMassa('' + m.id + '','' + m.nome + '')" id="massa-' + m.id + '">'
-          + '<span class="op-icon">' + (m.icon||'🎂') + '</span>'
-          + '<span class="op-nome">' + m.nome + '</span>'
-          + '<span class="op-desc">' + (m.desc||'') + '</span>'
-          + '</button>';
-      }).join('');
-    }
-  }
-  // Recheios
-  if (cfg.recheios && cfg.recheios.length) {
-    var rCont = document.getElementById('recheios-container');
-    if (rCont) {
-      rCont.innerHTML = cfg.recheios.map(function(r) {
-        return '<button class="opcao-btn" onclick="setRecheio(1,'' + r.nome + '')" id="rec-' + r.id + '">'
-          + '<span class="op-icon">' + (r.icon||'🎂') + '</span>'
-          + '<span class="op-nome">' + r.nome + '</span>'
-          + '</button>';
-      }).join('');
-    }
-  }
-  // Coberturas
-  if (cfg.coberturas && cfg.coberturas.length) {
-    var cCont = document.getElementById('coberturas-container');
-    if (cCont) {
-      cCont.innerHTML = cfg.coberturas.map(function(cb) {
-        return '<button class="opcao-btn" onclick="setCobertura('' + cb.id + '','' + cb.nome + '')" id="cob-' + cb.id + '">'
-          + '<span class="op-icon">' + (cb.icon||'🍦') + '</span>'
-          + '<span class="op-nome">' + cb.nome + '</span>'
-          + '<span class="op-desc">' + (cb.desc||'') + '</span>'
-          + '</button>';
-      }).join('');
-    }
-  }
-  // Tamanhos
-  if (cfg.tamanhos && cfg.tamanhos.length) {
-    var tCont = document.getElementById('tamanhos-container');
-    if (tCont) {
-      tCont.innerHTML = cfg.tamanhos.map(function(t) {
-        return '<button class="tamanho-btn" onclick="setTamanho(' + t.aro + ','' + t.fatias + '')" id="tam-' + t.aro + '">'
-          + '<span class="tam-aro">Aro ' + t.aro + '</span>'
-          + '<span class="tam-fatias">' + t.fatias + '</span>'
-          + '</button>';
-      }).join('');
-    }
-  }
-}
-
-// ═══════════════════════════════════════════
-// ⚙️ CONFIGURAÇÕES — ALTERAR AQUI
-// ═══════════════════════════════════════════
-var NTFY_CANAL      = 'sucree_6a6490b03a94'; // canal de notificações push
-var WHATSAPP_SUCREE = '5527995213194';        // ← TROCAR quando tiver número novo
-                                               // Formato: 55 + DDD + número (sem espaços)
-// ═══════════════════════════════════════════
-
-// ═══ NOTIFICAÇÃO WHATSAPP — NOVO PEDIDO ═══
-function notificarWhatsApp(p) {
-  try {
-    const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
-    const horaFmt = p.hora || '—';
-    const recheios = (p.recheios||[]).map(r=>r.nome).join(', ') || '—';
-    const ajudaDecoracao = p.ajudaTema ?
-      `\n🎨 *PEDIU AJUDA DE DECORAÇÃO*\nCores: ${p.ajudaCores||'—'}\nElementos: ${p.ajudaObrigatorios||'—'}\nNão pode: ${p.ajudaProibidos||'—'}\nObs: ${p.ajudaObs||'—'}` : '';
-
-    const msg = encodeURIComponent(
-      `🎂 *NOVO PEDIDO — Sucrée Confeitaria*\n\n` +
-      `👤 *Cliente:* ${p.cliente||'—'}\n` +
-      `📱 *WhatsApp:* ${p.telefone||'—'}\n` +
-      `📅 *Entrega:* ${dataFmt} às ${horaFmt}\n` +
-      `🚗 *Retirada:* ${p.retira ? 'Sim, cliente retira' : 'Não — entrego no endereço'}\n` +
-      (p.endereco ? `📍 *Endereço:* ${p.endereco}\n` : '') +
-      `\n🎂 *Bolo:*\n` +
-      `• Tamanho: Aro ${p.aro||'—'}\n` +
-      `• Massa: ${p.massaNome||'—'}\n` +
-      `• Recheios: ${recheios}\n` +
-      `• Cobertura: ${p.coberturaNome||'—'}\n` +
-      `• Decoração: ${p.decoNome||'—'}\n` +
-      (p.tema ? `• Tema: ${p.tema}\n` : '') +
-      ajudaDecoracao +
-      `\n💰 *Financeiro:*\n` +
-      `• Total: R$ ${parseFloat(p.valorTotal||0).toFixed(2)}\n` +
-      `• Sinal (50%): R$ ${parseFloat(p.sinal||0).toFixed(2)}\n` +
-      `• Pagamento: ${p.pagamento||'—'}\n` +
-      `\n🆔 Pedido: ${p.id}\n` +
-      `\n_Acesse o app para ver todos os detalhes e atualizar o status._`
-    );
-
-    // ⚙️ NÚMERO WHATSAPP — trocar aqui quando tiver número da Sucrée
-    const numero = WHATSAPP_SUCREE || '5527995213194';
-    window.open(`https://wa.me/${numero}?text=${msg}`, '_blank');
-  } catch(e) {
-    console.log('Notificação WhatsApp erro:', e.message);
-  }
-
-  // ── NOTIFICAÇÃO PUSH (Ntfy) ──
-  try {
-    const resumo = `${p.cliente||'Cliente'} · Aro ${p.aro||'?'} · R$ ${parseFloat(p.valorTotal||0).toFixed(2)} · ${new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR')}`;
-    fetch('https://ntfy.sh/' + NTFY_CANAL, {
-      method: 'POST',
-      headers: {
-        'Title': '🎂 Novo Pedido - Sucree',
-        'Priority': 'high',
-        'Tags': 'cake,moneybag',
-        'Content-Type': 'text/plain'
-      },
-      body: resumo
-    }).then(function(r){ console.log('Ntfy status:', r.status); })
-      .catch(function(e){ console.log('Ntfy erro:', e); });
-  } catch(e2) {
-    console.log('Ntfy erro:', e2.message);
-  }
-}
-
-
-function enviarFichaCozinha(p) {
-  var massaReceitas = {
-    'fofinha':            'Pão de Ló Fofinha',
-    'fofinha-chocolate':  'Pão de Ló Fofinha Chocolate',
-    'classica':           'Massa Clássica (Amanteigada)',
-    'classica-chocolate': 'Massa Clássica Chocolate (Amanteigada)'
-  };
-  var massaNome = massaReceitas[p.massa] || p.massaNome || p.massa || '—';
-  var aro = p.aro || '?';
-  var recheio1 = p.recheio1 || '—';
-  var recheio2 = p.recheio2 || '—';
-  var cobertura = p.coberturaNome || p.cobertura || '—';
-  var dataFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}) : '—';
-  var multMassa = {'10':'½ receita','15':'1 receita','20':'1¾ receitas','25':'2¾ receitas','30':'4 receitas'};
-  var nl = '\n';
-
-  var msg = '👩‍🍳 *FICHA DE COZINHA — Sucrée*' + nl + nl
-    + '📋 *Pedido:* ' + (p.cliente||'Cliente') + nl
-    + '📅 *Entrega:* ' + dataFmt + ' às ' + (p.hora||'—') + nl + nl
-    + '🎂 *BOLO ARO ' + aro + 'cm*' + nl
-    + '━━━━━━━━━━━━━━━━━' + nl
-    + '🍞 *Massa:* ' + massaNome + nl
-    + '   → Quantidade: ' + (multMassa[String(aro)] || '—') + nl + nl
-    + '🎂 *Recheio 1:* ' + recheio1 + nl
-    + '🎂 *Recheio 2:* ' + (recheio2 && recheio2 !== recheio1 ? recheio2 : '(mesmo recheio)') + nl + nl
-    + '🧁 *Cobertura:* ' + cobertura + nl
-    + (p.tema ? '🎨 *Tema:* ' + p.tema + nl : '')
-    + (p.obs  ? '💬 *Obs:* '  + p.obs  + nl : '')
-    + nl + '━━━━━━━━━━━━━━━━━' + nl
-    + '💰 Valor: R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
-
-  var numero = typeof WHATSAPP_SUCREE !== 'undefined' ? WHATSAPP_SUCREE : '5527995213194';
-  try {
-    window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(msg), '_blank');
-  } catch(e) { console.log('Ficha cozinha erro:', e); }
-}
-
+function enviarFichaCozinha(p){var massaReceitas={'fofinha':'Pão de Ló Fofinha','fofinha-chocolate':'Pão de Ló Fofinha Chocolate','classica':'Massa Clássica (Amanteigada)','classica-chocolate':'Massa Clássica Chocolate'};var massaNome=massaReceitas[p.massa]||p.massa||'—';var dataFmt=p.data?new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}):'—';var multMassa={'10':'½ receita','15':'1 receita','20':'1¾ receitas','25':'2¾ receitas','30':'4 receitas'};var msg='👩‍🍳 *FICHA DE COZINHA — Sucrée*\n\n'+'📋 *Pedido:* '+(p.cliente||'Cliente')+'\n'+'📅 *Entrega:* '+dataFmt+' às '+(p.hora||'—')+'\n\n'+'🎂 *BOLO ARO '+(p.aro||'?')+'cm*\n'+'━━━━━━━━━━━━━━━━━\n'+'🍞 *Massa:* '+massaNome+'\n'+'   → Quantidade: '+(multMassa[String(p.aro)]||'—')+'\n\n'+'🎂 *Recheio 1:* '+(p.recheio1||'—')+'\n'+'🎂 *Recheio 2:* '+(p.recheio2&&p.recheio2!==p.recheio1?p.recheio2:'(mesmo recheio)')+'\n\n'+'🧁 *Cobertura:* '+(p.cobertura||'—')+'\n'+(p.tema?'🎨 *Tema:* '+p.tema+'\n':'')+(p.obsDeco?'💬 *Obs:* '+p.obsDeco+'\n':'')+'\n━━━━━━━━━━━━━━━━━\n'+'💰 Valor: R$ '+parseFloat(p.valorTotal||0).toFixed(2);try{window.open('https://wa.me/'+WHATSAPP_SUCREE+'?text='+encodeURIComponent(msg),'_blank');}catch(e){console.log('Ficha erro:',e);}}
 </script>
-
-
 </body>
 </html>
