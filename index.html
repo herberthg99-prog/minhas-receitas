@@ -177,31 +177,31 @@ button{font-family:inherit;cursor:pointer}
 .login-overlay{
   position:fixed;top:0;left:0;right:0;bottom:0;
   background-image:url(https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg);
-  background-size:cover;background-position:65% center;
+  background-size:cover;background-position:80% center;
   z-index:9999;display:flex;flex-direction:column;
   align-items:center;justify-content:flex-end;
-  padding:0 12px 28px;overflow-y:auto;
+  padding:0 12px 20px;overflow-y:auto;
 }
 .login-box{
-  background:rgba(10,6,0,.93);border-radius:16px;
-  padding:12px;width:100%;max-width:360px;
-  box-shadow:0 8px 60px rgba(0,0,0,.9),0 0 0 1px rgba(200,163,91,.4);
-  text-align:center;border:1px solid rgba(200,163,91,.4);
-  backdrop-filter:blur(14px);
+  background:rgba(10,6,0,.85);border-radius:14px;
+  padding:10px 10px 12px;width:100%;max-width:360px;
+  box-shadow:0 4px 40px rgba(0,0,0,.8);
+  text-align:center;border:1px solid rgba(200,163,91,.25);
+  backdrop-filter:blur(16px);
   position:relative;z-index:1;
 }
-.login-input{width:100%;padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:.15em;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;transition:border-color .2s}
-.login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
-.login-btn{width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
+.login-input{width:100%;padding:8px 14px;border:1px solid rgba(200,163,91,.25);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(30,20,8,.8);color:var(--text);margin-bottom:7px;transition:border-color .2s}
+.login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,163,91,.15)}
+.login-btn{width:100%;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:6px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
-.login-err{font-size:13px;color:#A32D2D;margin-top:4px;min-height:18px}
-.login-hint{font-size:11px;color:var(--text3);margin-top:10px}
-.login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:13px;color:var(--text2);text-align:left}
-.login-setup p{font-weight:700;margin-bottom:6px;color:var(--text)}
-.pwd-toggle{position:relative;margin-bottom:8px}
-.pwd-toggle input{padding-right:44px}
-.pwd-toggle button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px}
-.login-forgot{font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;margin-top:6px;display:inline-block}
+.login-err{font-size:12px;color:#A32D2D;margin-top:3px;min-height:16px}
+.login-hint{font-size:10px;color:rgba(200,163,91,.3);margin-top:8px}
+.login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;font-size:12px;color:var(--text2);text-align:left}
+.login-setup p{font-weight:700;margin-bottom:4px;color:var(--text)}
+.pwd-toggle{position:relative;margin-bottom:7px}
+.pwd-toggle input{padding-right:40px}
+.pwd-toggle button{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px}
+.login-forgot{font-size:11px;color:var(--gold);cursor:pointer;text-decoration:underline;margin-top:5px;display:inline-block}
 
 @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
 
@@ -316,23 +316,23 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <!-- LOGO CANTO SUPERIOR ESQUERDO -->
   <div style="position:absolute;top:24px;left:20px;z-index:2">
     <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
-      style="height:80px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 20px rgba(200,163,91,1))">
+      style="height:100px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 24px rgba(200,163,91,1))">
   </div>
 
   <!-- CARD COMPACTO NO RODAPÉ -->
   <div class="login-box">
 
-    <div id="user-selector" style="display:flex;gap:8px;margin-bottom:12px;width:100%">
+    <div id="user-selector" style="display:flex;gap:6px;margin-bottom:10px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
-        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid var(--coral);background:var(--gold);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+        style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--coral);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
         <img src="https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg"
-          style="width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:center top;border:2px solid rgba(255,255,255,.8)"
-          onerror="this.outerHTML='<span style=\'font-size:20px\'>👨‍🍳</span>'">
+          style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:center top;border:1.5px solid rgba(255,255,255,.8)"
+          onerror="this.outerHTML='<span style=\'font-size:18px\'>👨‍🍳</span>'">
         <span>Administrador</span>
       </button>
       <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
-        <span style="font-size:20px">👤</span>
+        style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid rgba(200,163,91,.2);background:rgba(26,18,8,.8);color:rgba(200,163,91,.6);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+        <span style="font-size:18px">👤</span>
         <span>Convidado</span>
       </button>
     </div>
@@ -342,7 +342,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
     </div>
 
-    <div id="login-user-label" style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-align:left;width:100%">Senha do Administrador</div>
+    <div id="login-user-label" style="font-size:10px;font-weight:600;color:rgba(200,163,91,.5);margin-bottom:5px;text-align:left;width:100%;letter-spacing:.05em;text-transform:uppercase">Senha do Administrador</div>
 
     <div class="pwd-toggle">
       <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
