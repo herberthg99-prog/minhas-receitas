@@ -827,32 +827,149 @@ function addInspiPhoto(e) {
   e.target.value='';
 }
 
+function getCustoReceita(nomeReceita) {
+  // Find recipe by name and return its cost
+  if (!nomeReceita || typeof recipes === 'undefined') return 0;
+  const r = recipes.find(function(x){ return x.name === nomeReceita; });
+  if (!r) return 0;
+  const p = typeof calcAt === 'function' ? calcAt(r, 1) : null;
+  return p ? p.cost : 0;
+}
+
+function calcCustoOperacional(aro) {
+  var c = sucreeConfig.custos || {};
+  var emb  = ((c.embalagemAro||{})[aro]   !== undefined ? (c.embalagemAro||{})[aro]   : c.embalagem ?? 15);
+  var tab  = ((c.tabuaAro||{})[aro]       !== undefined ? (c.tabuaAro||{})[aro]       : c.tabua     ?? 3);
+  var fixo = emb + tab + (c.acessorios||2) + (c.energia||8) + (c.gas||5) + (c.limpeza||3);
+  var mdo  = (c.maoDeObra||{})[aro] || 0;
+  return fixo + mdo;
+}
+
+function getCustoRecheioAro(nomeRecheio, aro) {
+  // Get linked recipe name if configured
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
+  var receitaNome = vincs['recheio_' + key] || nomeRecheio;
+  if (!receitaNome) return 0;
+
+  // Find recipe cost per gram
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  if (!rec) return 0;
+  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
+  if (!p || !p.cost || !rec.yield_qty) return 0;
+  var custoPorGrama = p.cost / rec.yield_qty;
+
+  // Get qty needed for this aro
+  var qtdAro = (sucreeConfig.custos?.recheioAro || {})[aro] || 0;
+  if (!qtdAro) return p.cost; // fallback: full recipe cost
+
+  return custoPorGrama * qtdAro;
+}
+
+function getCustoCaldaAro(tipocalda, aro) {
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var receitaNome = tipocalda === 'chocolate' ? (vincs.caldaChoco || 'Calda de Chocolate') : (vincs.caldaBranca || 'Calda Branca de Ninho');
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  if (!rec) return 0;
+  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
+  if (!p || !p.cost || !rec.yield_qty) return 0;
+  var custoPorGrama = p.cost / rec.yield_qty;
+  var qtdAro = (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
+  if (!qtdAro) return 0;
+  return custoPorGrama * qtdAro;
+}
+
+function getCustoChantillyAro(aro) {
+  // Chantilly ~R$ 0,025 por ml (estimativa)
+  var qtd = (sucreeConfig.custos?.chantillyAro || {})[aro] || 0;
+  return qtd * 0.025; // Aproximado — ajuste em Config
+}
+
 function calcPedidoTotal() {
   const valorBolo = parseFloat(document.getElementById('p-valor-bolo')?.value||0);
   const custoInput = parseFloat(document.getElementById('p-custo')?.value||0);
-  const custo = custoInput > 0 ? custoInput : valorBolo * 0.35;
-  const flores = curPedido.flores ? 50 : 0;
+  const flores = curPedido.flores ? (sucreeConfig.floresValor||50) : 0;
   const papelaria = curPedido.papelaria ? 35 : 0;
   const total = valorBolo + flores + papelaria;
-  const lucro = total - custo;
   const sinal = parseFloat(document.getElementById('p-sinal')?.value||0);
   const restante = total - sinal;
   curPedido.valorTotal = total;
+
+  // ── CUSTO REAL CALCULADO ──
+  const aro = curPedido.aro || 20;
+  const custoOp = calcCustoOperacional(aro);
+
+  // Custo real dos ingredientes por aro
+  var nomeR1 = document.getElementById('p-recheio1')?.value || '';
+  var nomeR2 = document.getElementById('p-recheio2')?.value || '';
+  var custoRecheio1  = getCustoRecheioAro(nomeR1, aro);
+  var custoRecheio2  = getCustoRecheioAro(nomeR2, aro);
+  var tipoCaldaPed   = curPedido.calda || 'branca';
+  var custoCalda     = getCustoCaldaAro(tipoCaldaPed, aro);
+  var custoChantilly = getCustoChantillyAro(aro);
+  var custoCobertura = curPedido.cobertura === 'buttercream' ? (sucreeConfig.buttercream||50) : custoChantilly;
+
+  var custoIngr = custoRecheio1 + custoRecheio2 + custoCalda;
+  var custoCalculado = custoOp + custoIngr + custoCobertura;
+  const custo = custoInput > 0 ? custoInput : (custoCalculado > 0 ? custoCalculado : valorBolo * 0.35);
+
+  const margemPct = sucreeConfig.custos?.margemLucro || 30;
+  const precoMinimo = custo * (1 + margemPct/100);
+  const lucro = total - custo;
+  const lucroReal = lucro - (custo * margemPct/100 - lucro < 0 ? 0 : 0);
+
   curPedido.custoEstimado = custo;
 
   const box = document.getElementById('pedido-total-box');
   if(!box) return;
+
+  const c = sucreeConfig.custos || {};
+  const fixo = (c.embalagem||15)+(c.tabua||3)+(c.acessorios||2)+(c.energia||8)+(c.gas||5)+(c.limpeza||3);
+  const mdo = (c.maoDeObra||{})[aro] || 0;
+
   box.innerHTML = `
-    <div style="background:rgba(255,255,255,.05);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px">
-      <div class="total-row"><span>🎂 Valor do bolo</span><span>R$ ${valorBolo.toFixed(2)}</span></div>
+    <!-- VALOR AO CLIENTE -->
+    <div style="background:rgba(255,255,255,.05);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">💰 Valor ao cliente</div>
+      <div class="total-row"><span>🎂 Bolo (Aro ${aro})</span><span>R$ ${valorBolo.toFixed(2)}</span></div>
       ${flores>0?'<div class="total-row"><span>💐 Flores</span><span>R$ '+flores.toFixed(2)+'</span></div>':''}
       ${papelaria>0?'<div class="total-row"><span>🎨 Papelaria</span><span>R$ '+papelaria.toFixed(2)+'</span></div>':''}
-      <div class="total-row grand"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div>
-      <div class="total-row" style="color:#FF8080"><span>💸 Custo est.</span><span>R$ ${custo.toFixed(2)}</span></div>
-      <div class="total-row" style="color:#9FE1CB;font-weight:700"><span>📈 Lucro est.</span><span>R$ ${lucro.toFixed(2)}</span></div>
+      <div class="total-row grand"><span>TOTAL CLIENTE</span><span>R$ ${total.toFixed(2)}</span></div>
       ${sinal>0?'<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ '+sinal.toFixed(2)+'</span></div>':''}
-      ${restante>0&&sinal>0?'<div class="total-row" style="color:#C8A35B;font-weight:700"><span>⏳ A receber</span><span>R$ '+restante.toFixed(2)+'</span></div>':''}
-    </div>`;
+      ${restante>0&&sinal>0?'<div class="total-row" style="color:var(--gold);font-weight:700"><span>⏳ A receber</span><span>R$ '+restante.toFixed(2)+'</span></div>':''}
+    </div>
+
+    <!-- CUSTO REAL -->
+    <div style="background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.2);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:#FF8080;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">💸 Custo real</div>
+      ${custoRecheio1>0?'<div class="total-row" style="font-size:12px"><span>🎂 Recheio 1: '+nomeR1+'</span><span>R$ '+custoRecheio1.toFixed(2)+'</span></div>':''}
+      ${custoRecheio2>0&&nomeR2!==nomeR1?'<div class="total-row" style="font-size:12px"><span>🎂 Recheio 2: '+nomeR2+'</span><span>R$ '+custoRecheio2.toFixed(2)+'</span></div>':''}
+      ${custoCalda>0?'<div class="total-row" style="font-size:12px"><span>💧 Calda ('+tipoCaldaPed+')</span><span>R$ '+custoCalda.toFixed(2)+'</span></div>':''}
+      ${custoCobertura>0?'<div class="total-row" style="font-size:12px"><span>🧁 Cobertura/Chantilly</span><span>R$ '+custoCobertura.toFixed(2)+'</span></div>':''}
+      <div style="border-top:1px dashed rgba(255,100,100,.3);margin:6px 0;padding-top:6px">
+        <div class="total-row" style="font-size:12px"><span>📦 Caixa (Aro ${aro})</span><span>R$ ${((c.embalagemAro||{})[aro]??c.embalagem??15).toFixed(2)}</span></div>
+        <div class="total-row" style="font-size:12px"><span>🪵 Tábua (Aro ${aro})</span><span>R$ ${((c.tabuaAro||{})[aro]??c.tabua??3).toFixed(2)}</span></div>
+        <div class="total-row" style="font-size:12px"><span>⚡ Energia + gás</span><span>R$ ${(parseFloat(c.energia||8)+parseFloat(c.gas||5)).toFixed(2)}</span></div>
+        <div class="total-row" style="font-size:12px"><span>🧹 Acessórios + limpeza</span><span>R$ ${(parseFloat(c.acessorios||2)+parseFloat(c.limpeza||3)).toFixed(2)}</span></div>
+        <div class="total-row" style="font-size:12px;color:var(--gold)"><span>👩‍🍳 Mão de obra (Aro ${aro})</span><span>R$ ${mdo.toFixed(2)}</span></div>
+      </div>
+      <div class="total-row" style="font-weight:700;color:#FF8080;border-top:1px solid rgba(255,100,100,.3);margin-top:4px;padding-top:6px">
+        <span>CUSTO TOTAL REAL</span><span>R$ ${custo.toFixed(2)}</span>
+      </div>
+    </div>
+
+    <!-- ANÁLISE DE LUCRO -->
+    <div style="background:rgba(15,110,86,.1);border:1px solid rgba(15,110,86,.3);border-radius:var(--radius-sm);padding:14px">
+      <div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📈 Análise de lucro</div>
+      <div class="total-row" style="font-size:12px"><span>Preço mínimo (${margemPct}% lucro)</span><span style="color:var(--teal)">R$ ${precoMinimo.toFixed(2)}</span></div>
+      <div class="total-row" style="font-size:12px"><span>Você está cobrando</span><span style="color:${total>=precoMinimo?'var(--teal)':'#FF8080'}">R$ ${total.toFixed(2)}</span></div>
+      <div class="total-row grand" style="color:${lucro>=0?'var(--teal)':'#FF8080'}">
+        <span>${lucro>=0?'✅ Lucro real':'⚠️ Prejuízo'}</span>
+        <span>R$ ${Math.abs(lucro).toFixed(2)}</span>
+      </div>
+      ${total < precoMinimo ? '<div style="font-size:11px;color:#FF8080;margin-top:6px;padding:6px 8px;background:rgba(255,100,100,.1);border-radius:6px">⚠️ Cobrando abaixo do preço mínimo! Aumente para pelo menos R$ '+precoMinimo.toFixed(2)+' para atingir '+margemPct+'% de lucro.</div>' : '<div style="font-size:11px;color:var(--teal);margin-top:6px">✅ Preço acima do mínimo. Margem: '+(((total-custo)/custo)*100).toFixed(0)+'%</div>'}
+    </div>
+  `;
 }
 
 function getRecheios() {
@@ -1172,7 +1289,43 @@ let sucreeConfig = {
   floresValor: 50,
   pixKey: '(27) 9 9521-3194',
   minDias: 3,
-  sinalPct: 50
+  sinalPct: 50,
+  // ── CUSTOS OPERACIONAIS ──
+  custos: {
+    embalagem:   15,   // caixa por bolo (fallback)
+    tabua:        5,   // tábua do bolo (fallback)
+    acessorios:   2,   // fita, papel manteiga etc
+    energia:      8,   // luz + forno por bolo
+    gas:          5,   // gás por bolo
+    limpeza:      3,   // detergente, esponja etc
+    // Tábua MDF 6mm — regra: aro + 8cm
+    tabuaAro: {
+      10: 3.95,   // tábua 18cm
+      15: 5.60,   // tábua 23cm
+      20: 7.50,   // tábua 28cm
+      25: 9.75,   // tábua 33cm
+      30: 12.25   // tábua 38cm
+    },
+    embalagemAro: {
+      10: 4.45,   // caixa 21x21x20 - Brunoro Lisa
+      15: 5.37,   // caixa 26x26x20 - Brunoro Lisa
+      20: 5.95,   // caixa 30x30x20 - Brunoro Lisa
+      25: 6.89,   // caixa 35x35x20 - Brunoro Lisa
+      30: 7.87    // caixa 40x40x20 - Brunoro Lisa
+    },
+    maoDeObra: {       // por aro (horas × valor/hora)
+      10: 40,
+      15: 60,
+      20: 80,
+      25: 100,
+      30: 130
+    },
+    margemLucro: 30,   // % de lucro sobre custo total
+    // ── PRECIFICAÇÃO DA CONFEITEIRA ──
+    valorHora:    25,  // R$ por hora trabalhada (sua mão de obra)
+    indiretoPct:  15,  // % sobre ingredientes (luz, gás, água estimado)
+    margemNegocio: 30  // % lucro do negócio sobre custo total
+  }
 };
 try {
   const saved = JSON.parse(localStorage.getItem('mr_sucree_config') || 'null');
@@ -1183,6 +1336,54 @@ function saveConfig() {
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
 }
 
+
+
+async function trocarSenhaAdmin() {
+  var atual   = document.getElementById('cfg-pwd-atual').value;
+  var nova    = document.getElementById('cfg-pwd-nova').value;
+  var confirma = document.getElementById('cfg-pwd-confirma').value;
+  var msg     = document.getElementById('cfg-pwd-msg');
+
+  // Validações
+  if (!atual) { msg.style.color='#A32D2D'; msg.textContent='❌ Digite a senha atual.'; return; }
+  if (!nova)  { msg.style.color='#A32D2D'; msg.textContent='❌ Digite a nova senha.'; return; }
+  if (nova.length < 4) { msg.style.color='#A32D2D'; msg.textContent='❌ Mínimo 4 caracteres.'; return; }
+  if (nova !== confirma) { msg.style.color='#A32D2D'; msg.textContent='❌ Senhas não conferem.'; return; }
+
+  // Verificar senha atual — checar local e nuvem
+  var localPwd = getAdminPwd();
+  var cloudPwd = '';
+  try {
+    var res = await sb.from('config').select('admin_pwd').eq('user_id', USER_ID).limit(1);
+    if (res.data && res.data.length > 0) cloudPwd = res.data[0].admin_pwd || '';
+  } catch(e) {}
+
+  var senhaAtualOk = (localPwd && atual === localPwd) || (cloudPwd && atual === cloudPwd);
+  if (!senhaAtualOk) {
+    msg.style.color = '#A32D2D';
+    msg.textContent = '❌ Senha atual incorreta.';
+    document.getElementById('cfg-pwd-atual').value = '';
+    return;
+  }
+
+  // Salvar nova senha local e na nuvem
+  msg.style.color = 'var(--text2)';
+  msg.textContent = '⏳ Salvando...';
+  setAdminPwd(nova);
+  try {
+    await sb.from('config').upsert({ user_id: USER_ID, admin_pwd: nova }, { onConflict: 'user_id' });
+    msg.style.color = 'var(--teal)';
+    msg.textContent = '✅ Senha alterada com sucesso em todos os dispositivos!';
+  } catch(e) {
+    msg.style.color = 'var(--teal)';
+    msg.textContent = '✅ Senha alterada localmente. (sem conexão para sincronizar)';
+  }
+
+  // Limpar campos
+  document.getElementById('cfg-pwd-atual').value = '';
+  document.getElementById('cfg-pwd-nova').value = '';
+  document.getElementById('cfg-pwd-confirma').value = '';
+}
 
 async function salvarSenhaConvidado() {
   const p  = document.getElementById('cfg-sp1').value;
@@ -1213,6 +1414,48 @@ function renderConfigPage() {
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button class="btns" style="flex:1;justify-content:center;font-size:13px" onclick="goPage('estoque')">
         <i class="ti ti-package"></i> Gerenciar Estoque (preços por IA)
+      </button>
+    </div>
+
+    <!-- TROCAR SENHA DO ADMINISTRADOR -->
+    <div class="card" style="margin-bottom:12px;border:1px solid rgba(163,45,45,.3)">
+      <div class="st"><i class="ti ti-shield-lock"></i> Senha do Administrador</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Para trocar sua senha de acesso ao app.</p>
+
+      <div class="fg">
+        <label>Senha atual</label>
+        <div style="position:relative">
+          <input type="password" id="cfg-pwd-atual" placeholder="Digite sua senha atual"
+            style="width:100%;padding:10px 44px 10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+          <button onclick="var i=document.getElementById('cfg-pwd-atual');i.type=i.type==='password'?'text':'password'"
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer">
+            <i class="ti ti-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Nova senha</label>
+        <div style="position:relative">
+          <input type="password" id="cfg-pwd-nova" placeholder="Mínimo 4 caracteres"
+            style="width:100%;padding:10px 44px 10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+          <button onclick="var i=document.getElementById('cfg-pwd-nova');i.type=i.type==='password'?'text':'password'"
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer">
+            <i class="ti ti-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-bottom:14px">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="cfg-pwd-confirma" placeholder="Repita a nova senha"
+          style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+      </div>
+
+      <div id="cfg-pwd-msg" style="font-size:13px;margin-bottom:10px;min-height:18px"></div>
+
+      <button class="btnp" onclick="trocarSenhaAdmin()" style="width:100%;justify-content:center">
+        <i class="ti ti-lock-check"></i> Trocar senha
       </button>
     </div>
 
@@ -1358,7 +1601,261 @@ function renderConfigPage() {
       </div>
     </div>
 
+    <!-- PRECIFICAÇÃO -->
+    <div class="card" style="margin-bottom:12px;border:1px solid rgba(200,163,91,.35)">
+      <div class="st"><i class="ti ti-currency-dollar"></i> Precificação das receitas</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Esses valores são usados para calcular automaticamente o <strong>preço de venda</strong> de cada receita cadastrada.</p>
+
+      <div class="fr" style="margin-bottom:12px">
+        <div class="fg" style="margin-bottom:0">
+          <label>💼 Sua hora de trabalho (R$)</label>
+          <input type="number" id="cfg-valor-hora" value="${sucreeConfig.custos?.valorHora||25}" min="0" step="1"
+            style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--gold)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.valorHora=parseFloat(this.value)||25">
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Ex: R$ 25/h. Receita de 2h = R$ 50 de mão de obra</div>
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>⚡ Custo indireto (% sobre ingredientes)</label>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="number" id="cfg-indireto-pct" value="${sucreeConfig.custos?.indiretoPct||15}" min="0" max="50" step="1"
+              style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--teal)"
+              onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.indiretoPct=parseFloat(this.value)||15">
+            <span style="font-size:14px;color:var(--text2)">%</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Estimativa de luz, gás, água, limpeza (~15% é padrão)</div>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-bottom:8px">
+        <label>📈 Margem de lucro do negócio (%)</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="cfg-margem-negocio" value="${sucreeConfig.custos?.margemNegocio||30}" min="0" max="200" step="5"
+            style="width:80px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--teal)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.margemNegocio=parseFloat(this.value)||30">
+          <span style="font-size:13px;color:var(--text2)">% de lucro sobre o custo total</span>
+        </div>
+      </div>
+
+      <!-- Simulador -->
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px">🧮 Simulador — receita com R$ 50 de ingredientes e 2h de preparo</div>
+        <div id="sim-precificacao" style="font-size:12px;color:var(--text2);line-height:2"></div>
+        <button class="btns" style="font-size:12px;margin-top:8px;width:100%;justify-content:center" onclick="simularPrecificacao()">
+          <i class="ti ti-calculator"></i> Simular
+        </button>
+      </div>
+    </div>
+
+    <!-- QUANTIDADES POR ARO -->
+    <div class="card" style="margin-bottom:12px;border:1px solid rgba(200,163,91,.35)">
+      <div class="st"><i class="ti ti-ruler"></i> Quantidades por aro</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Preencha quanto usa de cada item por aro. Usado para calcular custo real e ficha de cozinha.</p>
+
+      <!-- Recheio por aro -->
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">🎂 Recheio por aro (gramas totais)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px">
+        ${[10,15,20,25,30].map(aro => `
+          <div class="fg" style="margin-bottom:0;text-align:center">
+            <label style="font-size:11px">Aro ${aro}</label>
+            <input type="number" id="cfg-recheio-${aro}"
+              value="${sucreeConfig.custos?.recheioAro?.[aro] || ''}"
+              placeholder="g" min="0" step="50"
+              style="width:100%;padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)">
+          </div>`).join('')}
+      </div>
+
+      <!-- Calda por aro -->
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">💧 Calda por aro (gramas)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px">
+        ${[10,15,20,25,30].map(aro => `
+          <div class="fg" style="margin-bottom:0;text-align:center">
+            <label style="font-size:11px">Aro ${aro}</label>
+            <input type="number" id="cfg-calda-${aro}"
+              value="${sucreeConfig.custos?.caldaAro?.[aro] || ''}"
+              placeholder="g" min="0" step="25"
+              style="width:100%;padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)">
+          </div>`).join('')}
+      </div>
+
+      <!-- Chantilly por aro -->
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase">🍦 Chantilly por aro (ml)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px">
+        ${[10,15,20,25,30].map(aro => `
+          <div class="fg" style="margin-bottom:0;text-align:center">
+            <label style="font-size:11px">Aro ${aro}</label>
+            <input type="number" id="cfg-chantilly-${aro}"
+              value="${sucreeConfig.custos?.chantillyAro?.[aro] || ''}"
+              placeholder="ml" min="0" step="50"
+              style="width:100%;padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--teal)">
+          </div>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">💡 Ex: Aro 15 = 400ml chantilly. Deixe em branco para não calcular.</div>
+    </div>
+
+    <!-- RECEITAS DO CARDÁPIO (VÍNCULO) -->
+    <div class="card" style="margin-bottom:12px;border:1px solid rgba(200,163,91,.35)">
+      <div class="st"><i class="ti ti-link"></i> Receitas usadas no cardápio</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Vincule cada item do cardápio à receita correta para puxar o custo exato.</p>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">💧 Calda usada no cardápio</div>
+      <div class="fr" style="margin-bottom:12px">
+        <div class="fg" style="margin-bottom:0">
+          <label>Calda Branca (Ninho)</label>
+          <select id="cfg-receita-calda-branca"
+            style="width:100%;padding:9px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit">
+            <option value="">— Selecionar —</option>
+            ${recipes.filter(r=>r.group==='Caldas'||r.recipe_group==='Caldas').map(r=>`<option value="${r.name}" ${(sucreeConfig.receitasCardapio?.caldaBranca===r.name)?'selected':''}>${r.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Calda de Chocolate</label>
+          <select id="cfg-receita-calda-choco"
+            style="width:100%;padding:9px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit">
+            <option value="">— Selecionar —</option>
+            ${recipes.filter(r=>r.group==='Caldas'||r.recipe_group==='Caldas').map(r=>`<option value="${r.name}" ${(sucreeConfig.receitasCardapio?.caldaChoco===r.name)?'selected':''}>${r.name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase">🎂 Recheios do cardápio → receita usada</div>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Se você tem várias versões de um recheio, selecione qual receita é a do cardápio.</p>
+      <div id="cfg-recheios-vinculo">
+        ${renderVinculoRecheios()}
+      </div>
+    </div>
+
+    <!-- CUSTOS OPERACIONAIS -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-calculator"></i> Custos operacionais por bolo</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Esses valores são somados automaticamente ao custo de ingredientes para calcular o <strong>custo real</strong> de cada bolo vendido.</p>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📦 Caixa e Tábua por Aro</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px">
+        ${[10,15,20,25,30].map(aro => '<div style="text-align:center;font-size:11px;font-weight:700;color:var(--gold)">Aro '+aro+'</div>').join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px">🗃️ Caixa (R$)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px">
+        ${[10,15,20,25,30].map(aro => `
+          <input type="number" id="cfg-embalagem-${aro}"
+            value="${sucreeConfig.custos?.embalagemAro?.[aro] ?? sucreeConfig.custos?.embalagem ?? 15}"
+            min="0" step="0.50"
+            style="width:100%;padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};if(!sucreeConfig.custos.embalagemAro)sucreeConfig.custos.embalagemAro={};sucreeConfig.custos.embalagemAro[${aro}]=parseFloat(this.value)||0">`
+        ).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px">🪵 Tábua (R$)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px">
+        ${[10,15,20,25,30].map(aro => `
+          <input type="number" id="cfg-tabua-${aro}"
+            value="${sucreeConfig.custos?.tabuaAro?.[aro] ?? sucreeConfig.custos?.tabua ?? 3}"
+            min="0" step="0.50"
+            style="width:100%;padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};if(!sucreeConfig.custos.tabuaAro)sucreeConfig.custos.tabuaAro={};sucreeConfig.custos.tabuaAro[${aro}]=parseFloat(this.value)||0">`
+        ).join('')}
+      </div>
+      <div class="fr" style="margin-bottom:14px">
+        <div class="fg" style="margin-bottom:0">
+          <label>Acessórios (fita, papel...)</label>
+          <input type="number" id="cfg-acessorios" value="${sucreeConfig.custos?.acessorios||2}" min="0" step="0.50"
+            style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.acessorios=parseFloat(this.value)||0">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Limpeza (detergente...)</label>
+          <input type="number" id="cfg-limpeza" value="${sucreeConfig.custos?.limpeza||3}" min="0" step="0.50"
+            style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.limpeza=parseFloat(this.value)||0">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">⚡ Energia & Gás</div>
+      <div class="fr" style="margin-bottom:14px">
+        <div class="fg" style="margin-bottom:0">
+          <label>Energia elétrica (R$)</label>
+          <input type="number" id="cfg-energia" value="${sucreeConfig.custos?.energia||8}" min="0" step="0.50"
+            style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.energia=parseFloat(this.value)||0">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label>Gás (R$)</label>
+          <input type="number" id="cfg-gas" value="${sucreeConfig.custos?.gas||5}" min="0" step="0.50"
+            style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--text)"
+            onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.gas=parseFloat(this.value)||0">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">👩‍🍳 Mão de obra por aro (R$)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px">
+        ${[10,15,20,25,30].map(aro => `
+          <div class="fg" style="margin-bottom:0;text-align:center">
+            <label style="font-size:11px">Aro ${aro}</label>
+            <input type="number" id="cfg-mdo-${aro}" value="${sucreeConfig.custos?.maoDeObra?.[aro]||0}" min="0" step="5"
+              style="width:100%;padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--gold)"
+              onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};if(!sucreeConfig.custos.maoDeObra)sucreeConfig.custos.maoDeObra={};sucreeConfig.custos.maoDeObra[${aro}]=parseFloat(this.value)||0">
+          </div>`).join('')}
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">📈 Margem de lucro desejada</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <input type="number" id="cfg-margem-lucro" value="${sucreeConfig.custos?.margemLucro||30}" min="0" max="200" step="5"
+          style="width:80px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:16px;font-weight:700;text-align:center;font-family:inherit;background:var(--surface);color:var(--teal)"
+          onchange="if(!sucreeConfig.custos)sucreeConfig.custos={};sucreeConfig.custos.margemLucro=parseFloat(this.value)||30">
+        <span style="font-size:14px;color:var(--text2)">% sobre o custo total</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Ex: custo real R$ 100 + 30% = preço mínimo R$ 143,00</div>
+
+      <div id="custo-preview-box" style="background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.25);border-radius:var(--radius-sm);padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:8px">🧮 Prévia: Custo operacional por aro (sem ingredientes)</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center">
+          ${[10,15,20,25,30].map(aro => {
+            const c = sucreeConfig.custos || {};
+            const emb = (c.embalagemAro||{})[aro] ?? c.embalagem ?? 15;
+            const tab = (c.tabuaAro||{})[aro] ?? c.tabua ?? 3;
+            const fixo = emb + tab + (c.acessorios||2)+(c.energia||8)+(c.gas||5)+(c.limpeza||3);
+            const mdo = (c.maoDeObra||{})[aro] || 0;
+            const total = fixo + mdo;
+            return `<div><div style="font-size:10px;color:var(--text2)">Aro ${aro}</div><div style="font-size:14px;font-weight:700;color:var(--gold)">R$${total.toFixed(0)}</div><div style="font-size:9px;color:var(--text3)">caixa R$${emb}+tab R$${tab}</div></div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
     <button class="btnp full" onclick="salvarConfig()"><i class="ti ti-device-floppy"></i> Salvar configurações</button>
+    <!-- LINK TEMPORÁRIO PARA CLIENTE -->
+    <div class="card" style="margin-bottom:12px;border:1px solid rgba(200,163,91,.35)">
+      <div class="st"><i class="ti ti-link"></i> Link temporário para cliente</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">Gera um link do cardápio com prazo de validade. Após o prazo, o cliente vê tela de expirado.</p>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Validade do link</label>
+        <select id="cfg-link-validade"
+          style="width:100%;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+          <option value="6">6 horas</option>
+          <option value="12" selected>12 horas</option>
+          <option value="24">24 horas (1 dia)</option>
+          <option value="48">48 horas (2 dias)</option>
+          <option value="72">72 horas (3 dias)</option>
+        </select>
+      </div>
+      <button class="btnp" onclick="gerarLinkTemporario()" style="width:100%;justify-content:center;margin-bottom:10px">
+        <i class="ti ti-link"></i> Gerar link temporário
+      </button>
+      <div id="link-gerado-box" style="display:none">
+        <div style="background:var(--bg);border:1px solid rgba(200,163,91,.3);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px">🔗 Link gerado:</div>
+          <div id="link-gerado-url" style="font-size:11px;color:var(--gold);word-break:break-all;line-height:1.6"></div>
+          <div id="link-gerado-validade" style="font-size:11px;color:var(--teal);margin-top:6px"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="copiarLinkTemporario()" class="btnp" style="flex:1;justify-content:center;font-size:13px">
+            <i class="ti ti-copy"></i> Copiar
+          </button>
+          <button onclick="compartilharLinkTemporario()" class="btns" style="flex:1;justify-content:center;font-size:13px">
+            <i class="ti ti-brand-whatsapp"></i> Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div style="margin-top:10px;text-align:center">
       <button class="btns" style="font-size:12px" onclick="goPage('share')"><i class="ti ti-share"></i> Compartilhar cardápio</button>
     </div>
@@ -1370,6 +1867,28 @@ function renderConfigPage() {
 // ═══════════════════════════════════════════
 // GERENCIADOR DE GRUPOS
 // ═══════════════════════════════════════════
+
+function simularPrecificacao() {
+  var c = sucreeConfig.custos || {};
+  var ingr = 50, horas = 2;
+  var valorHora = c.valorHora || 25;
+  var indiretoPct = c.indiretoPct || 15;
+  var margem = c.margemNegocio || 30;
+  var indireto = ingr * indiretoPct / 100;
+  var mdo = horas * valorHora;
+  var custoTotal = ingr + indireto + mdo;
+  var precoMin = custoTotal / (1 - margem / 100);
+  var lucro = precoMin - custoTotal;
+  var el = document.getElementById('sim-precificacao');
+  if (el) el.innerHTML =
+    '💸 Ingredientes: <strong>R$ '+ingr.toFixed(2)+'</strong><br>' +
+    '⚡ Indireto ('+indiretoPct+'%): <strong>R$ '+indireto.toFixed(2)+'</strong><br>' +
+    '👩‍🍳 Mão de obra ('+horas+'h × R$'+valorHora+'): <strong>R$ '+mdo.toFixed(2)+'</strong><br>' +
+    '📊 Custo total: <strong>R$ '+custoTotal.toFixed(2)+'</strong><br>' +
+    '💰 <span style="color:var(--gold);font-weight:700">Preço mínimo: R$ '+precoMin.toFixed(2)+'</span><br>' +
+    '📈 <span style="color:var(--teal)">Lucro: R$ '+lucro.toFixed(2)+'</span>';
+}
+
 function getGruposConfig() {
   try { return JSON.parse(localStorage.getItem('mr_grupos') || 'null'); } catch(e) { return null; }
 }
@@ -1457,6 +1976,35 @@ function updateGrupoSelects() {
     sel.innerHTML = '<option value="">Sem grupo</option>'
       + grupos.map(g => `<option value="${g}" ${g===cur?'selected':''}>${g}</option>`).join('');
   });
+}
+
+
+// ═══════════════════════════════════════════
+// CONFIGURAÇÕES: QUANTIDADES E VÍNCULOS
+// ═══════════════════════════════════════════
+function renderVinculoRecheios() {
+  // Get unique recheio names from recipes
+  var recheiosNomes = [...new Set(
+    recipes.filter(function(r){ return r.group === 'Recheios' || r.recipe_group === 'Recheios'; })
+           .map(function(r){ return r.name; })
+  )].sort();
+
+  if (!recheiosNomes.length) return '<div style="font-size:12px;color:var(--text3)">Nenhuma receita de recheio cadastrada ainda.</div>';
+
+  // Group by simplified name (e.g. all "Brigadeiro" variants)
+  var vincs = sucreeConfig.receitasCardapio || {};
+  return recheiosNomes.map(function(nome) {
+    var cur = vincs['recheio_' + nome] || nome;
+    return '<div class="fg" style="margin-bottom:8px">'
+      + '<label style="font-size:12px">Recheio cardápio: <strong>' + nome + '</strong></label>'
+      + '<select id="cfg-vinc-' + nome.replace(/[^a-zA-Z0-9]/g,'_') + '"'
+      + ' style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--surface);color:var(--text);font-family:inherit">'
+      + '<option value="">— Usar esta mesma receita —</option>'
+      + recipes.filter(function(r){ return r.group==='Recheios'||r.recipe_group==='Recheios'; })
+               .map(function(r){ return '<option value="'+r.name+'"'+(r.name===cur?' selected':'')+'>' + r.name + '</option>'; })
+               .join('')
+      + '</select></div>';
+  }).join('');
 }
 
 function salvarConfig() {
@@ -1559,7 +2107,102 @@ function abrirCardapioNovAba() {
 }
 
 
+// ── CANAL NTFY PARA NOTIFICAÇÕES PUSH ──
+// ═══════════════════════════════════════════
+// ⚙️ CONFIGURAÇÕES — ALTERAR AQUI
+// ═══════════════════════════════════════════
+var NTFY_CANAL      = 'sucree_6a6490b03a94'; // canal de notificações push
+var WHATSAPP_SUCREE = WHATSAPP_SUCREE;        // ← TROCAR quando tiver número novo
+                                               // Formato: 55 + DDD + número (sem espaços)
+                                               // Ex novo número: '5527999999999'
+// ═══════════════════════════════════════════
+
+function enviarNotifNtfy(titulo, mensagem, prioridade) {
+  try {
+    fetch('https://ntfy.sh/' + NTFY_CANAL, {
+      method: 'POST',
+      headers: {
+        'Title': titulo,
+        'Priority': prioridade || 'default',
+        'Tags': 'cake',
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: mensagem
+    }).catch(function(){});
+  } catch(e) { /* silent */ }
+}
+
+
+// ═══════════════════════════════════════════
+// CONFIRMAÇÃO DO PEDIDO PARA O CLIENTE
+// ═══════════════════════════════════════════
+function confirmarPedidoCliente(p) {
+  try {
+    var dataFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}) : '—';
+    var recheios = (p.recheios||[]).map(function(r){return r.nome;}).join(' e ') || p.recheio1 || '—';
+    var sinalVal = parseFloat(p.sinal||0);
+    var restante = parseFloat(p.valorTotal||0) - sinalVal;
+
+    var msg = '🎂 *Sucrée Confeitaria*\n\n'
+      + 'Olá, *' + (p.cliente||'') + '*! 😊\n\n'
+      + 'Seu pedido foi confirmado! Aqui está o resumo:\n\n'
+      + '📋 *DETALHES DO PEDIDO*\n'
+      + '🎂 Bolo Aro ' + (p.aro||'?') + 'cm\n'
+      + '• Massa: ' + (p.massaNome||'—') + '\n'
+      + '• Recheios: ' + recheios + '\n'
+      + '• Cobertura: ' + (p.coberturaNome||'—') + '\n'
+      + (p.tema ? '• Tema: ' + p.tema + '\n' : '')
+      + '\n📅 *Entrega:* ' + dataFmt + ' às ' + (p.hora||'—') + '\n'
+      + (p.retira ? '🏪 *Retirada* no nosso ateliê\n' : '🚗 *Entregue* no seu endereço\n')
+      + '\n💰 *Financeiro:*\n'
+      + '• Total: R$ ' + parseFloat(p.valorTotal||0).toFixed(2) + '\n'
+      + (sinalVal > 0 ? '• Sinal pago: R$ ' + sinalVal.toFixed(2) + '\n' : '')
+      + (restante > 0 ? '• A pagar na entrega: *R$ ' + restante.toFixed(2) + '*\n' : '')
+      + '• Pagamento: ' + (p.pagamento||'—') + '\n'
+      + '\n💛 Qualquer dúvida, estou à disposição!\n'
+      + '_Sucrée Confeitaria — feito com amor_ 🎂';
+
+    var tel = (p.telefone||'').replace(/\D/g,'');
+    if (!tel.startsWith('55')) tel = '55' + tel;
+    window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(msg), '_blank');
+  } catch(e) {
+    console.log('Erro confirmação cliente:', e);
+  }
+}
+
+// ═══════════════════════════════════════════
+// AVALIAÇÃO PÓS-ENTREGA
+// ═══════════════════════════════════════════
+function enviarPedidoAvaliacao(p) {
+  try {
+    var msg = '🎂 *Sucrée Confeitaria*\n\n'
+      + 'Olá, *' + (p.cliente||'') + '*!\n\n'
+      + 'Esperamos que você e seus convidados tenham adorado o bolo! 🥰\n\n'
+      + 'Gostaríamos muito de saber a sua opinião. Você pode responder aqui mesmo:\n\n'
+      + '⭐ Como foi a sua experiência com a Sucrée?\n'
+      + '• Aparência do bolo\n'
+      + '• Sabor\n'
+      + '• Atendimento\n'
+      + '• Pontualidade\n\n'
+      + 'Sua avaliação nos ajuda a melhorar e é muito importante para nós! 💛\n\n'
+      + '_Sucrée Confeitaria — feito com amor_ 🎂';
+
+    var tel = (p.telefone||'').replace(/\D/g,'');
+    if (!tel.startsWith('55')) tel = '55' + tel;
+    if (!tel || tel.length < 12) { toast('Telefone do cliente não cadastrado'); return; }
+    window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(msg), '_blank');
+    toast('✅ Mensagem de avaliação enviada!');
+  } catch(e) {
+    toast('Erro ao enviar avaliação');
+  }
+}
+
 function notificarWhatsApp(p) {
+  // Notificação push instantânea
+  var resumoNtfy = (p.cliente||'Cliente') + ' · Aro ' + (p.aro||'?') + ' · R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
+  if (p.data) resumoNtfy += ' · ' + new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR');
+  enviarNotifNtfy('🎂 Novo Pedido - Sucrée', resumoNtfy, 'high');
+
   try {
     const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
     const recheios = (p.recheios||[]).map(r=>r.nome).join(', ') || '—';
@@ -1782,4 +2425,57 @@ function imprimirPedidoCozinha(id) {
   win.document.write(html);
   win.document.close();
 }
+
+// ═══════════════════════════════════════════
+// LINK TEMPORÁRIO PARA CLIENTE
+// ═══════════════════════════════════════════
+function gerarLinkTemporario() {
+  var horas = parseInt(document.getElementById('cfg-link-validade').value) || 12;
+  var agora = Date.now();
+  var expira = agora + (horas * 60 * 60 * 1000);
+  var token = btoa(String(expira)).replace(/[^a-zA-Z0-9]/g,'').substring(0, 16);
+  var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+  var link = base + 'cardapio.html?token=' + token + '&exp=' + expira;
+
+  // Salvar token válido
+  var tokens = [];
+  try { tokens = JSON.parse(localStorage.getItem('mr_tokens_ativos') || '[]'); } catch(e) {}
+  tokens = tokens.filter(function(t){ return t.exp > agora; });
+  tokens.push({ token: token, exp: expira, horas: horas, criado: agora });
+  localStorage.setItem('mr_tokens_ativos', JSON.stringify(tokens));
+
+  var box = document.getElementById('link-gerado-box');
+  var urlEl = document.getElementById('link-gerado-url');
+  var valEl = document.getElementById('link-gerado-validade');
+  if (box) box.style.display = 'block';
+  if (urlEl) urlEl.textContent = link;
+  var expDate = new Date(expira);
+  var expFmt = expDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' às ' + expDate.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  if (valEl) valEl.textContent = '⏰ Válido por ' + horas + 'h — expira em ' + expFmt;
+  window._linkTemporario = link;
+  window._linkExpira = expFmt;
+  window._linkHoras = horas;
+}
+
+function copiarLinkTemporario() {
+  var link = window._linkTemporario;
+  if (!link) { toast('Gere o link primeiro'); return; }
+  navigator.clipboard.writeText(link).then(function(){ toast('✅ Link copiado!'); }).catch(function(){
+    var el = document.createElement('textarea');
+    el.value = link; document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    toast('✅ Link copiado!');
+  });
+}
+
+function compartilharLinkTemporario() {
+  var link = window._linkTemporario;
+  var horas = window._linkHoras || 12;
+  var expira = window._linkExpira || '';
+  if (!link) { toast('Gere o link primeiro'); return; }
+  var nl = '\n';
+  var msg = '🎂 *Sucrée Confeitaria*' + nl + nl + 'Olá! Segue o link do nosso cardápio:' + nl + nl + '👉 ' + link + nl + nl + '⏰ *Válido por ' + horas + 'h* (até ' + expira + ')' + nl + nl + 'Qualquer dúvida estou à disposição! 💛' + nl + '_Sucrée Confeitaria — feito com amor_ 🎂';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
 
