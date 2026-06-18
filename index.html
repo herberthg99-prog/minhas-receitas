@@ -173,25 +173,36 @@ button{font-family:inherit;cursor:pointer}
 .loading-overlay p{font-size:14px;color:var(--text2);font-weight:600}
 .user-id-box{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
-.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background-image:url(https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg);background-size:cover;background-position:right center;z-index:9999;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;padding:20px;overflow-y:auto}
-.login-box{background:rgba(10,6,0,.88);border-radius:20px;padding:24px 20px;width:100%;max-width:340px;margin-top:0;box-shadow:0 8px 60px rgba(0,0,0,.9),0 0 0 1px rgba(200,163,91,.4);text-align:center;border:1px solid rgba(200,163,91,.5);backdrop-filter:blur(12px)}
-.login-logo{font-size:52px;margin-bottom:6px}
-.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
-.login-sub{font-size:14px;color:var(--text2);margin-bottom:28px}
-.login-input{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:.15em;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:12px;transition:border-color .2s}
+/* ── LOGIN ── */
+.login-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background-image:url(https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg);
+  background-size:cover;background-position:right center;
+  z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  padding:0 12px 28px;overflow-y:auto;
+}
+.login-box{
+  background:rgba(10,6,0,.93);border-radius:16px;
+  padding:12px;width:100%;max-width:360px;
+  box-shadow:0 8px 60px rgba(0,0,0,.9),0 0 0 1px rgba(200,163,91,.4);
+  text-align:center;border:1px solid rgba(200,163,91,.4);
+  backdrop-filter:blur(14px);
+  position:relative;z-index:1;
+}
+.login-input{width:100%;padding:10px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:18px;text-align:center;letter-spacing:.15em;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:8px;transition:border-color .2s}
 .login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
-.login-btn{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px;transition:opacity .15s}
+.login-btn{width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
 .login-err{font-size:13px;color:#A32D2D;margin-top:4px;min-height:18px}
-.login-hint{font-size:12px;color:var(--text3);margin-top:16px}
-.login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px;font-size:13px;color:var(--text2);text-align:left}
+.login-hint{font-size:11px;color:var(--text3);margin-top:10px}
+.login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:13px;color:var(--text2);text-align:left}
 .login-setup p{font-weight:700;margin-bottom:6px;color:var(--text)}
-.pwd-toggle{position:relative;margin-bottom:12px}
+.pwd-toggle{position:relative;margin-bottom:8px}
 .pwd-toggle input{padding-right:44px}
 .pwd-toggle button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px}
-.login-forgot{font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block}
+.login-forgot{font-size:12px;color:var(--gold);cursor:pointer;text-decoration:underline;margin-top:6px;display:inline-block}
 
-@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
 
 .estoque-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
@@ -226,12 +237,10 @@ button{font-family:inherit;cursor:pointer}
 .total-row.grand{font-size:17px;font-weight:700;color:var(--gold);border-bottom:none;border-top:1.5px solid var(--border);margin-top:6px;padding-top:8px}
 .total-row.saldo{font-size:14px;font-weight:700;color:var(--teal)}
 
-/* ── TELA CHEIA ── */
 .app { max-width: 100% !important; }
 .bottomnav { max-width: 100% !important; }
 .content { padding: 14px 16px 90px; }
 
-/* ── GRID PANELINHA ── */
 .recipes-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -250,88 +259,17 @@ button{font-family:inherit;cursor:pointer}
   position: relative;
 }
 .rc-card:active { transform: scale(.97); }
-.rc-card-thumb {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  display: block;
-  background: #2A1C0A;
-}
-.rc-card-no-photo {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: linear-gradient(135deg, #2A1C0A, #1A1208);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-}
+.rc-card-thumb { width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#2A1C0A; }
+.rc-card-no-photo { width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#2A1C0A,#1A1208);display:flex;align-items:center;justify-content:center;font-size:40px; }
 .rc-card-body { padding: 8px 10px 6px; }
-.rc-card-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: #F5EDD8;
-  font-family: Georgia, serif;
-  line-height: 1.3;
-  margin-bottom: 5px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.rc-card-meta {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-.rc-card-actions {
-  display: flex;
-  justify-content: space-around;
-  padding: 5px 0;
-  border-top: 1px solid rgba(200,163,91,.12);
-}
-.rc-card-btn {
-  background: none;
-  border: none;
-  color: var(--text2);
-  font-size: 17px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.rc-card-btn.azul { color: var(--blue); }
-.rc-card-btn.verde { color: var(--teal); }
-.rc-card-btn.ouro { color: var(--gold); }
-.rc-card-btn.vermelho { color: #A32D2D; }
-.rc-card-btn.shared-on { color: var(--blue); }
-.rc-shared-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: var(--blue);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 20px;
-}
-.rc-lucro-badge {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-}
-.alpha-divider {
-  grid-column: 1 / -1;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--gold);
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  padding: 6px 2px 4px;
-  border-bottom: 1px solid rgba(200,163,91,.2);
-}
+.rc-card-name { font-size:13px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.rc-card-meta { display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:6px; }
+.rc-card-actions { display:flex;justify-content:space-around;padding:5px 0;border-top:1px solid rgba(200,163,91,.12); }
+.rc-card-btn { background:none;border:none;color:var(--text2);font-size:17px;padding:4px 6px;border-radius:6px;cursor:pointer; }
+.rc-card-btn.azul{color:var(--blue)}.rc-card-btn.verde{color:var(--teal)}.rc-card-btn.ouro{color:var(--gold)}.rc-card-btn.vermelho{color:#A32D2D}.rc-card-btn.shared-on{color:var(--blue)}
+.rc-shared-badge { position:absolute;top:6px;right:6px;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px; }
+.rc-lucro-badge { position:absolute;top:6px;left:6px; }
+.alpha-divider { grid-column:1/-1;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;padding:6px 2px 4px;border-bottom:1px solid rgba(200,163,91,.2); }
 
 @media (min-width: 700px) {
   .overlay { align-items: center; justify-content: center; }
@@ -343,18 +281,11 @@ button{font-family:inherit;cursor:pointer}
   .content { max-width: 1200px; margin: 0 auto; }
 }
 
-/* ── SUB-ABAS ── */
 .sub-abas-row { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .sub-abas-row::-webkit-scrollbar { display: none; }
-.sub-aba {
-  flex: 0 0 auto; padding: 6px 14px; border-radius: 20px;
-  border: 1px solid var(--border); background: var(--bg); color: var(--text2);
-  font-size: 12px; font-weight: 700; font-family: inherit;
-  cursor: pointer; white-space: nowrap; transition: all .2s;
-}
-.sub-aba.act { background: var(--gold); border-color: var(--gold); color: #fff; }
+.sub-aba { flex:0 0 auto;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .2s; }
+.sub-aba.act { background:var(--gold);border-color:var(--gold);color:#fff; }
 
-/* ── LAYOUT VIEW 2 COLUNAS (desktop) ── */
 .view-layout { display: flex; flex-direction: column; gap: 0; }
 @media (min-width: 700px) {
   .view-layout { flex-direction: row; gap: 24px; align-items: flex-start; }
@@ -362,49 +293,50 @@ button{font-family:inherit;cursor:pointer}
   .view-col-receita { flex: 1; min-width: 0; }
 }
 
-/* ── FIX ihl: ingrediente principal texto visível ── */
 tr.ihl td { color: #1a3a6b !important; }
 tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
-/* ── GERADOR DE DECORAÇÃO ── */
-.deco-option {
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 12px;
-  background: var(--surface);
-  cursor: pointer;
-  transition: border-color .2s;
-}
+.deco-option { border:2px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;background:var(--surface);cursor:pointer;transition:border-color .2s; }
 .deco-option:hover { border-color: var(--gold); }
-.deco-option h3 { font-size:15px; font-weight:700; color:#F5EDD8; font-family:Georgia,serif; margin-bottom:6px; }
-.deco-option p  { font-size:13px; color:var(--text2); line-height:1.6; }
-.deco-copy-btn  { background:var(--gold); color:#fff; border:none; border-radius:var(--radius-sm); padding:10px 18px; font-size:14px; font-weight:700; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:6px; width:100%; justify-content:center; margin-top:10px; }
+.deco-option h3 { font-size:15px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;margin-bottom:6px; }
+.deco-option p { font-size:13px;color:var(--text2);line-height:1.6; }
+.deco-copy-btn { background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-top:10px; }
 </style>
 </head>
 <body>
 
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="login-overlay">
-  <!-- Dark overlay to cover background logo and improve readability -->
-  <div style="<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(5,3,0,.97) 0%,rgba(5,3,0,.92) 30%,rgba(5,3,0,.6) 55%,rgba(0,0,0,.1) 100%);z-index:0"></div>
-  <div class="login-box" style="position:relative;z-index:1">
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:130px;height:auto;filter:brightness(1.8) drop-shadow(0 4px 24px rgba(200,163,91,.9));margin-bottom:12px">
-    <div class="login-title" style="font-family:Georgia,serif;font-size:22px;color:#F5EDD8;margin-bottom:4px">Área Administrativa</div>
-    <div class="login-sub" style="color:rgba(200,163,91,.8);font-size:13px;margin-bottom:20px">Sucrée Confeitaria</div>
 
-    <!-- USER SELECTOR -->
-    <div id="user-selector" style="display:flex;gap:10px;margin-bottom:20px;width:100%">
+  <!-- Gradiente esquerda: escurece lado esq e cobre logo da foto -->
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(5,2,0,.97) 0%,rgba(5,2,0,.92) 30%,rgba(5,2,0,.55) 55%,rgba(5,2,0,0) 80%);z-index:0;pointer-events:none"></div>
+  <!-- Gradiente rodapé: fundo escuro para o card -->
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(5,2,0,.98) 0%,rgba(5,2,0,.7) 28%,rgba(5,2,0,0) 52%);z-index:0;pointer-events:none"></div>
+
+  <!-- LOGO CANTO SUPERIOR ESQUERDO -->
+  <div style="position:absolute;top:28px;left:20px;z-index:2;display:flex;align-items:center;gap:10px">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
+      style="height:54px;width:auto;filter:brightness(1.8) drop-shadow(0 2px 16px rgba(200,163,91,.9))">
+    <div>
+      <div style="font-size:17px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;letter-spacing:.04em;line-height:1.1">Sucrée</div>
+      <div style="font-size:10px;color:rgba(200,163,91,.7);letter-spacing:.1em;text-transform:uppercase">Confeitaria</div>
+    </div>
+  </div>
+
+  <!-- CARD COMPACTO NO RODAPÉ -->
+  <div class="login-box">
+
+    <div id="user-selector" style="display:flex;gap:8px;margin-bottom:12px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
-        style="flex:1;padding:12px 8px;border-radius:var(--radius-sm);border:2px solid var(--coral);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
+        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid var(--coral);background:var(--gold);color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
         <img src="https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg"
-          style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:center top;border:2px solid rgba(255,255,255,.8)"
-          onerror="this.outerHTML='<span style=\'font-size:22px\'>👨‍🍳</span>'">
+          style="width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:center top;border:2px solid rgba(255,255,255,.8)"
+          onerror="this.outerHTML='<span style=\'font-size:20px\'>👨‍🍳</span>'">
         <span>Administrador</span>
       </button>
       <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:12px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">👤</span>
+        style="flex:1;padding:9px 6px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+        <span style="font-size:20px">👤</span>
         <span>Convidado</span>
       </button>
     </div>
@@ -414,7 +346,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
     </div>
 
-    <div id="login-user-label" style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;text-align:left;width:100%">Senha do Administrador</div>
+    <div id="login-user-label" style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;text-align:left;width:100%">Senha do Administrador</div>
 
     <div class="pwd-toggle">
       <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
@@ -455,23 +387,13 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <div class="page act" id="page-home"></div>
   <div class="page" id="page-receitas">
     <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:10px">
-      <button id="cat-doce" onclick="setCatFilter('doce')"
-        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-        🍰 Doces
-      </button>
-      <button id="cat-salgada" onclick="setCatFilter('salgada')"
-        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-        🥩 Salgadas
-      </button>
-      <button id="cat-all" onclick="setCatFilter('')"
-        style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-        🍽 Todas
-      </button>
+      <button id="cat-doce" onclick="setCatFilter('doce')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Doces</button>
+      <button id="cat-salgada" onclick="setCatFilter('salgada')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🥩 Salgadas</button>
+      <button id="cat-all" onclick="setCatFilter('')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍽 Todas</button>
     </div>
     <div id="sub-abas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap"></div>
     <div style="margin-bottom:12px">
-      <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()"
-        style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+      <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
       <input type="hidden" id="fg2" value="">
     </div>
     <input type="hidden" id="fc" value="">
@@ -495,9 +417,9 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
   <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
   <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
-  <i class="ti ti-circle-plus" style="font-size:30px;color:var(--gold)"></i>
-  <span style="color:var(--gold);font-weight:700">Nova</span>
-</button>
+    <i class="ti ti-circle-plus" style="font-size:30px;color:var(--gold)"></i>
+    <span style="color:var(--gold);font-weight:700">Nova</span>
+  </button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
   <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
   <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
@@ -521,15 +443,9 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <span style="font-size:11px;color:var(--text2);word-break:break-all;flex:1">herberthg99-prog.github.io/minhas-receitas/cardapio.html</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button onclick="compartilharCardapioWhats()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        <i class="ti ti-brand-whatsapp" style="font-size:20px"></i> Enviar pelo WhatsApp
-      </button>
-      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        <i class="ti ti-copy" style="font-size:20px"></i> Copiar link
-      </button>
-      <button onclick="abrirCardapioNovAba()" style="width:100%;padding:14px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        <i class="ti ti-external-link" style="font-size:20px"></i> Abrir cardápio
-      </button>
+      <button onclick="compartilharCardapioWhats()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-brand-whatsapp" style="font-size:20px"></i> Enviar pelo WhatsApp</button>
+      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-copy" style="font-size:20px"></i> Copiar link</button>
+      <button onclick="abrirCardapioNovAba()" style="width:100%;padding:14px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-external-link" style="font-size:20px"></i> Abrir cardápio</button>
     </div>
     <div style="margin-top:14px;text-align:center">
       <button onclick="cm('modal-cardapio-share')" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;font-family:inherit;padding:8px">Fechar</button>
@@ -707,9 +623,6 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <div id="toast" class="toast"></div>
 </div>
 
-
-
-
 <!-- CONFEITARIA PEDIDO SHEET -->
 <div class="overlay" id="modal-pedido" style="display:none">
 <div class="sheet">
@@ -725,8 +638,6 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <button class="tb" onclick="stPedido(2)"><i class="ti ti-palette"></i> Decoração</button>
       <button class="tb" onclick="stPedido(3)"><i class="ti ti-currency-dollar"></i> Total</button>
     </div>
-
-    <!-- TAB 0: CLIENTE -->
     <div id="pt0">
       <div class="fg"><label>Nome do cliente</label><input type="text" id="p-cliente" placeholder="Ex: Maria Silva"></div>
       <div class="fr">
@@ -736,14 +647,8 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <div class="fg">
         <label>Cliente retira?</label>
         <div style="display:flex;gap:10px;margin-top:4px">
-          <button id="btn-retira-sim" onclick="setPedidoRetira(true)"
-            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-            ✅ Sim, retira
-          </button>
-          <button id="btn-retira-nao" onclick="setPedidoRetira(false)"
-            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-            🚗 Não, entrego
-          </button>
+          <button id="btn-retira-sim" onclick="setPedidoRetira(true)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">✅ Sim, retira</button>
+          <button id="btn-retira-nao" onclick="setPedidoRetira(false)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🚗 Não, entrego</button>
         </div>
       </div>
       <div id="entrega-addr-box" style="display:none">
@@ -752,8 +657,6 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <div class="fg"><label>Telefone / WhatsApp</label><input type="tel" id="p-telefone" placeholder="(27) 99999-9999"></div>
       <div class="fg"><label>Observações do cliente</label><textarea id="p-obs-cliente" placeholder="Alergias, preferências, informações extras..." style="min-height:60px"></textarea></div>
     </div>
-
-    <!-- TAB 1: BOLO -->
     <div id="pt1" style="display:none">
       <div class="fg">
         <label>Tamanho do bolo (Aro)</label>
@@ -765,60 +668,27 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
           <button class="aro-btn" onclick="setAro(30)" id="aro-30">Aro 30</button>
         </div>
       </div>
-      <div id="aro-info-box" style="display:none" class="info-box" style="margin-top:4px"></div>
-
+      <div id="aro-info-box" style="display:none" class="info-box"></div>
       <div class="fg">
         <label>Tipo de massa</label>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="massa-btn" onclick="setMassa('amanteigada')" id="massa-amanteigada"
-            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-            🧈 Amanteigada
-          </button>
-          <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo"
-            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-            🍰 Pão de Ló
-          </button>
+          <button class="massa-btn" onclick="setMassa('amanteigada')" id="massa-amanteigada" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧈 Amanteigada</button>
+          <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Pão de Ló</button>
         </div>
       </div>
-
-      <div class="fg">
-        <label>Recheio 1</label>
-        <select id="p-recheio1" onchange="calcPedidoTotal()">
-          <option value="">Selecione o recheio...</option>
-        </select>
-      </div>
-
-      <div class="fg">
-        <label>Recheio 2 (opcional)</label>
-        <select id="p-recheio2" onchange="calcPedidoTotal()">
-          <option value="">Nenhum / mesmo recheio</option>
-        </select>
-      </div>
-
+      <div class="fg"><label>Recheio 1</label><select id="p-recheio1" onchange="calcPedidoTotal()"><option value="">Selecione o recheio...</option></select></div>
+      <div class="fg"><label>Recheio 2 (opcional)</label><select id="p-recheio2" onchange="calcPedidoTotal()"><option value="">Nenhum / mesmo recheio</option></select></div>
       <div class="fg">
         <label>Tipo de cobertura</label>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="cob-btn" onclick="setCobertura('chantininho')" id="cob-chantininho"
-            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-            🍦 Chantininho
-          </button>
-          <button class="cob-btn" onclick="setCobertura('buttercream')" id="cob-buttercream"
-            style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-            🧁 Buttercream
-          </button>
+          <button class="cob-btn" onclick="setCobertura('chantininho')" id="cob-chantininho" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍦 Chantininho</button>
+          <button class="cob-btn" onclick="setCobertura('buttercream')" id="cob-buttercream" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧁 Buttercream</button>
         </div>
       </div>
-
-      <div class="fg">
-        <label>Valor do bolo (R$)</label>
-        <input type="number" id="p-valor-bolo" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()">
-      </div>
+      <div class="fg"><label>Valor do bolo (R$)</label><input type="number" id="p-valor-bolo" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
     </div>
-
-    <!-- TAB 2: DECORAÇÃO -->
     <div id="pt2" style="display:none">
       <div class="fg"><label>Tema do bolo</label><input type="text" id="p-tema" placeholder="Ex: Frozen, Safari, Floral..."></div>
-
       <div class="fg">
         <label>Foto de inspiração</label>
         <div class="photo-zone" onclick="document.getElementById('p-inspi-input').click()" style="padding:16px">
@@ -828,48 +698,27 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <input type="file" id="p-inspi-input" accept="image/*" capture="environment" style="display:none" onchange="addInspiPhoto(event)">
         <div id="p-inspi-preview" style="margin-top:8px"></div>
       </div>
-
       <div style="margin-bottom:14px">
         <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:8px">Adicionais</label>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
-            <div>
-              <div style="font-size:14px;font-weight:700">💐 Flores</div>
-              <div style="font-size:12px;color:var(--text2)">R$ 50,00</div>
-            </div>
+            <div><div style="font-size:14px;font-weight:700">💐 Flores</div><div style="font-size:12px;color:var(--text2)">R$ 50,00</div></div>
             <div style="display:flex;gap:8px">
-              <button id="btn-flores-sim" onclick="setFlores(true)"
-                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-                Sim
-              </button>
-              <button id="btn-flores-nao" onclick="setFlores(false)"
-                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-                Não
-              </button>
+              <button id="btn-flores-sim" onclick="setFlores(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
+              <button id="btn-flores-nao" onclick="setFlores(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
             </div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
-            <div>
-              <div style="font-size:14px;font-weight:700">🎨 Papelaria</div>
-              <div style="font-size:12px;color:var(--text2)">R$ 35,00</div>
-            </div>
+            <div><div style="font-size:14px;font-weight:700">🎨 Papelaria</div><div style="font-size:12px;color:var(--text2)">R$ 35,00</div></div>
             <div style="display:flex;gap:8px">
-              <button id="btn-papel-sim" onclick="setPapelaria(true)"
-                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-                Sim
-              </button>
-              <button id="btn-papel-nao" onclick="setPapelaria(false)"
-                style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">
-                Não
-              </button>
+              <button id="btn-papel-sim" onclick="setPapelaria(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
+              <button id="btn-papel-nao" onclick="setPapelaria(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
             </div>
           </div>
         </div>
       </div>
       <div class="fg"><label>Observações da decoração</label><textarea id="p-obs-deco" placeholder="Cores, detalhes especiais..." style="min-height:60px"></textarea></div>
     </div>
-
-    <!-- TAB 3: TOTAL -->
     <div id="pt3" style="display:none">
       <div id="pedido-total-box"></div>
       <div class="fg" style="margin-top:12px"><label>Custo estimado (R$) — deixe vazio para auto 35%</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
@@ -916,7 +765,6 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <div class="sheet-body" id="pv-body"></div>
 </div>
 </div>
-
 
 <script>
 if("serviceWorker" in navigator){
