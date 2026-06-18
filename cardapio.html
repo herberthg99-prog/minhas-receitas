@@ -1173,6 +1173,7 @@ async function enviarPedido() {
   }
   // Notificar Herberth pelo WhatsApp
   setTimeout(() => notificarWhatsApp(novoPedido), 1500);
+  setTimeout(() => enviarFichaCozinha(novoPedido), 2000);
     } else {
       const errText = await resp.text();
       console.error('Supabase error:', resp.status, errText);
@@ -1213,6 +1214,67 @@ if(pedido.nome || pedido.aro) {
   toast('📋 Pedido em andamento restaurado!', 3000);
 }
 
+// ═══════════════════════════════════════════
+// VALIDAÇÃO DO LINK TEMPORÁRIO
+// ═══════════════════════════════════════════
+(function validarLinkTemporario() {
+  var params = new URLSearchParams(window.location.search);
+  var token  = params.get('token');
+  var exp    = parseInt(params.get('exp') || '0');
+
+  // Se não tem token, é o link público normal — deixa passar
+  if (!token) return;
+
+  // Verificar se expirou
+  var agora = Date.now();
+  if (exp && agora > exp) {
+    // Link expirado — mostrar tela elegante
+    document.body.innerHTML = `
+      <div style="min-height:100vh;background:#0F0800;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Georgia,serif">
+        <div style="text-align:center;max-width:340px">
+          <img src="logo.png" alt="Sucrée" style="height:80px;filter:brightness(2) drop-shadow(0 4px 20px rgba(200,163,91,.5));margin-bottom:24px">
+          <div style="font-size:28px;margin-bottom:12px">⏰</div>
+          <h1 style="font-size:22px;color:#C8A35B;margin-bottom:10px">Link expirado</h1>
+          <p style="font-size:14px;color:#A89070;line-height:1.7;margin-bottom:24px">
+            Este link de acesso ao cardápio não é mais válido.<br><br>
+            Entre em contato com a <strong style="color:#C8A35B">Sucrée Confeitaria</strong> para receber um novo link.
+          </p>
+          <a href="https://wa.me/5527995213194?text=Olá!%20Preciso%20de%20um%20novo%20link%20do%20cardápio%20🎂"
+            target="_blank"
+            style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:25px;padding:14px 24px;font-size:15px;font-weight:700;font-family:Georgia,serif;text-decoration:none">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Solicitar novo link
+          </a>
+          <p style="font-size:11px;color:#6B5A40;margin-top:20px">Sucrée Confeitaria · Vitória – ES</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Token válido — verificar na lista de tokens do admin (localStorage compartilhado)
+  // Como é mesmo domínio, o localStorage é acessível
+  var tokens = [];
+  try { tokens = JSON.parse(localStorage.getItem('mr_tokens_ativos') || '[]'); } catch(e) {}
+  var tokenValido = tokens.some(function(t){ return t.token === token && t.exp > agora; });
+
+  if (!tokenValido && token) {
+    // Token não encontrado — pode ser dispositivo diferente, verificar só pela exp
+    if (!exp || agora > exp) {
+      document.body.innerHTML = document.body.innerHTML; // trigger expired screen above
+    }
+    // Se exp ainda válido mas token não está na lista local, deixa passar
+    // (cliente em outro dispositivo)
+  }
+})();
+
+// ═══════════════════════════════════════════
+// ⚙️ CONFIGURAÇÕES — ALTERAR AQUI
+// ═══════════════════════════════════════════
+var NTFY_CANAL      = 'sucree_6a6490b03a94'; // canal de notificações push
+var WHATSAPP_SUCREE = '5527995213194';        // ← TROCAR quando tiver número novo
+                                               // Formato: 55 + DDD + número (sem espaços)
+// ═══════════════════════════════════════════
+
 // ═══ NOTIFICAÇÃO WHATSAPP — NOVO PEDIDO ═══
 function notificarWhatsApp(p) {
   try {
@@ -1245,14 +1307,71 @@ function notificarWhatsApp(p) {
       `\n_Acesse o app para ver todos os detalhes e atualizar o status._`
     );
 
-    // Número da Herberth — pode alterar aqui
-    const numero = '5527995213194';
+    // ⚙️ NÚMERO WHATSAPP — trocar aqui quando tiver número da Sucrée
+    const numero = WHATSAPP_SUCREE || '5527995213194';
     window.open(`https://wa.me/${numero}?text=${msg}`, '_blank');
   } catch(e) {
     console.log('Notificação WhatsApp erro:', e.message);
   }
+
+  // ── NOTIFICAÇÃO PUSH (Ntfy) ──
+  try {
+    const resumo = `${p.cliente||'Cliente'} · Aro ${p.aro||'?'} · R$ ${parseFloat(p.valorTotal||0).toFixed(2)} · ${new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR')}`;
+    fetch('https://ntfy.sh/' + NTFY_CANAL, {
+      method: 'POST',
+      headers: {
+        'Title': '🎂 Novo Pedido - Sucrée',
+        'Priority': 'high',
+        'Tags': 'cake,moneybag',
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: resumo
+    }).catch(function(){});
+  } catch(e2) {
+    console.log('Ntfy erro:', e2.message);
+  }
+}
+
+
+function enviarFichaCozinha(p) {
+  var massaReceitas = {
+    'fofinha':            'Pão de Ló Fofinha',
+    'fofinha-chocolate':  'Pão de Ló Fofinha Chocolate',
+    'classica':           'Massa Clássica (Amanteigada)',
+    'classica-chocolate': 'Massa Clássica Chocolate (Amanteigada)'
+  };
+  var massaNome = massaReceitas[p.massa] || p.massaNome || p.massa || '—';
+  var aro = p.aro || '?';
+  var recheio1 = p.recheio1 || '—';
+  var recheio2 = p.recheio2 || '—';
+  var cobertura = p.coberturaNome || p.cobertura || '—';
+  var dataFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}) : '—';
+  var multMassa = {'10':'½ receita','15':'1 receita','20':'1¾ receitas','25':'2¾ receitas','30':'4 receitas'};
+  var nl = '\n';
+
+  var msg = '👩‍🍳 *FICHA DE COZINHA — Sucrée*' + nl + nl
+    + '📋 *Pedido:* ' + (p.cliente||'Cliente') + nl
+    + '📅 *Entrega:* ' + dataFmt + ' às ' + (p.hora||'—') + nl + nl
+    + '🎂 *BOLO ARO ' + aro + 'cm*' + nl
+    + '━━━━━━━━━━━━━━━━━' + nl
+    + '🍞 *Massa:* ' + massaNome + nl
+    + '   → Quantidade: ' + (multMassa[String(aro)] || '—') + nl + nl
+    + '🎂 *Recheio 1:* ' + recheio1 + nl
+    + '🎂 *Recheio 2:* ' + (recheio2 && recheio2 !== recheio1 ? recheio2 : '(mesmo recheio)') + nl + nl
+    + '🧁 *Cobertura:* ' + cobertura + nl
+    + (p.tema ? '🎨 *Tema:* ' + p.tema + nl : '')
+    + (p.obs  ? '💬 *Obs:* '  + p.obs  + nl : '')
+    + nl + '━━━━━━━━━━━━━━━━━' + nl
+    + '💰 Valor: R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
+
+  var numero = typeof WHATSAPP_SUCREE !== 'undefined' ? WHATSAPP_SUCREE : '5527995213194';
+  try {
+    window.open('https://wa.me/' + numero + '?text=' + encodeURIComponent(msg), '_blank');
+  } catch(e) { console.log('Ficha cozinha erro:', e); }
 }
 
 </script>
+
+
 </body>
 </html>
