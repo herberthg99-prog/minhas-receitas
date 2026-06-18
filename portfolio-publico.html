@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sucrée Confeitaria — Conheça nosso trabalho</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0F0800;color:#F5EDD8;font-family:'Georgia',serif;min-height:100vh}
+  .hero{text-align:center;padding:40px 20px 30px;background:linear-gradient(180deg,#1E1408,#0F0800)}
+  .logo{height:80px;filter:brightness(2) drop-shadow(0 4px 20px rgba(200,163,91,.6));margin-bottom:16px}
+  .hero h1{font-size:28px;color:#C8A35B;margin-bottom:6px}
+  .hero p{font-size:14px;color:#A89070;margin-bottom:20px}
+  .hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn-gold{background:linear-gradient(135deg,#C8A35B,#E8C97A);color:#1E1408;border:none;border-radius:25px;padding:12px 24px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .btn-ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:25px;padding:12px 24px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .section{padding:24px 16px;max-width:600px;margin:0 auto}
+  .section h2{font-size:18px;color:#C8A35B;margin-bottom:16px;text-align:center}
+  .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:pointer;transition:transform .2s}
+  .gallery img:hover{transform:scale(1.03)}
+  .empty{text-align:center;color:#6B5A40;padding:40px;border:2px dashed #3A2A10;border-radius:12px}
+  .diferencial{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(200,163,91,.06);border:1px solid rgba(200,163,91,.15);border-radius:12px;margin-bottom:10px}
+  .diferencial .icon{font-size:28px;flex-shrink:0}
+  .diferencial h3{font-size:14px;font-weight:700;color:#C8A35B;margin-bottom:4px}
+  .diferencial p{font-size:13px;color:#A89070;line-height:1.6}
+  .footer{text-align:center;padding:30px 16px;color:#6B5A40;font-size:12px}
+  .overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.92);z-index:999;align-items:center;justify-content:center;flex-direction:column}
+  .overlay.open{display:flex}
+  .overlay img{max-width:95vw;max-height:85vh;object-fit:contain;border-radius:10px}
+  .overlay button{margin-top:16px;background:rgba(255,255,255,.15);border:none;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;cursor:pointer}
+  .btn-pedido{position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#C8A35B,#E8C97A);color:#1E1408;border:none;border-radius:30px;padding:14px 22px;font-size:15px;font-weight:800;font-family:Georgia,serif;cursor:pointer;box-shadow:0 4px 20px rgba(200,163,91,.5);z-index:100;text-decoration:none;display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img src="logo.png" alt="Sucrée Confeitaria" class="logo">
+  <h1>Sucrée Confeitaria</h1>
+  <p>Bolos artesanais feitos com amor em Vitória – ES</p>
+  <div class="hero-btns">
+    <a href="cardapio.html" class="btn-gold"><i class="ti ti-cake"></i> Fazer meu pedido</a>
+    <a href="https://www.instagram.com/" target="_blank" class="btn-ig"><i class="ti ti-brand-instagram"></i> Instagram</a>
+  </div>
+</div>
+
+<!-- GALERIA -->
+<div class="section">
+  <h2>✨ Nossos bolos</h2>
+  <div class="gallery" id="gallery-container">
+    <div class="empty" style="grid-column:1/-1">
+      <div style="font-size:48px;margin-bottom:12px">🎂</div>
+      <p>Em breve nossas fotos estarão aqui!</p>
+    </div>
+  </div>
+</div>
+
+<!-- DIFERENCIAIS -->
+<div class="section">
+  <h2>💛 Por que escolher a Sucrée?</h2>
+  <div class="diferencial">
+    <div class="icon">🎨</div>
+    <div><h3>Personalizado para você</h3><p>Cada bolo é único, criado com base no seu tema, cores e estilo. Do minimalista ao elaborado.</p></div>
+  </div>
+  <div class="diferencial">
+    <div class="icon">🍰</div>
+    <div><h3>Massa e recheios artesanais</h3><p>Produção 100% artesanal com ingredientes selecionados. Sem conservantes, feito na hora.</p></div>
+  </div>
+  <div class="diferencial">
+    <div class="icon">📦</div>
+    <div><h3>Entrega ou retirada</h3><p>Entregamos em Vitória e região, ou você retira no nosso ateliê com hora marcada.</p></div>
+  </div>
+  <div class="diferencial">
+    <div class="icon">💬</div>
+    <div><h3>Atendimento personalizado</h3><p>Cuidamos de cada detalhe do seu pedido e te acompanhamos em cada etapa.</p></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="overlay" id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lightbox-img" src="">
+  <button>Fechar</button>
+</div>
+
+<!-- BOTÃO FIXO -->
+<a href="cardapio.html" class="btn-pedido"><i class="ti ti-cake"></i> Quero meu bolo!</a>
+
+<div class="footer">
+  <p>Sucrée Confeitaria · Vitória – ES</p>
+  <p style="margin-top:4px">(27) 9 9521-3194</p>
+</div>
+
+<script>
+// Carrega fotos do portfólio do Supabase
+var SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
+
+async function carregarGaleria() {
+  var container = document.getElementById('gallery-container');
+  try {
+    var resp = await fetch(SUPABASE_URL + '/rest/v1/portfolio?select=*&order=created_at.desc', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    var fotos = await resp.json();
+    if (!fotos || !fotos.length) return;
+    container.innerHTML = fotos.map(function(f) {
+      return '<img src="' + f.url + '" alt="' + (f.titulo||'Sucrée') + '" onclick="abrirFoto(this.src)" loading="lazy">';
+    }).join('');
+  } catch(e) {
+    // Fallback: localStorage do app
+    var local = [];
+    try { local = JSON.parse(localStorage.getItem('mr_portfolio')||'[]'); } catch(e2){}
+    if (local.length) {
+      container.innerHTML = local.map(function(f) {
+        return '<img src="' + f.src + '" onclick="abrirFoto(this.src)" loading="lazy">';
+      }).join('');
+    }
+  }
+}
+
+function abrirFoto(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+carregarGaleria();
+</script>
+</body>
+</html>
