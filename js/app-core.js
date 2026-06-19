@@ -91,20 +91,3 @@ async function loadFromCloud() {
     return false;
   }
 }
-
-async function saveToCloud(recipe) {
-  setSyncStatus('syncing', 'salvando...');
-  const row = localToDb(recipe);
-  try {
-    const { error } = await sb.from('receitas').upsert(row, { onConflict: 'id' });
-    if (error) throw error;
-    setSyncStatus('ok', 'sincronizado');
-    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
-  } catch (err) {
-    setSyncStatus('err', 'erro ao salvar');
-    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
-    toast('Salvo localmente (sem conexão)');
-  }
-}
-
-async function deleteFromCloud(id
