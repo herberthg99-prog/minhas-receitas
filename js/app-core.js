@@ -1369,32 +1369,74 @@ async function gerarImagensIdeogram() {
   resultado.style.display = 'none';
 
   try {
-    var r = await fetch('https://api.ideogram.ai/generate', {
+    // Usa Claude com code execution como proxy para evitar bloqueio de CORS do navegador
+    var r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Api-Key': '28RMaEtBFjsdPuIMfuDOdD8qzWMLKbtkaxT_vEVxA8s8-0xYU2H91IHp7I3ZkewGXeR5Onk4Y-abfLGMnPKjEA',
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        image_request: {
-          prompt: prompt,
-          model: 'V_2',
-          magic_prompt_option: 'AUTO',
-          num_images: 3,
-          aspect_ratio: 'ASPECT_1_1',
-          style_type: 'REALISTIC'
-        }
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        tools: [{ type: 'code_execution_20250522', name: 'code_execution' }],
+        messages: [{
+          role: 'user',
+          content: 'Execute este código Python e retorne APENAS o resultado JSON puro (sem markdown, sem explicação):\n\n'
+            + 'import urllib.request, json\n'
+            + 'req = urllib.request.Request(\n'
+            + '  "https://api.ideogram.ai/generate",\n'
+            + '  data=json.dumps({\n'
+            + '    "image_request": {\n'
+            + '      "prompt": ' + JSON.stringify(prompt) + ',\n'
+            + '      "model": "V_2",\n'
+            + '      "magic_prompt_option": "AUTO",\n'
+            + '      "num_images": 3,\n'
+            + '      "aspect_ratio": "ASPECT_1_1",\n'
+            + '      "style_type": "REALISTIC"\n'
+            + '    }\n'
+            + '  }).encode(),\n'
+            + '  headers={\n'
+            + '    "Api-Key": "28RMaEtBFjsdPuIMfuDOdD8qzWMLKbtkaxT_vEVxA8s8-0xYU2H91IHp7I3ZkewGXeR5Onk4Y-abfLGMnPKjEA",\n'
+            + '    "Content-Type": "application/json"\n'
+            + '  },\n'
+            + '  method="POST"\n'
+            + ')\n'
+            + 'try:\n'
+            + '  resp = urllib.request.urlopen(req, timeout=60)\n'
+            + '  print(resp.read().decode())\n'
+            + 'except urllib.error.HTTPError as e:\n'
+            + '  print(json.dumps({"error": e.read().decode()}))\n'
+        }]
       })
     });
 
     var d = await r.json();
     bar.style.display = 'none';
 
-    if (!r.ok) {
-      throw new Error(d.error || d.message || 'Erro na API do Ideogram');
+    if (!r.ok) throw new Error(d.error?.message || 'Erro ao chamar Claude');
+
+    // Extrai o resultado do code_execution
+    var codeResult = '';
+    (d.content || []).forEach(function(block) {
+      if (block.type === 'code_execution_tool_result' && block.content) {
+        block.content.forEach(function(c) {
+          if (c.type === 'code_execution_output' && c.stdout) codeResult += c.stdout;
+        });
+      }
+    });
+
+    if (!codeResult) {
+      // fallback: tenta achar em texto
+      (d.content || []).forEach(function(block) {
+        if (block.type === 'text') codeResult += block.text;
+      });
     }
 
-    var imagens = (d.data || []);
+    var parsed;
+    try { parsed = JSON.parse(codeResult.replace(/```json|```/g, '').trim()); }
+    catch(e) { throw new Error('Resposta inválida do Ideogram'); }
+
+    if (parsed.error) throw new Error(typeof parsed.error === 'string' ? parsed.error : JSON.stringify(parsed.error));
+
+    var imagens = (parsed.data || []);
     if (!imagens.length) throw new Error('Nenhuma imagem gerada');
 
     grid.innerHTML = imagens.map(function(img, i) {
