@@ -1,285 +1,187 @@
-<script src="js/app-core.js"></script>
-<script>
-// Variáveis Globais de Estado do Pedido
-let pedido = {
-    tamanho: 0,
-    precoBase: 0,
-    massa: '',
-    massaNome: '',
-    recheios: [],
-    cobertura: 'chantininho',
-    coberturaNome: 'Chantininho',
-    coberturaPreco: 0,
-    decoracao: '',
-    decoracaoNome: '',
-    decoracaoPreco: 0,
-    tema: '',
-    ajudaTema: false,
-    adicionais: [],
-    adicionaisPreco: 0,
-    total: 0
-};
-
-// Gerenciamento de Passos (Wizard)
-function nextStep(current) {
-    if (current === 0 && (!pedido.tamanho || !pedido.massa)) return;
-    if (current === 1 && pedido.recheios.length === 0) return;
-    if (current === 2 && !pedido.cobertura) return;
-    if (current === 3 && !pedido.decoracao) return;
-
-    document.getElementById(`step-${current}`).classList.remove('act');
-    document.getElementById(`step-${current + 1}`).classList.add('act');
-    
-    // Atualiza barra de progresso
-    document.getElementById(`pd-${current}`).classList.remove('active');
-    document.getElementById(`pd-${current}`).classList.add('done');
-    document.getElementById(`pl-${current}`).classList.remove('active');
-    document.getElementById(`pl-${current}`).classList.add('done');
-    
-    document.getElementById(`pd-${current + 1}`).classList.add('active');
-    document.getElementById(`pl-${current + 1}`).classList.add('active');
-
-    if (current + 1 === 5) {
-        renderizarResumo();
-    }
-}
-
-function prevStep(current) {
-    document.getElementById(`step-${current}`).classList.remove('act');
-    document.getElementById(`step-${current - 1}`).classList.add('act');
-    
-    document.getElementById(`pd-${current}`).classList.remove('active');
-    document.getElementById(`pl-${current}`).classList.remove('active');
-    
-    document.getElementById(`pd-${current - 1}`).classList.remove('done');
-    document.getElementById(`pd-${current - 1}`).classList.add('active');
-    document.getElementById(`pl-${current - 1}`).classList.remove('done');
-    document.getElementById(`pl-${current - 1}`).classList.add('active');
-}
-
-// Configurações do Passo 0 (Tamanho e Massa)
-function setModoTamanho(modo) {
-    if (modo === 'sei') {
-        document.getElementById('box-tamanhos').style.display = 'block';
-        document.getElementById('box-convidados').style.display = 'none';
-    } else {
-        document.getElementById('box-tamanhos').style.display = 'none';
-        document.getElementById('box-convidados').style.display = 'block';
-    }
-}
-
-function sugerirTamanho() {
-    const qtd = parseInt(document.getElementById('qtd-convidados').value);
-    const box = document.getElementById('sugestao-box');
-    const texto = document.getElementById('sugestao-texto');
-    
-    if (!qtd || qtd <= 0) {
-        box.style.display = 'none';
-        return;
-    }
-
-    box.style.display = 'block';
-    if (qtd <= 3) {
-        texto.innerText = "Aro 10 cm (Até 3 fatias)";
-    } else if (qtd <= 10) {
-        texto.innerText = "Aro 15 cm (Até 10 fatias)";
-    } else if (qtd <= 20) {
-        texto.innerText = "Aro 20 cm (Até 20 fatias)";
-    } else if (qtd <= 30) {
-        texto.innerText = "Aro 25 cm (Até 30 fatias)";
-    } else {
-        texto.innerText = "Aro 30 cm (Até 45 fatias)";
-    }
-}
-
-function setTamanho(aro, precoTrad, precoPrem) {
-    pedido.tamanho = aro;
-    // O preço base inicial assume tradicional até que um recheio premium seja escolhido
-    pedido.precoBase = precoTrad;
-    pedido.precoTrad = precoTrad;
-    pedido.precoPrem = precoPrem;
-
-    document.querySelectorAll('.tamanho-btn').forEach(b => b.classList.remove('sel'));
-    document.getElementById(`tam-${aro}`).classList.add('sel');
-    document.getElementById('box-massa').style.display = 'block';
-    verificarPasso0();
-}
-
-function setMassa(id, nome) {
-    pedido.massa = id;
-    pedido.massaNome = nome;
-    document.querySelectorAll('#massas-container .opcao-btn').forEach(b => b.classList.remove('sel'));
-    document.getElementById(`massa-${id}`).classList.add('sel');
-    verificarPasso0();
-}
-
-function verificarPasso0() {
-    const btn = document.getElementById('btn-next-0');
-    if (pedido.tamanho && pedido.massa) {
-        btn.removeAttribute('disabled');
-    } else {
-        btn.setAttribute('disabled', 'true');
-    }
-}
-
-// Configurações do Passo 1 (Recheios)
-function toggleRecheio(nome, tipo) {
-    const index = pedido.recheios.findIndex(r => r.nome === nome);
-    
-    if (index > -1) {
-        pedido.recheios.splice(index, 1);
-    } else {
-        if (pedido.recheios.length >= 2) {
-            alert("Você pode escolher no máximo 2 recheios!");
-            return;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucrée Confeitaria - Monte seu Bolo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #9FE1CB;
+            --primary-dark: #76c7ae;
+            --gold: #D4AF37;
+            --dark: #2A1A0A;
+            --light-bg: #FDFBF7;
+            --card-bg: #FFFDF9;
+            --border: #E8E2D5;
         }
-        pedido.recheios.push({ nome, tipo });
-    }
 
-    // Atualiza interface gráfica das tags
-    document.querySelectorAll('.recheio-tag').forEach(tag => {
-        if (tag.textContent === nome) {
-            tag.classList.toggle('sel-1', index === -1);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-    });
 
-    // Se houver algum recheio premium, altera o preço base do bolo para a tabela premium
-    const temPremium = pedido.recheios.some(r => r.tipo === 'prem');
-    if (temPremium) {
-        pedido.precoBase = pedido.precoPrem;
-        document.getElementById('alerta-recheio-prem').style.display = 'flex';
-    } else {
-        pedido.precoBase = pedido.precoTrad;
-        document.getElementById('alerta-recheio-prem').style.display = 'none';
-    }
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark);
+            padding-bottom: 30px;
+        }
 
-    const btn = document.getElementById('btn-next-1');
-    if (pedido.recheios.length > 0) {
-        btn.removeAttribute('disabled');
-    } else {
-        btn.setAttribute('disabled', 'true');
-    }
-}
+        /* Topo / Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
 
-// Configurações do Passo 2 (Cobertura)
-function setCobertura(id, nome) {
-    pedido.cobertura = id;
-    pedido.coberturaNome = nome;
-    pedido.coberturaPreco = id === 'buttercream' ? 50 : 0;
+        .logo {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
 
-    document.querySelectorAll('#step-2 .opcao-btn').forEach(b => b.classList.remove('sel'));
-    document.getElementById(`cob-${id}`).classList.add('sel');
-    document.getElementById('alerta-buttercream').style.display = id === 'buttercream' ? 'flex' : 'none';
-    
-    document.getElementById('btn-next-2').removeAttribute('disabled');
-}
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--gold);
+            font-style: italic;
+        }
 
-// Configurações do Passo 3 (Decoração e Adicionais)
-function setDeco(id) {
-    pedido.decoracao = id;
-    if (id === 'espatulado') {
-        pedido.decoracaoNome = "Apenas Espatulado";
-        pedido.decoracaoPreco = 0;
-        document.getElementById('tema-box').style.display = 'none';
-    } else {
-        pedido.decoracaoNome = "Temático + Topo do Bolo";
-        pedido.decoracaoPreco = 45;
-        document.getElementById('tema-box').style.display = 'block';
-    }
+        /* Barra de Progresso (Wizard) */
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 20px;
+            position: relative;
+        }
 
-    document.querySelectorAll('.deco-opcao').forEach(b => b.classList.remove('sel'));
-    document.getElementById(`deco-${id}`).classList.add('sel');
-}
+        .progress-line-bg {
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            right: 30px;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
 
-function setAjudaTema(querAjuda) {
-    pedido.ajudaTema = querAjuda;
-    document.getElementById('ajuda-tema-box').style.display = querAjuda ? 'block' : 'none';
-    
-    const sim = document.getElementById('btn-ajuda-sim');
-    const nao = document.getElementById('btn-ajuda-nao');
-    
-    if (querAjuda) {
-        sim.style.background = '#9FE1CB';
-        nao.style.background = '#f5f5f5';
-    } else {
-        sim.style.background = 'white';
-        nao.style.background = '#ddd';
-    }
-}
+        .progress-line-fill {
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            width: 0%;
+            height: 2px;
+            background: var(--primary);
+            z-index: 2;
+            transition: width 0.3s ease;
+        }
 
-function toggleExtra(id) {
-    const item = document.getElementById(`extra-${id}`);
-    const index = pedido.adicionais.indexOf(id);
+        .progress-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            z-index: 3;
+            transition: all 0.3s ease;
+            color: #aaa;
+        }
 
-    if (index > -1) {
-        pedido.adicionais.splice(index, 1);
-        pedido.adicionaisPreco -= 50;
-        item.classList.remove('sel');
-    } else {
-        pedido.adicionais.push(id);
-        pedido.adicionaisPreco += 50;
-        item.classList.add('sel');
-    }
-}
+        .progress-dot.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 10px rgba(159,225,203,0.5);
+        }
 
-// Renderização e Cálculo Final do Resumo
-function renderizarResumo() {
-    pedido.total = pedido.precoBase + pedido.coberturaPreco + pedido.decoracaoPreco + pedido.adicionaisPreco;
-    
-    // Se o usuário digitou um tema personalizado, salva no objeto antes de exibir
-    if (pedido.decoracao === 'tematico') {
-        pedido.tema = document.getElementById('tema-input').value.trim() || 'Não especificado';
-    }
+        .progress-dot.done {
+            border-color: var(--primary);
+            background: white;
+            color: var(--primary);
+        }
 
-    // Se você tiver elementos de texto na div do resumo (Passo 5), adicione as vinculações aqui
-    console.log("Resumo atualizado:", pedido);
-}
+        /* Container de Conteúdo */
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
 
-// CORREÇÃO CRÍTICA DO WHATSAPP (LIVRE DE BUGS DE HEADER)
-function notificarWhatsApp(dadosPedido) {
-    console.log("Iniciando envio de dados para o WhatsApp...");
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(42,26,10,0.02);
+            display: none;
+        }
 
-    // Cabeçalhos limpos e padronizados sem caracteres especiais
-    const headersLimpos = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    };
+        .card.act {
+            display: block;
+            animation: fadeIn 0.4s ease forwards;
+        }
 
-    // Montagem do payload seguro
-    const textoFormatado = `🎂 *Novo Pedido Sucrée!* 🎂\n\n` +
-                           `• Tamanho: Aro ${pedido.tamanho} cm\n` +
-                           `• Massa: ${pedido.massaNome}\n` +
-                           `• Cobertura: ${pedido.coberturaNome}\n` +
-                           `• Decoração: ${pedido.decoracaoNome}\n` +
-                           (pedido.tema ? `• Tema: ${pedido.tema}\n` : '') +
-                           `• Total: R$ ${pedido.total.toFixed(2)}`;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-    const corpoRequisicao = {
-        mensagem: textoFormatado
-    };
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
 
-    fetch('/api/notificar-whatsapp', { 
-        method: 'POST',
-        headers: headersLimpos, 
-        body: JSON.stringify(corpoRequisicao)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Falha no servidor.');
-        return response.json();
-    })
-    .then(data => {
-        console.log("Notificação registrada:", data);
-        abrirJanelaWhatsApp(textoFormatado);
-    })
-    .catch(error => {
-        console.error("Modo segurança ativado devido a erro:", error);
-        abrirJanelaWhatsApp(textoFormatado);
-    });
-}
+        .card .subtitle {
+            font-size: 0.9rem;
+            color: #776a5c;
+            margin-bottom: 20px;
+        }
 
-function abrirJanelaWhatsApp(texto) {
-    const numeroTelefone = "2799521314"; // Seu número configurado
-    const linkFinal = `https://wa.me/55${numeroTelefone}?text=${encodeURIComponent(texto)}`;
-    window.open(linkFinal, '_blank');
-}
-</script>
+        /* Botões de Opção Gerais */
+        .opcao-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .opcao-btn:hover {
+            border-color: var(--primary);
+            background: #fafdfc;
+        }
+
+        .opcao-btn.sel {
+            border-color: var(--primary);
+            background: #f2fbf8;
+            box-shadow: inset 0 0 0 1px var(--primary);
+        }
+
+        .opcao-info h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .opcao-info p {
+            font-size: 0.85
