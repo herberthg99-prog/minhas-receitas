@@ -544,7 +544,7 @@ async function lerFoto() {
   bar.style.display = 'flex'; btn.disabled = true; msg.textContent = 'Claude lendo anotação...'; dot.className = 'ai-dot pulse';
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6', max_tokens: 1200,
         messages: [{ role: 'user', content: [
@@ -646,7 +646,7 @@ async function atualizarPrecos() {
   btn.disabled = true; bar.style.display = 'flex'; msg.textContent = 'Buscando preços no ES...';
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6', max_tokens: 800,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
@@ -691,7 +691,7 @@ async function pedirComentario() {
   const bar = document.getElementById('ai-comment-bar'); bar.style.display = 'flex';
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: `Para a receita "${nome||'receita'}", escreva 3 dicas curtas em português: variação, armazenamento, acompanhamento. Responda direto.` }] })
     });
     const d = await r.json();
@@ -1372,7 +1372,7 @@ async function gerarImagensIdeogram() {
     // Usa Claude com code execution como proxy para evitar bloqueio de CORS do navegador
     var r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 2000,
