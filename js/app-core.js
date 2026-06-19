@@ -1255,6 +1255,29 @@ function renderDecoPage() {
         <i class="ti ti-external-link"></i> Abrir ChatGPT
       </button>
     </div>
+
+    <!-- GERADOR DE IMAGENS IDEOGRAM -->
+    <div style="margin-top:16px">
+      <div style="font-family:Georgia,serif;font-size:18px;color:#F5EDD8;margin-bottom:6px">🎨 Gerar modelos visuais</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Gere 3 modelos de topo de bolo com IA para enviar ao cliente.</div>
+
+      <div id="ideogram-bar" class="ai-bar" style="display:none">
+        <div class="ai-dot pulse"></div>
+        <span>Gerando 3 modelos de topo de bolo... aguarde ~20s</span>
+      </div>
+
+      <button id="btn-gerar-imagens" onclick="gerarImagensIdeogram()" style="width:100%;padding:14px;background:linear-gradient(135deg,#833ab4,#C8A35B);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">
+        <i class="ti ti-photo-ai"></i> Gerar 3 modelos de topo
+      </button>
+
+      <div id="ideogram-resultado" style="display:none">
+        <div class="success-box" style="margin-bottom:12px">
+          <i class="ti ti-check" style="flex-shrink:0"></i>
+          Modelos gerados! Toque para ampliar, baixe e envie ao cliente pelo WhatsApp.
+        </div>
+        <div id="ideogram-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+      </div>
+    </div>
   `;
 }
 
@@ -1322,6 +1345,110 @@ function copiarPromptDeco() {
 
 function abrirChatGPT() {
   window.open('https://chat.openai.com', '_blank');
+}
+
+async function gerarImagensIdeogram() {
+  var tema     = document.getElementById('deco-tema').value.trim();
+  var aro      = document.getElementById('deco-aro').value;
+  var cob      = document.getElementById('deco-cobertura').value;
+  var cores    = document.getElementById('deco-cores').value.trim();
+  var ocasiao  = document.getElementById('deco-ocasiao').value.trim();
+
+  if (!tema) { toast('Preencha o tema do bolo primeiro'); return; }
+
+  var prompt = 'Professional cake photography, ' + tema + ' theme cake, aro ' + aro + 'cm, ' + cob + ' frosting, colors: ' + (cores||'elegant') + (ocasiao ? ', ' + ocasiao : '') + ', scrap paper cake topper, elegant confectionery, white background, studio lighting, ultra realistic, high resolution';
+
+  var btn = document.getElementById('btn-gerar-imagens');
+  var bar = document.getElementById('ideogram-bar');
+  var resultado = document.getElementById('ideogram-resultado');
+  var grid = document.getElementById('ideogram-grid');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Gerando imagens...';
+  bar.style.display = 'flex';
+  resultado.style.display = 'none';
+
+  try {
+    var r = await fetch('https://api.ideogram.ai/generate', {
+      method: 'POST',
+      headers: {
+        'Api-Key': '28RMaEtBFjsdPuIMfuDOdD8qzWMLKbtkaxT_vEVxA8s8-0xYU2H91IHp7I3ZkewGXeR5Onk4Y-abfLGMnPKjEA',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image_request: {
+          prompt: prompt,
+          model: 'V_2',
+          magic_prompt_option: 'AUTO',
+          num_images: 3,
+          aspect_ratio: 'ASPECT_1_1',
+          style_type: 'REALISTIC'
+        }
+      })
+    });
+
+    var d = await r.json();
+    bar.style.display = 'none';
+
+    if (!r.ok) {
+      throw new Error(d.error || d.message || 'Erro na API do Ideogram');
+    }
+
+    var imagens = (d.data || []);
+    if (!imagens.length) throw new Error('Nenhuma imagem gerada');
+
+    grid.innerHTML = imagens.map(function(img, i) {
+      return '<div style="position:relative">'
+        + '<img src="' + img.url + '" style="width:100%;border-radius:10px;cursor:pointer" onclick="verImagemDeco(\'' + img.url + '\')" alt="Modelo ' + (i+1) + '">'
+        + '<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Modelo ' + (i+1) + '</div>'
+        + '<a href="' + img.url + '" download="topo-bolo-modelo-' + (i+1) + '.jpg" target="_blank" style="position:absolute;bottom:6px;right:6px;background:var(--gold);color:#fff;border:none;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px"><i class="ti ti-download"></i> Baixar</a>'
+        + '</div>';
+    }).join('');
+
+    resultado.style.display = 'block';
+    resultado.scrollIntoView({ behavior: 'smooth' });
+    toast('✅ ' + imagens.length + ' modelos gerados!');
+
+  } catch(err) {
+    bar.style.display = 'none';
+    toast('Erro: ' + err.message);
+    console.log('Ideogram erro:', err);
+
+    // Fallback: abrir Ideogram com prompt
+    grid.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:13px;color:var(--text2);margin-bottom:10px">Abrindo Ideogram com o prompt...</div><button onclick="abrirIdeogramComPrompt()" class="btnp" style="width:100%;justify-content:center"><i class="ti ti-external-link"></i> Abrir Ideogram</button></div>';
+    resultado.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-photo-ai"></i> Gerar 3 modelos de topo';
+  }
+}
+
+function verImagemDeco(url) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px';
+  overlay.onclick = function(e) { if(e.target===overlay) document.body.removeChild(overlay); };
+  overlay.innerHTML = '<img src="' + url + '" style="max-width:95vw;max-height:80vh;object-fit:contain;border-radius:12px">'
+    + '<div style="display:flex;gap:10px;margin-top:14px">'
+    + '<a href="' + url + '" download="topo-bolo.jpg" target="_blank" class="btnp" style="text-decoration:none"><i class="ti ti-download"></i> Baixar</a>'
+    + '<button onclick="enviarImagemWhats(\'' + url + '\')" class="btns" style="background:#25D366;color:#fff;border-color:#25D366"><i class="ti ti-brand-whatsapp"></i> Enviar cliente</button>'
+    + '<button onclick="this.closest(\'div\').parentElement.remove()" class="btns">Fechar</button>'
+    + '</div>';
+  document.body.appendChild(overlay);
+}
+
+function enviarImagemWhats(url) {
+  var msg = '🎂 *Sucrée Confeitaria*\n\nOlá! Aqui está um modelo de topo de bolo para o seu tema:\n\n' + url + '\n\nQual você prefere? Posso criar mais opções! 💛';
+  window.open('https://wa.me/' + WHATSAPP_SUCREE + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function abrirIdeogramComPrompt() {
+  var tema  = document.getElementById('deco-tema').value.trim();
+  var aro   = document.getElementById('deco-aro').value;
+  var cob   = document.getElementById('deco-cobertura').value;
+  var cores = document.getElementById('deco-cores').value.trim();
+  var p = 'Professional cake photography, ' + tema + ' theme cake, aro ' + aro + 'cm, ' + cob + ' frosting, colors: ' + (cores||'elegant') + ', scrap paper cake topper, elegant confectionery, white background, ultra realistic';
+  navigator.clipboard.writeText(p).then(function(){ toast('Prompt copiado! Cole no Ideogram.'); });
+  window.open('https://ideogram.ai', '_blank');
 }
 
 // ═══════════════════════════════════════════
@@ -2600,4 +2727,3 @@ function salvarCardapioConfig() {
   saveCardapioConfig(cfg);
   toast('✅ Cardápio atualizado! Seus clientes já veem as alterações.');
 }
-
