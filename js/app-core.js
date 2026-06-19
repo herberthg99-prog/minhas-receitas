@@ -13,6 +13,34 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
+// FUNÇÃO DE LOGIN (RESTRITO / ADMINISTRADOR)
+// ==========================================
+
+function doLogin() {
+    const campoSenha = document.querySelector('input[type="password"]');
+    
+    if (!campoSenha) {
+        alert('Erro ao localizar o campo de senha.');
+        return;
+    }
+
+    const senhaDigitada = campoSenha.value.trim();
+
+    // Defina aqui a senha que você deseja usar para acessar o sistema
+    const senhaCorreta = "1234"; 
+
+    if (senhaDigitada === senhaCorreta) {
+        console.log("Acesso concedido!");
+        // Altere abaixo para a página que deve abrir após o login (ex: cardapio.html ou inspiracao.html)
+        window.location.href = "cardapio.html"; 
+    } else {
+        alert("Senha incorreta! Tente novamente.");
+        campoSenha.value = "";
+        campoSenha.focus();
+    }
+}
+
+// ==========================================
 // FUNÇÃO PRINCIPAL: GERAR DECORAÇÃO (VERCEL)
 // ==========================================
 
@@ -78,7 +106,6 @@ async function gerarDecoracaoBolo() {
                 </div>
             `;
         } else {
-            // Backup caso a div de resultado sumisse do HTML
             alert(data.resultado);
         }
 
