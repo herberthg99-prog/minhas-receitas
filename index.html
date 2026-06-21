@@ -281,7 +281,7 @@ button{font-family:inherit;cursor:pointer}
   .content { max-width: 1200px; margin: 0 auto; }
 }
 
-.sub-abas-row { display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-bottom: 14px; }
+.sub-abas-row { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .sub-abas-row::-webkit-scrollbar { display: none; }
 .sub-aba { flex:0 0 auto;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .2s; }
 .sub-aba.act { background:var(--gold);border-color:var(--gold);color:#fff; }
@@ -305,16 +305,23 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="login-overlay">
+
+  <!-- Gradiente esquerda: escurece lado esq e cobre logo da foto -->
   <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(5,2,0,.85) 0%,rgba(5,2,0,.6) 25%,rgba(5,2,0,.2) 50%,rgba(5,2,0,0) 70%);z-index:0;pointer-events:none"></div>
+  <!-- Gradiente rodapé: fundo escuro para o card -->
   <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(5,2,0,.98) 0%,rgba(5,2,0,.7) 28%,rgba(5,2,0,0) 52%);z-index:0;pointer-events:none"></div>
 
+  <!-- LOGO CANTO SUPERIOR ESQUERDO -->
   <div style="position:absolute;top:24px;left:20px;z-index:2">
     <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
       style="height:100px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 24px rgba(200,163,91,1))">
   </div>
 
+  <!-- CARD COMPACTO NO RODAPÉ -->
   <div class="login-box">
+
     <div id="user-selector" style="display:flex;gap:6px;margin-bottom:10px;width:100%">
       <button id="btn-user-admin" onclick="selectUser('admin')"
         style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--coral);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
@@ -360,112 +367,415 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 </div>
 
 <div class="app" id="app">
-  <div class="topbar">
-    <div class="logo" style="padding:2px 0">
-      <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:52px;width:auto;filter:brightness(2.0) drop-shadow(0 2px 14px rgba(255,220,120,.9)) saturate(0.8)">
+<div class="topbar">
+  <div class="logo" style="padding:2px 0">
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="height:52px;width:auto;filter:brightness(2.0) drop-shadow(0 2px 14px rgba(255,220,120,.9)) saturate(0.8)">
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="sync-status" id="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-text">conectando...</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="sync-status" id="sync-status">
-        <div class="sync-dot" id="sync-dot"></div>
-        <span id="sync-text">conectando...</span>
-      </div>
-      <button onclick="doLogout()" title="Sair" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;border-radius:var(--radius-sm)"><i class="ti ti-logout"></i></button>
+    <button onclick="doLogout()" title="Sair" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;padding:4px;border-radius:var(--radius-sm)"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+<div class="content">
+  <div class="page act" id="page-home"></div>
+  <div class="page" id="page-receitas">
+    <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="cat-doce" onclick="setCatFilter('doce')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Doces</button>
+      <button id="cat-salgada" onclick="setCatFilter('salgada')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🥩 Salgadas</button>
+      <button id="cat-all" onclick="setCatFilter('')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍽 Todas</button>
+    </div>
+    <div id="sub-abas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap"></div>
+    <div style="margin-bottom:12px">
+      <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+      <input type="hidden" id="fg2" value="">
+    </div>
+    <input type="hidden" id="fc" value="">
+    <div id="recipes-list"></div>
+  </div>
+  <div class="page" id="page-confeitaria"></div>
+  <div class="page" id="page-estoque"></div>
+  <div class="page" id="page-config"></div>
+  <div class="page" id="page-share"></div>
+  <div class="page" id="page-deco"></div>
+  <div class="page" id="page-calc"></div>
+  <div class="page" id="page-portfolio"></div>
+  <div class="page" id="page-rascunho"></div>
+  <div class="page" id="page-agenda"></div>
+  <div class="page" id="page-compras"></div>
+  <div class="page" id="page-ficha"></div>
+  <div class="page" id="page-metas"></div>
+  <div class="page" id="page-cardapio-cfg"></div>
+</div>
+<div class="bottomnav" id="bottomnav">
+  <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
+  <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
+  <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
+    <i class="ti ti-circle-plus" style="font-size:30px;color:var(--gold)"></i>
+    <span style="color:var(--gold);font-weight:700">Nova</span>
+  </button>
+  <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+  <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
+  <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
+  <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
+  <button class="bni" onclick="goPage('rascunho')" id="nav-rascunho" title="Rascunhos"><i class="ti ti-pencil"></i><span>Rascunho</span></button>
+  <button class="bni" onclick="goPage('deco')" id="nav-deco" title="Gerador de Decoração"><i class="ti ti-sparkles"></i><span>Deco IA</span></button>
+</div>
+
+<!-- CARDAPIO SHARE BOTTOM SHEET -->
+<div class="overlay" id="modal-cardapio-share" style="display:none" onclick="if(event.target===this)cm('modal-cardapio-share')">
+<div class="sheet" style="border-radius:18px 18px 0 0">
+  <div class="sheet-handle"></div>
+  <div style="background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);padding:20px 20px 24px;text-align:center;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(184,151,42,.12)"></div>
+    <div style="position:absolute;bottom:-20px;left:-20px;width:70px;height:70px;border-radius:50%;background:rgba(184,151,42,.08)"></div>
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:140px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.3))">
+    <div style="font-size:13px;color:#C8B89A">Compartilhe o cardápio com seus clientes</div>
+  </div>
+  <div style="padding:16px">
+    <div style="background:#F5F4F1;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <i class="ti ti-link" style="color:#B8972A;flex-shrink:0"></i>
+      <span style="font-size:11px;color:var(--text2);word-break:break-all;flex:1">herberthg99-prog.github.io/minhas-receitas/cardapio.html</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="compartilharCardapioWhats()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-brand-whatsapp" style="font-size:20px"></i> Enviar pelo WhatsApp</button>
+      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-copy" style="font-size:20px"></i> Copiar link</button>
+      <button onclick="abrirCardapioNovAba()" style="width:100%;padding:14px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-external-link" style="font-size:20px"></i> Abrir cardápio</button>
+    </div>
+    <div style="margin-top:14px;text-align:center">
+      <button onclick="cm('modal-cardapio-share')" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;font-family:inherit;padding:8px">Fechar</button>
     </div>
   </div>
+</div>
+</div>
 
-  <div class="content">
-    <div class="page act" id="page-home">
-      </div>
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:130px;height:auto;filter:brightness(1.8) drop-shadow(0 2px 20px rgba(200,163,91,.8));margin-bottom:8px">
+  <i class="ti ti-loader" style="font-size:28px;color:#C8A35B;animation:spin 1s linear infinite"></i>
+  <p id="loading-text" style="color:rgba(200,163,91,.8);font-size:13px;letter-spacing:.05em">Conectando à nuvem...</p>
+</div>
 
-    <div class="page" id="page-receitas">
-      <div id="cat-filters" class="sub-abas-row"></div>
-      <div class="srow">
-        <input type="text" id="search-recipe" placeholder="Buscar receita..." oninput="renderRecipesList()">
-        <button class="btnp" onclick="openRecipeForm()"><i class="ti ti-plus"></i> Nova</button>
-      </div>
-      <div id="recipes-container" class="recipes-grid"></div>
+<!-- CHOICE SHEET -->
+<div class="overlay" id="modal-choice" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><h2>Nova receita</h2><button class="xb" onclick="cm('modal-choice')"><i class="ti ti-x"></i></button></div>
+  <div class="sheet-body">
+    <div class="nmc-grid">
+      <div class="nmc" id="nmc-manual" onclick="chooseMode('manual')"><i class="ti ti-keyboard"></i><p>Digitar</p><small>Preencho eu mesmo</small></div>
+      <div class="nmc" id="nmc-foto" onclick="chooseMode('foto')"><i class="ti ti-camera"></i><p>Foto / rascunho</p><small>Claude lê minha anotação</small></div>
     </div>
-
-    <div class="page" id="page-decoracao">
-      <div class="card">
-        <div class="st"><i class="ti ti-sparkles"></i> Gerador de Decoração</div>
-        <p style="font-size:12px; color:var(--text2); margin-bottom:14px;">
-          Preencha os dados do bolo para a inteligência artificial gerar propostas incríveis de decoração para o seu cliente.
-        </p>
-        
-        <div class="ai-bar">
-          <div class="ai-dot ok" id="deco-ai-dot"></div>
-          <span id="deco-ai-status">Pronto para criar</span>
-        </div>
-
-        <div class="g2">
-          <div class="fg">
-            <label>Aro do bolo</label>
-            <select id="deco-aro">
-              <option value="Aro 15 (até 10 fatias)">Aro 15 (até 10 fatias)</option>
-              <option value="Aro 20 (até 20 fatias)" selected>Aro 20 (até 20 fatias)</option>
-              <option value="Aro 25 (até 30 fatias)">Aro 25 (até 30 fatias)</option>
-              <option value="Aro 30 (até 45 fatias)">Aro 30 (até 45 fatias)</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label>Cobertura</label>
-            <select id="deco-cobertura">
-              <option value="Chantininho" selected>🍦 Chantininho</option>
-              <option value="Ganache">🍫 Ganache</option>
-              <option value="Pasta Americana">🎂 Pasta Americana</option>
-              <option value="Buttercream">🧈 Buttercream</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="fg">
-          <label>Tema do bolo</label>
-          <input type="text" id="deco-tema" placeholder="Ex: Jardim encantado, Safari, Minimalista floral...">
-        </div>
-
-        <div class="fg">
-          <label>Cores principais</label>
-          <input type="text" id="deco-cores" placeholder="Ex: Rosa nude, dourado e branco...">
-        </div>
-
-        <div class="fg">
-          <label>Ocasião / evento</label>
-          <input type="text" id="deco-ocasiao" placeholder="Ex: Chá de bebê, aniversário 1 ano, casamento...">
-        </div>
-
-        <div class="fg">
-          <label>Observações extras (opcional)</label>
-          <textarea id="deco-obs" placeholder="Ex: Cliente gosta de flores naturais, não quer muito dourado..."></textarea>
-        </div>
-
-        <button class="btnp full" id="btn-gerar-prompt" onclick="generateDecoPrompt()" style="margin-bottom:10px;">
-          <i class="ti ti-wand"></i> Gerar prompt para ChatGPT
-        </button>
-        
-        <button class="btnp full" id="btn-gerar-modelos" onclick="generateVisualModels()" style="background: linear-gradient(135deg, #7B2CBF, #C8A35B);">
-          <i class="ti ti-photo-ai"></i> Gerar 3 modelos de topo
-        </button>
+    <div class="fr" style="margin-bottom:12px">
+      <div class="fg" style="margin-bottom:0"><label>Categoria</label><select id="choice-cat"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
+      <div class="fg" style="margin-bottom:0"><label>Grupo</label>
+        <select id="choice-grp"><option value="">Sem grupo</option>
+          <option value="Recheios">Recheios</option><option value="Bolos">Bolos</option><option value="Caldas">Caldas</option>
+          <option value="Biscoitos">Biscoitos</option><option value="Sobremesas">Sobremesas</option><option value="Pães">Pães</option>
+          <option value="Bebidas">Bebidas</option><option value="Carnes">Carnes</option><option value="Aves">Aves</option>
+          <option value="Peixes">Peixes</option><option value="Massas">Massas</option><option value="Tortas">Tortas</option>
+          <option value="Lanches">Lanches</option><option value="Sopas">Sopas</option>
+        </select>
       </div>
-
-      <div id="deco-results-container" style="margin-top:16px;"></div>
+    </div>
+    <div id="foto-section" style="display:none">
+      <div class="photo-zone" onclick="document.getElementById('foto-input').click()">
+        <i class="ti ti-photo-up"></i><p>Toque para selecionar foto</p><small>Foto da anotação a caneta</small>
+      </div>
+      <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="handleFoto(event)">
+      <div id="foto-prev" style="display:none;margin-top:10px;border-radius:var(--radius-sm);overflow:hidden;max-height:180px;background:var(--bg);display:flex;align-items:center;justify-content:center"></div>
+      <div id="ai-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse" id="ai-dot"></div><span id="ai-msg">Lendo anotação...</span></div>
+      <button class="btnp full" id="btn-ler" style="display:none;margin-top:8px" onclick="lerFoto()"><i class="ti ti-wand"></i> Criar com Claude</button>
     </div>
   </div>
-
-  <div class="bottomnav">
-    <button class="bni act" onclick="switchPage('home')" id="nav-home"><i class="ti ti-home"></i><span>Início</span></button>
-    <button class="bni" onclick="switchPage('receitas')" id="nav-receitas"><i class="ti ti-cookie"></i><span>Receitas</span></button>
-    <button class="bni" onclick="switchPage('decoracao')" id="nav-decoracao"><i class="ti ti-sparkles"></i><span>Decoração</span></button>
+  <div class="sheet-footer">
+    <button class="btns" onclick="cm('modal-choice')">Cancelar</button>
+    <button class="btnp" id="btn-choice-ok" style="display:none" onclick="proceedChoice()"><i class="ti ti-arrow-right"></i> Continuar</button>
   </div>
+</div>
+</div>
+
+<!-- EDIT SHEET -->
+<div class="overlay" id="modal-edit" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><h2 id="edit-title">Nova receita</h2><button class="xb" onclick="cm('modal-edit')"><i class="ti ti-x"></i></button></div>
+  <div class="sheet-body">
+    <div class="tg">
+      <button class="tb act" onclick="st2(0)"><i class="ti ti-info-circle"></i> Dados</button>
+      <button class="tb" onclick="st2(1)"><i class="ti ti-list"></i> Ingredientes</button>
+      <button class="tb" onclick="st2(2)"><i class="ti ti-notes"></i> Preparo</button>
+      <button class="tb" onclick="st2(3)"><i class="ti ti-currency-dollar"></i> Custos</button>
+      <button class="tb" onclick="st2(4)"><i class="ti ti-message"></i> Notas</button>
+      <button class="tb" onclick="st2(5)"><i class="ti ti-photo"></i> Fotos</button>
+      <button class="tb" id="tab-forma" onclick="st2(6)" style="display:none"><i class="ti ti-cake"></i> Formas</button>
+    </div>
+    <div id="et0">
+      <div class="fg"><label>Nome da receita</label><input type="text" id="fn" placeholder="Ex: Bolo de cenoura"></div>
+      <div class="fr">
+        <div class="fg"><label>Categoria</label><select id="fcat" onchange="checkFormaTab();if(typeof updateGrupoSelects==='function')updateGrupoSelects()"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
+        <div class="fg"><label>Grupo</label><select id="fgrp" onchange="checkFormaTab()">
+          <option value="">Sem grupo</option>
+          <option value="Recheios">Recheios</option><option value="Bolos">Bolos</option><option value="Caldas">Caldas</option>
+          <option value="Biscoitos">Biscoitos</option><option value="Sobremesas">Sobremesas</option><option value="Pães">Pães</option>
+          <option value="Bebidas">Bebidas</option><option value="Carnes">Carnes</option><option value="Aves">Aves</option>
+          <option value="Peixes">Peixes</option><option value="Massas">Massas</option><option value="Tortas">Tortas</option>
+          <option value="Lanches">Lanches</option><option value="Sopas">Sopas</option>
+        </select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Rendimento</label><input type="number" id="fyld" value="6" min="1"></div>
+        <div class="fg"><label>Tempo (min)</label><input type="number" id="ftm" value="60" min="1"></div>
+      </div>
+      <div class="fg"><label>Unidade de venda</label><select id="funit"><option value="porção">Porção</option><option value="kg">kg</option><option value="unidade">Unidade</option><option value="fatia">Fatia</option><option value="dúzia">Dúzia</option></select></div>
+      <div class="info-box"><i class="ti ti-star" style="flex-shrink:0;margin-top:1px"></i><span>Marque o ingrediente principal na aba Ingredientes para habilitar o cálculo por quantidade.</span></div>
+    </div>
+    <div id="et1" style="display:none">
+      <div class="flex-row" style="margin-bottom:10px">
+        <div class="info-box" style="flex:1;margin-bottom:0;font-size:11px"><i class="ti ti-info-circle" style="flex-shrink:0"></i> Radio = ingrediente principal</div>
+        <button class="btng" id="btn-upd" onclick="atualizarPrecos()" style="margin-left:8px;font-size:11px;padding:7px 9px;white-space:nowrap"><i class="ti ti-refresh"></i> Preços ES</button>
+      </div>
+      <div id="ai-preco-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span id="ai-preco-msg">Buscando preços...</span></div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="it" style="min-width:420px">
+          <thead><tr><th style="width:26px">Base</th><th>Ingrediente / Observação</th><th style="width:58px">Qtd</th><th style="width:42px">Un.</th><th style="width:70px">R$/kg</th><th style="width:65px">Subtotal</th><th style="width:28px"></th></tr></thead>
+          <tbody id="ingr-body"></tbody>
+        </table>
+      </div>
+      <button class="btns" style="margin-top:10px;font-size:13px;width:100%;justify-content:center" onclick="addIngr()"><i class="ti ti-plus"></i> Adicionar ingrediente</button>
+    </div>
+    <div id="et2" style="display:none">
+      <div class="fg"><label>Modo de preparo</label><textarea id="fprep" style="min-height:200px" placeholder="Passo a passo..."></textarea></div>
+    </div>
+    <div id="et3" style="display:none">
+      <div id="cost-prev" class="cb" style="margin-bottom:12px"></div>
+      <div class="fr">
+        <div class="fg"><label>Margem de lucro (%)</label><input type="number" id="fmrg" value="100" min="0" oninput="updCosts()"></div>
+        <div class="fg"><label>Embalagem / fixos (R$)</label><input type="number" id="fext" value="0" step=".01" oninput="updCosts()"></div>
+      </div>
+      <div id="sale-prev" class="cb"></div>
+    </div>
+    <div id="et4" style="display:none">
+      <div class="comment-box">
+        <label><i class="ti ti-message"></i> Comentários e anotações</label>
+        <textarea id="fcomment" placeholder="Dicas, variações, truques..."></textarea>
+      </div>
+      <div id="ai-comment-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span>Claude gerando sugestões...</span></div>
+      <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="pedirComentario()"><i class="ti ti-wand"></i> Sugestão do Claude</button>
+    </div>
+    <div id="et5" style="display:none">
+      <p class="text-sm" style="margin-bottom:10px">Fotos do preparo finalizado.</p>
+      <div class="photo-zone" onclick="document.getElementById('recipe-photo-input').click()">
+        <i class="ti ti-camera-plus"></i><p>Adicionar foto</p><small>Foto do prato pronto</small>
+      </div>
+      <input type="file" id="recipe-photo-input" accept="image/*" capture="environment" style="display:none" onchange="addRecipePhoto(event)">
+      <div class="photo-grid" id="recipe-photos-grid"></div>
+    </div>
+    <div id="et6" style="display:none">
+      <div class="forma-toggle" onclick="toggleFormas()">
+        <div><p><i class="ti ti-cake"></i> Informações de formas</p><small>Tamanhos e quantidade de massa</small></div>
+        <button class="toggle-sw" id="forma-toggle-sw" onclick="event.stopPropagation();toggleFormas()"></button>
+      </div>
+      <div class="formas-section" id="formas-section">
+        <div id="formas-list"></div>
+        <button class="btns" style="width:100%;justify-content:center;font-size:13px" onclick="addForma()"><i class="ti ti-plus"></i> Adicionar forma</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btns" onclick="cm('modal-edit')">Cancelar</button>
+    <button class="btnp" onclick="saveRecipe()"><i class="ti ti-device-floppy"></i> Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- VIEW SHEET -->
+<div class="overlay" id="modal-view" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2 id="vt">Receita</h2>
+    <div class="flex-row">
+      <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
+      <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:#0F6E56"><i class="ti ti-printer"></i> Imprimir</button>
+      <button class="rb" onclick="toggleFullReceita()" style="font-size:12px;color:#C8A35B;background:rgba(200,163,91,.1);border-color:rgba(200,163,91,.4)"><i class="ti ti-maximize" id="ico-full"></i></button>
+      <button class="xb" onclick="cm('modal-view')"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="vb"></div>
+</div>
+</div>
+
+<!-- GUEST SHEET -->
+<div class="overlay" id="modal-guest" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header"><h2>Receitas compartilhadas</h2><button class="xb" onclick="cm('modal-guest')"><i class="ti ti-x"></i></button></div>
+  <div class="sheet-body" id="gb"></div>
+</div>
 </div>
 
 <div id="toast" class="toast"></div>
-
-<div id="loading-overlay" class="loading-overlay">
-  <i class="ti ti-loader-quarter"></i>
-  <p id="loading-text">Carregando o app Sucrée...</p>
 </div>
 
-<script src="js/app-core.js"></script>
+<!-- CONFEITARIA PEDIDO SHEET -->
+<div class="overlay" id="modal-pedido" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2 id="pedido-title">Novo Pedido</h2>
+    <button class="xb" onclick="cm('modal-pedido')"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="sheet-body">
+    <div class="tg">
+      <button class="tb act" onclick="stPedido(0)"><i class="ti ti-user"></i> Cliente</button>
+      <button class="tb" onclick="stPedido(1)"><i class="ti ti-cake"></i> Bolo</button>
+      <button class="tb" onclick="stPedido(2)"><i class="ti ti-palette"></i> Decoração</button>
+      <button class="tb" onclick="stPedido(3)"><i class="ti ti-currency-dollar"></i> Total</button>
+    </div>
+    <div id="pt0">
+      <div class="fg"><label>Nome do cliente</label><input type="text" id="p-cliente" placeholder="Ex: Maria Silva"></div>
+      <div class="fr">
+        <div class="fg"><label>Data de entrega</label><input type="date" id="p-data"></div>
+        <div class="fg"><label>Horário de entrega</label><input type="time" id="p-hora"></div>
+      </div>
+      <div class="fg">
+        <label>Cliente retira?</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button id="btn-retira-sim" onclick="setPedidoRetira(true)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">✅ Sim, retira</button>
+          <button id="btn-retira-nao" onclick="setPedidoRetira(false)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🚗 Não, entrego</button>
+        </div>
+      </div>
+      <div id="entrega-addr-box" style="display:none">
+        <div class="fg"><label>Endereço de entrega</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro..."></div>
+      </div>
+      <div class="fg"><label>Telefone / WhatsApp</label><input type="tel" id="p-telefone" placeholder="(27) 99999-9999"></div>
+      <div class="fg"><label>Observações do cliente</label><textarea id="p-obs-cliente" placeholder="Alergias, preferências, informações extras..." style="min-height:60px"></textarea></div>
+    </div>
+    <div id="pt1" style="display:none">
+      <div class="fg">
+        <label>Tamanho do bolo (Aro)</label>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px">
+          <button class="aro-btn" onclick="setAro(10)" id="aro-10">Aro 10</button>
+          <button class="aro-btn" onclick="setAro(15)" id="aro-15">Aro 15</button>
+          <button class="aro-btn" onclick="setAro(20)" id="aro-20">Aro 20</button>
+          <button class="aro-btn" onclick="setAro(25)" id="aro-25">Aro 25</button>
+          <button class="aro-btn" onclick="setAro(30)" id="aro-30">Aro 30</button>
+        </div>
+      </div>
+      <div id="aro-info-box" style="display:none" class="info-box"></div>
+      <div class="fg">
+        <label>Tipo de massa</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="massa-btn" onclick="setMassa('amanteigada')" id="massa-amanteigada" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧈 Amanteigada</button>
+          <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Pão de Ló</button>
+        </div>
+      </div>
+      <div class="fg"><label>Recheio 1</label><select id="p-recheio1" onchange="calcPedidoTotal()"><option value="">Selecione o recheio...</option></select></div>
+      <div class="fg"><label>Recheio 2 (opcional)</label><select id="p-recheio2" onchange="calcPedidoTotal()"><option value="">Nenhum / mesmo recheio</option></select></div>
+      <div class="fg">
+        <label>Tipo de cobertura</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="cob-btn" onclick="setCobertura('chantininho')" id="cob-chantininho" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍦 Chantininho</button>
+          <button class="cob-btn" onclick="setCobertura('buttercream')" id="cob-buttercream" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧁 Buttercream</button>
+        </div>
+      </div>
+      <div class="fg"><label>Valor do bolo (R$)</label><input type="number" id="p-valor-bolo" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+    </div>
+    <div id="pt2" style="display:none">
+      <div class="fg"><label>Tema do bolo</label><input type="text" id="p-tema" placeholder="Ex: Frozen, Safari, Floral..."></div>
+      <div class="fg">
+        <label>Foto de inspiração</label>
+        <div class="photo-zone" onclick="document.getElementById('p-inspi-input').click()" style="padding:16px">
+          <i class="ti ti-photo-search" style="font-size:28px;color:var(--gold);display:block;margin-bottom:6px"></i>
+          <p style="font-size:13px;color:var(--text2);font-weight:600">Toque para adicionar foto de inspiração</p>
+        </div>
+        <input type="file" id="p-inspi-input" accept="image/*" capture="environment" style="display:none" onchange="addInspiPhoto(event)">
+        <div id="p-inspi-preview" style="margin-top:8px"></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:8px">Adicionais</label>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+            <div><div style="font-size:14px;font-weight:700">💐 Flores</div><div style="font-size:12px;color:var(--text2)">R$ 50,00</div></div>
+            <div style="display:flex;gap:8px">
+              <button id="btn-flores-sim" onclick="setFlores(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
+              <button id="btn-flores-nao" onclick="setFlores(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+            <div><div style="font-size:14px;font-weight:700">🎨 Papelaria</div><div style="font-size:12px;color:var(--text2)">R$ 35,00</div></div>
+            <div style="display:flex;gap:8px">
+              <button id="btn-papel-sim" onclick="setPapelaria(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
+              <button id="btn-papel-nao" onclick="setPapelaria(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label>Observações da decoração</label><textarea id="p-obs-deco" placeholder="Cores, detalhes especiais..." style="min-height:60px"></textarea></div>
+    </div>
+    <div id="pt3" style="display:none">
+      <div id="pedido-total-box"></div>
+      <div class="fg" style="margin-top:12px"><label>Custo estimado (R$) — deixe vazio para auto 35%</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      <div class="fg"><label>Forma de pagamento</label>
+        <select id="p-pagamento">
+          <option value="">Selecione...</option>
+          <option value="pix">PIX</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao_credito">Cartão de Crédito</option>
+          <option value="cartao_debito">Cartão de Débito</option>
+        </select>
+      </div>
+      <div class="fg"><label>Status do pedido</label>
+        <select id="p-status">
+          <option value="pendente">⏳ Pendente</option>
+          <option value="confirmado">✅ Confirmado</option>
+          <option value="producao">🎂 Em produção</option>
+          <option value="pronto">🎉 Pronto</option>
+          <option value="entregue">✔️ Entregue</option>
+          <option value="cancelado">❌ Cancelado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btns" onclick="cm('modal-pedido')">Cancelar</button>
+    <button class="btnp" onclick="savePedido()"><i class="ti ti-device-floppy"></i> Salvar pedido</button>
+  </div>
+</div>
+</div>
+
+<!-- PEDIDO VIEW SHEET -->
+<div class="overlay" id="modal-pedido-view" style="display:none">
+<div class="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <h2 id="pv-title">Pedido</h2>
+    <div class="flex-row">
+      <button class="rb" id="pv-edit-btn" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
+      <button class="xb" onclick="cm('modal-pedido-view')"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="sheet-body" id="pv-body"></div>
+</div>
+</div>
+
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js")
+      .then(()=>console.log("SW registrado"))
+      .catch(e=>console.log("SW erro",e));
+  });
+}
+</script>
+<!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
+<script src="js/app-core.js?v=18"></script>
+<script src="js/app-features.js?v=18"></script>
+<script src="js/version.js?v=18"></script>
+
 </body>
 </html>
