@@ -21,11 +21,11 @@ function getAdminPwd() { return localStorage.getItem(ADMIN_PWD_KEY) || ''; }
 function getGuestPwd() { return localStorage.getItem(GUEST_PWD_KEY) || ''; }
 function setAdminPwd(p) { localStorage.setItem(ADMIN_PWD_KEY, p); }
 function setGuestPwd(p) { localStorage.setItem(GUEST_PWD_KEY, p); }
-function isLoggedIn() { return sessionStorage.getItem(SESSION_KEY) === 'ok'; }
-function getCurrentRole() { return sessionStorage.getItem(SESSION_ROLE) || 'admin'; }
+function isLoggedIn() { return localStorage.getItem(SESSION_KEY) === 'ok'; }
+function getCurrentRole() { return localStorage.getItem(SESSION_ROLE) || 'admin'; }
 function setSession(role) {
-  sessionStorage.setItem(SESSION_KEY, 'ok');
-  sessionStorage.setItem(SESSION_ROLE, role);
+  localStorage.setItem(SESSION_KEY, 'ok');
+  localStorage.setItem(SESSION_ROLE, role);
 }
 function isGuest() { return getCurrentRole() === 'guest'; }
 
@@ -230,7 +230,8 @@ function doLogout() {
   var role = getCurrentRole();
   var msg = role === 'guest' ? 'Sair do modo convidado?' : 'Sair do app?';
   if (!confirm(msg)) return;
-  sessionStorage.clear();
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_ROLE);
   localStorage.removeItem('mr_session');
   window.location.href = window.location.href.split('?')[0] + '?logout=' + Date.now();
 }
@@ -250,8 +251,8 @@ async function forgotPwd() {
   localStorage.removeItem(ADMIN_PWD_KEY);
   localStorage.removeItem('mr_user_id');
   localStorage.removeItem('mr_v4_recipes');
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_ROLE);
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_ROLE);
   location.reload();
 }
 
@@ -927,6 +928,21 @@ function viewPedido(id) {
       ${p.sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${parseFloat(p.sinal).toFixed(2)}</span></div>`:''}
       ${p.sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>💳 Restante</span><span>R$ ${(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)}</span></div>`:''}
     </div>
+    ${(p.topo || p.flores) ? `
+    <div class="st"><i class="ti ti-receipt"></i> Custo real (topo/flores)</div>
+    <div style="background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.25);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
+      <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Você cobra um valor fixo do cliente, mas o custo real varia. Informe quanto gastou de fato, para o lucro do pedido ficar correto.</p>
+      ${p.topo ? `
+      <div class="fg" style="margin-bottom:8px">
+        <label>🪄 Custo real do Topo (cobrado R$ ${(sucreeConfig.topoValor||45).toFixed(2)})</label>
+        <input type="number" id="custo-real-topo" value="${p.custoRealTopo ?? ''}" min="0" step="0.01" placeholder="Ex: 38.50" onchange="atualizarCustoRealPedido('${p.id}','custoRealTopo',this.value)">
+      </div>` : ''}
+      ${p.flores ? `
+      <div class="fg" style="margin-bottom:0">
+        <label>💐 Custo real das Flores (cobrado R$ ${(sucreeConfig.floresValor||50).toFixed(2)})</label>
+        <input type="number" id="custo-real-flores" value="${p.custoRealFlores ?? ''}" min="0" step="0.01" placeholder="Ex: 65.00" onchange="atualizarCustoRealPedido('${p.id}','custoRealFlores',this.value)">
+      </div>` : ''}
+    </div>` : ''}
     <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
       <i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha
     </button>
@@ -944,9 +960,32 @@ function viewPedido(id) {
   document.getElementById('modal-pedido-view').style.display = 'flex';
 }
 
+function atualizarCustoRealPedido(id, campo, valor) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  p[campo] = parseFloat(valor) || 0;
+  savePedidos();
+  try {
+    const col = campo === 'custoRealTopo' ? 'custo_real_topo' : 'custo_real_flores';
+    sb.from('pedidos_confeitaria').update({ [col]: p[campo] }).eq('id', id).then(function(){});
+  } catch(e) {}
+}
+
 function updatePedidoStatus(id, status) {
   const p = pedidos.find(x=>x.id===id);
   if(!p) return;
+  if (status === 'entregue') {
+    const faltaTopo = p.topo && (p.custoRealTopo === undefined || p.custoRealTopo === null || p.custoRealTopo === '');
+    const faltaFlores = p.flores && (p.custoRealFlores === undefined || p.custoRealFlores === null || p.custoRealFlores === '');
+    if (faltaTopo || faltaFlores) {
+      toast('⚠️ Informe o custo real do ' + (faltaTopo?'topo':'') + (faltaTopo&&faltaFlores?' e das ':'') + (faltaFlores?'flores':'') + ' antes de marcar como entregue');
+      const sel = document.querySelector('select[onchange*="' + id + '"]');
+      if (sel) sel.value = p.status;
+      const campo = faltaTopo ? document.getElementById('custo-real-topo') : document.getElementById('custo-real-flores');
+      if (campo) { campo.focus(); campo.style.borderColor = '#A32D2D'; }
+      return;
+    }
+  }
   p.status = status;
   savePedidos();
   updatePedidoStatusCloud(id, status);
@@ -1007,7 +1046,26 @@ try {
   if(saved) sucreeConfig = {...sucreeConfig, ...saved};
 } catch(e) {}
 
-function saveConfig() { localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig)); }
+function saveConfig() {
+  localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
+  try {
+    sb.from('config').upsert({
+      user_id: USER_ID,
+      sucree_config: JSON.stringify(sucreeConfig)
+    }, { onConflict: 'user_id' }).then(function(){});
+  } catch(e) {}
+}
+
+async function loadConfigFromCloud() {
+  try {
+    const { data } = await sb.from('config').select('sucree_config').eq('user_id', USER_ID).limit(1);
+    if (data && data.length && data[0].sucree_config) {
+      const cloudCfg = JSON.parse(data[0].sucree_config);
+      sucreeConfig = {...sucreeConfig, ...cloudCfg};
+      localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
+    }
+  } catch(e) { console.log('loadConfigFromCloud erro:', e.message); }
+}
 
 async function trocarSenhaAdmin() {
   var atual   = document.getElementById('cfg-pwd-atual').value;
@@ -1180,7 +1238,7 @@ function notificarWhatsApp(p) {
   // 1. Notificação push via Ntfy
   var resumoNtfy = (p.cliente||'Cliente') + ' · Aro ' + (p.aro||'?') + ' · R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
   if (p.data) resumoNtfy += ' · ' + new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR');
-  enviarNotifNtfy('🎂 Novo Pedido - Sucrée', resumoNtfy, 'high');
+  enviarNotifNtfy('Novo Pedido - Sucree', resumoNtfy, 'high');
 
   // 2. Abrir WhatsApp com detalhes
   try {
@@ -1300,11 +1358,13 @@ function saveGruposConfig(cfg) { localStorage.setItem('mr_grupos', JSON.stringif
 
 function getGruposParaCat(cat) {
   var saved = getGruposConfig();
-  var base;
-  if (saved && saved[cat] && saved[cat].length) { base = saved[cat]; }
-  else if (cat === 'doce') { base = ['Recheios','Bolos','Caldas','Coberturas','Biscoitos','Sobremesas','Pães','Bebidas']; }
-  else if (cat === 'salgada') { base = ['Carnes','Aves','Peixes','Massas','Tortas','Lanches','Sopas']; }
-  else { base = []; }
+  var padrao;
+  if (cat === 'doce') { padrao = ['Recheios','Bolos','Caldas','Coberturas','Biscoitos','Sobremesas','Pães','Bebidas']; }
+  else if (cat === 'salgada') { padrao = ['Carnes','Aves','Peixes','Massas','Tortas','Lanches','Sopas']; }
+  else { padrao = []; }
+  var base = (saved && saved[cat] && saved[cat].length) ? saved[cat].slice() : padrao.slice();
+  // Garante que os grupos padrão sempre estejam presentes, mesmo em configs salvas antigas
+  padrao.forEach(function(g) { if (base.indexOf(g) === -1) base.push(g); });
   for (var i = 0; i < recipes.length; i++) {
     var r = recipes[i];
     if (r.cat === cat && r.group && base.indexOf(r.group) === -1) base.push(r.group);
@@ -1359,7 +1419,7 @@ function updateGrupoSelects() {
     const cat = selId === 'fgrp'
       ? (document.getElementById('fcat')?.value || 'salgada')
       : (document.getElementById('choice-cat')?.value || 'salgada');
-    const grupos = getGruposParaCat(cat);
+    const grupos = getGruposParaCat(cat).slice().sort(function(a,b){ return a.localeCompare(b,'pt-BR'); });
     const cur = sel.value;
     sel.innerHTML = '<option value="">Sem grupo</option>'
       + grupos.map(g => `<option value="${g}" ${g===cur?'selected':''}>${g}</option>`).join('');
@@ -1445,16 +1505,16 @@ async function atualizarEstoqueIASelecionados() {
   msg.textContent = 'Buscando preços para ' + selected.length + ' ingrediente(s) no ES...';
   const names = selected.map(k => estoque[k]?.name).filter(Boolean);
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 800,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}` }]
+        prompt: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}`,
+        maxTokens: 800, useWebSearch: true
       })
     });
     const d = await r.json();
-    const txt = (d.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    if (!r.ok) throw new Error(d.erro || 'Erro ao buscar preços');
+    const txt = d.resultado || '';
     let map; try { map = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Formato inválido'); }
     let n = 0;
     selected.forEach(key => {
