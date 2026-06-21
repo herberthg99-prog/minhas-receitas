@@ -131,6 +131,9 @@ function localToDb(r) {
     unit: r.unit, yield_qty: r.yield_qty || r.yield || 6,
     time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
     preparo: r.preparo || '', comment: r.comment || '',
+    usa_panela_mexedora: r.usaPanelaMexedora || false,
+    panela_tempo: r.panelaTempo || null,
+    panela_velocidade: r.panelaVelocidade || null,
     photos: r.photos || [], formas: r.formas || [],
     formas_enabled: r.formasEnabled || false,
     ingredients: r.ingredients || [],
@@ -145,6 +148,9 @@ function dbToLocal(row) {
     unit: row.unit || 'porção', yield_qty: row.yield_qty || 6, yield: row.yield_qty || 6,
     time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
     preparo: row.preparo || '', comment: row.comment || '',
+    usaPanelaMexedora: row.usa_panela_mexedora || false,
+    panelaTempo: row.panela_tempo || null,
+    panelaVelocidade: row.panela_velocidade || null,
     photos: row.photos || [], formas: row.formas || [],
     formasEnabled: row.formas_enabled || false,
     ingredients: row.ingredients || [],
@@ -222,12 +228,14 @@ function renderHome() {
   const aReceber     = faturamento - recebido;
   const qtdPedidos   = pedidosMes.length;
 
-  // Custo estimado dos pedidos (ingredientes + operacional)
+  // Custo estimado dos pedidos (ingredientes + operacional + topo/flores reais quando informados)
   const custoEstimado = pedidosMes.reduce((a, p) => {
     const aro = p.aro || 20;
     const custoOp = typeof calcCustoOperacional === 'function' ? calcCustoOperacional(aro) : 0;
     const custoIngr = parseFloat(p.custoEstimado || p.valorBolo * 0.30 || 0);
-    return a + custoOp + custoIngr;
+    const custoTopo = p.topo ? parseFloat(p.custoRealTopo ?? (typeof sucreeConfig!=='undefined'?sucreeConfig.topoValor:45)) : 0;
+    const custoFlores = p.flores ? parseFloat(p.custoRealFlores ?? (typeof sucreeConfig!=='undefined'?sucreeConfig.floresValor:50)) : 0;
+    return a + custoOp + custoIngr + custoTopo + custoFlores;
   }, 0);
 
   const lucroEstimado = faturamento - custoEstimado;
@@ -319,39 +327,116 @@ function renderHome() {
       </button>
     </div>
 
-    <!-- RECEITAS RECENTES -->
-    <div class="st"><i class="ti ti-flame"></i> Receitas recentes</div>
-    ${recentes.length ? recentes.map(function(r2) {
-      var cfg2 = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
-      var vh2 = cfg2.valorHora || 25;
-      var ip2 = cfg2.indiretoPct || 15;
-      var mn2 = cfg2.margemNegocio || 30;
-      var pc2 = calcAt(r2, 1);
-      var horas2 = (r2.time || 60) / 60;
-      var custoT2 = pc2.cost * (1 + ip2/100) + horas2 * vh2;
-      var precoM2 = custoT2 > 0 ? custoT2 / (1 - mn2/100) : 0;
-      var photo2 = r2.photos && r2.photos[0];
-      var rid = r2.id;
-      return '<div onclick="viewRecipe(' + JSON.stringify(rid) + ')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.2);border-radius:10px;margin-bottom:8px;cursor:pointer">'
-        + '<div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#2A1C0A;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">'
-        + (photo2 ? '<img src="' + photo2 + '" style="width:100%;height:100%;object-fit:cover">' : (r2.cat==='doce'?'🍰':'🥩'))
-        + '</div>'
-        + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:14px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + r2.name + '</div>'
-        + '<div style="display:flex;gap:5px;align-items:center;margin-top:3px">'
-        + '<span class="tag t' + r2.cat[0] + '" style="font-size:9px">' + r2.cat + '</span>'
-        + (r2.group ? '<span class="badge badge-blue" style="font-size:9px">' + r2.group + '</span>' : '')
-        + '<span style="font-size:10px;color:var(--text3)"><i class="ti ti-clock"></i> ' + fT(r2.time) + '</span>'
-        + '</div></div>'
-        + '<div style="text-align:right;flex-shrink:0">'
-        + '<div style="font-size:12px;font-weight:700;color:var(--gold)">' + fR(precoM2) + '</div>'
-        + '<div style="font-size:9px;color:var(--text3)">preço mín.</div>'
-        + '</div></div>';
-    }).join('') : '<div class="est" style="padding:16px"><i class="ti ti-book"></i><p>Nenhuma receita ainda</p></div>'}
+    <!-- MINI CALENDÁRIO DE PEDIDOS -->
+    <div class="st"><i class="ti ti-calendar"></i> Pedidos do mês</div>
+    ${buildMiniCalendarHome(hoje)}
+
+    <!-- FATURAMENTO PREVISTO 6 MESES -->
+    <div class="st" style="margin-top:14px"><i class="ti ti-chart-bar"></i> Faturamento previsto</div>
+    ${buildFaturamento6Meses(hoje)}
 
     <button class="btns" style="width:100%;justify-content:center;font-size:12px;margin-top:4px" onclick="syncNow()">
       <i class="ti ti-refresh"></i> Sincronizar agora
     </button>`;
+}
+
+// ── MINI CALENDÁRIO (HOME) ──
+function buildMiniCalendarHome(hoje) {
+  var mesRef = hoje.getMonth(), anoRef = hoje.getFullYear();
+  var primeiroDia = new Date(anoRef, mesRef, 1);
+  var ultimoDia   = new Date(anoRef, mesRef + 1, 0);
+
+  var pedidosPorDia = {};
+  (typeof pedidos !== 'undefined' ? pedidos : []).forEach(function(p) {
+    if (!p.data || p.status === 'cancelado') return;
+    if (!pedidosPorDia[p.data]) pedidosPorDia[p.data] = [];
+    pedidosPorDia[p.data].push(p);
+  });
+
+  var diasSemana = ['D','S','T','Q','Q','S','S'];
+  var grid = '<div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.25);border-radius:12px;padding:12px;margin-bottom:4px">';
+  grid += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">';
+  diasSemana.forEach(function(d) {
+    grid += '<div style="text-align:center;font-size:9px;font-weight:700;color:var(--text3);padding:3px">' + d + '</div>';
+  });
+  grid += '</div>';
+  grid += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+
+  var inicio = primeiroDia.getDay();
+  for (var e = 0; e < inicio; e++) grid += '<div style="min-height:34px"></div>';
+
+  for (var dia = 1; dia <= ultimoDia.getDate(); dia++) {
+    var dateStr = anoRef + '-' + String(mesRef+1).padStart(2,'0') + '-' + String(dia).padStart(2,'0');
+    var pedsDia = pedidosPorDia[dateStr] || [];
+    var temPed = pedsDia.length > 0;
+    var isHoje = dia === hoje.getDate();
+    var corDot = pedsDia.some(function(p){ return p.status==='producao'; }) ? 'var(--gold)'
+               : pedsDia.some(function(p){ return p.status==='pronto'; }) ? 'var(--blue)'
+               : pedsDia.some(function(p){ return p.status==='entregue'; }) ? '#888' : 'var(--teal)';
+
+    grid += '<div onclick="' + (temPed ? "verDiaAgenda('" + dateStr + "')" : '') + '" style="min-height:34px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:' +
+      (isHoje ? 'rgba(200,163,91,.25)' : 'rgba(255,255,255,.03)') +
+      ';border:1px solid ' + (isHoje ? 'var(--gold)' : 'transparent') +
+      ';cursor:' + (temPed ? 'pointer' : 'default') + '">';
+    grid += '<span style="font-size:11px;font-weight:' + (isHoje?'800':'500') + ';color:' + (isHoje?'var(--gold)':'var(--text2)') + '">' + dia + '</span>';
+    if (temPed) grid += '<span style="width:5px;height:5px;border-radius:50%;background:' + corDot + ';margin-top:1px"></span>';
+    grid += '</div>';
+  }
+  grid += '</div>';
+
+  var totalMes = Object.keys(pedidosPorDia).filter(function(d){
+    var dd = new Date(d+'T12:00:00'); return dd.getMonth()===mesRef && dd.getFullYear()===anoRef;
+  }).reduce(function(a,d){ return a + pedidosPorDia[d].length; }, 0);
+
+  grid += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid rgba(200,163,91,.15)">';
+  grid += '<span style="font-size:10px;color:var(--text3)">' + totalMes + ' pedido(s) este mês</span>';
+  grid += '<button onclick="goPage(\'agenda\')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver agenda completa →</button>';
+  grid += '</div>';
+  grid += '</div>';
+  return grid;
+}
+
+// ── FATURAMENTO PREVISTO 6 MESES (HOME) ──
+function buildFaturamento6Meses(hoje) {
+  var mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
+  var meses = [];
+  var maxVal = 1;
+
+  for (var i = 0; i < 6; i++) {
+    var d = new Date(anoAtual, mesAtual + i, 1);
+    var m2 = d.getMonth(), y2 = d.getFullYear();
+    var pMes = (typeof pedidos !== 'undefined' ? pedidos : []).filter(function(p) {
+      if (!p.data || p.status === 'cancelado') return false;
+      var dd = new Date(p.data + 'T12:00:00');
+      return dd.getMonth() === m2 && dd.getFullYear() === y2;
+    });
+    var fat = pMes.reduce(function(a,p){ return a + parseFloat(p.valorTotal||0); }, 0);
+    if (fat > maxVal) maxVal = fat;
+    meses.push({ nome: d.toLocaleDateString('pt-BR',{month:'short'}), ano: y2, fat: fat, qtd: pMes.length, isAtual: i===0 });
+  }
+
+  var html = '<div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.25);border-radius:12px;padding:14px">';
+  html += '<div style="display:flex;gap:6px;align-items:flex-end;margin-bottom:8px">';
+  meses.forEach(function(mo) {
+    var barPct = Math.max((mo.fat / maxVal) * 100, mo.fat > 0 ? 4 : 0);
+    var cor = mo.isAtual ? 'var(--gold)' : 'rgba(200,163,91,.55)';
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">';
+    html += '<div style="font-size:9px;font-weight:700;color:' + cor + '">' + (mo.fat > 0 ? fR(mo.fat).replace('R$\u00a0','') : '—') + '</div>';
+    html += '<div style="width:100%;height:64px;background:rgba(255,255,255,.05);border-radius:5px;position:relative;overflow:hidden">';
+    html += '<div style="position:absolute;bottom:0;left:0;right:0;height:' + barPct + '%;background:' + cor + ';border-radius:4px;transition:height .3s"></div>';
+    html += '</div>';
+    html += '<div style="font-size:9px;color:var(--text3);text-transform:capitalize">' + mo.nome + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  var totalPrevisto = meses.reduce(function(a,m){ return a+m.fat; }, 0);
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(200,163,91,.15)">';
+  html += '<span style="font-size:10px;color:var(--text3)">Total previsto (6 meses)</span>';
+  html += '<span style="font-size:13px;font-weight:800;color:var(--gold)">' + fR(totalPrevisto) + '</span>';
+  html += '</div>';
+  html += '</div>';
+  return html;
 }
 
 async function syncNow() {
@@ -543,25 +628,24 @@ async function lerFoto() {
   const bar = document.getElementById('ai-bar'), msg = document.getElementById('ai-msg'), dot = document.getElementById('ai-dot'), btn = document.getElementById('btn-ler');
   bar.style.display = 'flex'; btn.disabled = true; msg.textContent = 'Claude lendo anotação...'; dot.className = 'ai-dot pulse';
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('/api/ler-foto', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 1200,
-        messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: fotoB64 } },
-          { type: 'text', text: `Leia esta foto de anotação/rascunho de receita culinária. Retorne APENAS JSON válido sem markdown:\n{"name":"string","time":minutos,"yield":porcoes,"unit":"porção","preparo":"passo a passo","ingredients":[{"name":"string","qty":numero,"unit":"g ou ml","price":0,"isBase":false}],"comment":"observações"}\nisBase=true apenas no ingrediente principal.` }
-        ] }]
-      })
+      body: JSON.stringify({ fotoB64 })
     });
     const d = await r.json();
-    const txt = (d.content || []).find(c => c.type === 'text')?.text || '';
-    let parsed; try { parsed = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Foto não clara.'); }
+    if (!r.ok) throw new Error(d.erro || 'Erro ao processar requisição no servidor.');
+    const parsed = d.resultado;
     dot.className = 'ai-dot ok'; msg.textContent = 'Receita lida!';
     setTimeout(() => { cm('modal-choice'); openNewRecipe(cat, grp, parsed); }, 700);
   } catch (err) { dot.className = 'ai-dot err'; msg.textContent = 'Erro: ' + err.message; btn.disabled = false; }
 }
 
 // ═══════ EDIT FORM ═══════
+function togglePanelaMexedora() {
+  const checked = document.getElementById('fpanela').checked;
+  document.getElementById('panela-mexedora-box').style.display = checked ? 'block' : 'none';
+}
+
 function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   editId = null; curIngr = pre?.ingredients || []; curPhotos = []; curFormas = []; formasEnabled = false;
   document.getElementById('edit-title').textContent = 'Nova receita';
@@ -574,6 +658,10 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   document.getElementById('fmrg').value = 100; document.getElementById('fext').value = 0;
   document.getElementById('fprep').value = pre?.preparo || '';
   document.getElementById('fcomment').value = pre?.comment || '';
+  document.getElementById('fpanela').checked = false;
+  document.getElementById('fpanela-tempo').value = '';
+  document.getElementById('fpanela-vel').value = '';
+  document.getElementById('panela-mexedora-box').style.display = 'none';
   document.getElementById('recipe-photos-grid').innerHTML = '';
   renderIngrTable(); renderFormas(); updateFormaToggle(); checkFormaTab(); st2(0);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
@@ -597,6 +685,10 @@ function openEdit(id) {
   document.getElementById('fext').value = r.extra || 0;
   document.getElementById('fprep').value = r.preparo || '';
   document.getElementById('fcomment').value = r.comment || '';
+  document.getElementById('fpanela').checked = !!r.usaPanelaMexedora;
+  document.getElementById('fpanela-tempo').value = r.panelaTempo || '';
+  document.getElementById('fpanela-vel').value = r.panelaVelocidade || '';
+  document.getElementById('panela-mexedora-box').style.display = r.usaPanelaMexedora ? 'block' : 'none';
   renderIngrTable(); renderFormas(); renderRecipePhotosGrid(); updateFormaToggle(); checkFormaTab(); st2(0);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   document.getElementById('modal-edit').style.display = 'flex';
@@ -625,16 +717,61 @@ function renderIngrTable() {
     return `<tr class="${ig.isBase ? 'ihl' : ''}">
       <td style="text-align:center"><input type="radio" name="bir" ${ig.isBase?'checked':''} onchange="setBase(${i})" style="accent-color:var(--blue);width:18px;height:18px"></td>
       <td>
-        <input value="${ig.name}" placeholder="Nome" oninput="curIngr[${i}].name=this.value" style="margin-bottom:3px;color:var(--text)">
+        <input value="${ig.name}" placeholder="Nome" autocomplete="off"
+          oninput="curIngr[${i}].name=this.value;showIngrSugestoes(${i},this.value)"
+          onfocus="showIngrSugestoes(${i},this.value)"
+          onblur="setTimeout(()=>hideIngrSugestoes(${i}),200)"
+          style="margin-bottom:3px;color:var(--text)">
+        <div id="ingr-sug-${i}" class="ingr-sug-chips" style="display:none"></div>
         <input value="${ig.obs||''}" placeholder="Obs: pode substituir por..." oninput="curIngr[${i}].obs=this.value" style="font-size:11px;color:var(--text2);border-color:var(--border);padding:3px 5px;font-style:italic">
       </td>
-      <td><input type="number" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;renderIngrTable()"></td>
+      <td><input type="number" inputmode="decimal" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;updateIngrSubtotal(${i})"></td>
       <td><input value="${ig.unit}" placeholder="g" oninput="curIngr[${i}].unit=this.value"></td>
-      <td><input type="number" value="${(parseFloat(ig.price||0)*1000).toFixed(2)}" min="0" step=".01" oninput="curIngr[${i}].price=(parseFloat(this.value)||0)/1000;renderIngrTable()"></td>
-      <td style="text-align:right;color:var(--text2);font-size:11px;white-space:nowrap">${fR(sub)}</td>
+      <td><input type="number" inputmode="decimal" value="${(parseFloat(ig.price||0)*1000).toFixed(2)}" min="0" step=".01" oninput="curIngr[${i}].price=(parseFloat(this.value)||0)/1000;updateIngrSubtotal(${i})"></td>
+      <td style="text-align:right;color:var(--text2);font-size:11px;white-space:nowrap" id="ingr-sub-${i}">${fR(sub)}</td>
       <td><button class="db" onclick="remIngr(${i})"><i class="ti ti-trash"></i></button></td>
     </tr>`;
   }).join('');
+}
+
+// Atualiza só o subtotal da linha, sem redesenhar a tabela (evita perder o foco/cursor ao digitar)
+function updateIngrSubtotal(i) {
+  const ig = curIngr[i];
+  if (!ig) return;
+  const sub = (parseFloat(ig.qty||0) * parseFloat(ig.price||0)).toFixed(2);
+  const el = document.getElementById('ingr-sub-' + i);
+  if (el) el.textContent = fR(sub);
+}
+
+// Lista de nomes de ingredientes já usados em todas as receitas, para autocomplete
+function getNomesIngredientesConhecidos() {
+  const set = new Set();
+  recipes.forEach(r => (r.ingredients||[]).forEach(ig => { if (ig.name) set.add(ig.name.trim()); }));
+  return Array.from(set).sort((a,b) => a.localeCompare(b,'pt-BR'));
+}
+
+function showIngrSugestoes(i, val) {
+  const box = document.getElementById('ingr-sug-' + i);
+  if (!box) return;
+  const termo = (val||'').trim().toLowerCase();
+  if (!termo) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  const conhecidos = getNomesIngredientesConhecidos();
+  const filtrados = conhecidos.filter(n => n.toLowerCase().includes(termo) && n.toLowerCase() !== termo).slice(0, 6);
+  if (!filtrados.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.innerHTML = filtrados.map(n =>
+    `<span class="ingr-sug-chip" onmousedown="event.preventDefault();selectIngrSugestao(${i},${JSON.stringify(n)})">${n}</span>`
+  ).join('');
+  box.style.display = 'flex';
+}
+
+function hideIngrSugestoes(i) {
+  const box = document.getElementById('ingr-sug-' + i);
+  if (box) box.style.display = 'none';
+}
+
+function selectIngrSugestao(i, nome) {
+  curIngr[i].name = nome;
+  renderIngrTable();
 }
 
 async function atualizarPrecos() {
@@ -645,16 +782,16 @@ async function atualizarPrecos() {
   const msg = document.getElementById('ai-preco-msg');
   btn.disabled = true; bar.style.display = 'flex'; msg.textContent = 'Buscando preços no ES...';
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 800,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}` }]
+        prompt: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}`,
+        maxTokens: 800, useWebSearch: true
       })
     });
     const d = await r.json();
-    const txt = (d.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+    if (!r.ok) throw new Error(d.erro || 'Erro ao buscar preços');
+    const txt = d.resultado || '';
     let map; try { map = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { throw new Error('Formato inválido'); }
     let n = 0;
     curIngr.forEach(ig => {
@@ -690,12 +827,13 @@ async function pedirComentario() {
   const nome = document.getElementById('fn').value;
   const bar = document.getElementById('ai-comment-bar'); bar.style.display = 'flex';
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: `Para a receita "${nome||'receita'}", escreva 3 dicas curtas em português: variação, armazenamento, acompanhamento. Responda direto.` }] })
+      body: JSON.stringify({ prompt: `Para a receita "${nome||'receita'}", escreva 3 dicas curtas em português: variação, armazenamento, acompanhamento. Responda direto.`, maxTokens: 300 })
     });
     const d = await r.json();
-    const txt = d.content?.find(c=>c.type==='text')?.text||'';
+    if (!r.ok) throw new Error(d.erro || 'Erro ao gerar comentário');
+    const txt = d.resultado || '';
     const campo = document.getElementById('fcomment');
     campo.value = (campo.value?campo.value+'\n\n':'')+'\uD83D\uDCA1 '+txt;
   } catch(err) { toast('Erro: '+err.message); }
@@ -767,6 +905,9 @@ async function saveRecipe() {
     extra: parseFloat(document.getElementById('fext').value)||0,
     preparo: document.getElementById('fprep').value,
     comment: document.getElementById('fcomment').value,
+    usaPanelaMexedora: document.getElementById('fpanela').checked,
+    panelaTempo: document.getElementById('fpanela').checked ? (parseFloat(document.getElementById('fpanela-tempo').value)||0) : null,
+    panelaVelocidade: document.getElementById('fpanela').checked ? (document.getElementById('fpanela-vel').value||'') : null,
     ingredients: curIngr, photos: curPhotos,
     formas: curFormas, formasEnabled,
     shared: shareConfig.sharedIds.includes(editId||''),
@@ -1049,6 +1190,20 @@ function renderViewBody(r) {
       </div>
     </div>` : '';
 
+  const panelaSection = r.usaPanelaMexedora ? `
+    <div style="margin-bottom:16px;background:rgba(200,163,91,.1);border:1px solid rgba(200,163,91,.3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:14px">
+      <span style="font-size:26px">🥘</span>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:800;color:#C8A35B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Panela Mexedora</div>
+        <div style="font-size:13px;color:#F0E6CC">
+          ${r.panelaTempo ? '⏱️ ' + r.panelaTempo + ' min' : ''}
+          ${r.panelaTempo && r.panelaVelocidade ? ' · ' : ''}
+          ${r.panelaVelocidade ? '⚙️ Velocidade ' + r.panelaVelocidade : ''}
+          ${!r.panelaTempo && !r.panelaVelocidade ? 'Sem tempo/velocidade definidos' : ''}
+        </div>
+      </div>
+    </div>` : '';
+
   const formasSection = r.formasEnabled&&r.formas&&r.formas.length ? `
     <div style="margin-bottom:12px">
       <div class="st"><i class="ti ti-cake"></i> Formas</div>
@@ -1088,6 +1243,7 @@ function renderViewBody(r) {
       </div>
       <div class="view-col-receita">
         ${ingredSection}
+        ${panelaSection}
         ${preparoSection}
         ${formasSection}
         ${commentSection}
@@ -1151,6 +1307,7 @@ async function loadPedidosFromCloud() {
       id:p.id,cliente:p.cliente,telefone:p.telefone,data:p.data,hora:p.hora,retira:p.retira,
       endereco:p.endereco,aro:p.aro,massa:p.massa,recheio1:p.recheio1,recheio2:p.recheio2,
       cobertura:p.cobertura,deco:p.deco,tema:p.tema,topo:p.topo,flores:p.flores,
+      custoRealTopo:p.custo_real_topo ?? null, custoRealFlores:p.custo_real_flores ?? null,
       obsDeco:p.obs_deco,inspiPhoto:p.inspi_photo,valorBolo:p.valor_bolo,valorTotal:p.valor_total,
       sinal:p.sinal,pagamento:p.pagamento,status:p.status||'pendente',origem:p.origem,
       createdAt:new Date(p.created_at).getTime()
@@ -1167,6 +1324,7 @@ async function loadPedidosFromCloud() {
   let _w=0;
   while(typeof getCurrentRole==='undefined'&&_w<20){await new Promise(r=>setTimeout(r,100));_w++;}
   document.getElementById('loading-text').textContent='Conectando à nuvem...';
+  if(typeof loadConfigFromCloud==='function') await loadConfigFromCloud();
   const ok=await loadFromCloud();
   document.getElementById('loading-overlay').style.display='none';
   renderHome();renderRecipes();
@@ -2600,3 +2758,4 @@ function salvarCardapioConfig() {
   saveCardapioConfig(cfg);
   toast('✅ Cardápio atualizado! Seus clientes já veem as alterações.');
 }
+
