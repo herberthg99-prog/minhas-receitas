@@ -7,17 +7,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <style>
 :root{
-  --gold:#C8A35B;--gold-light:#F7F0E0;--gold-dark:#8A6A2A;--gold-mid:#E0C48A;
-  --marble:#F8F7F5;--surface:#fff;--border:#E8E2D8;
-  --text:#2A2018;--text2:#6A5A3A;--text3:#A89870;
-  --dark:#1A1208;--dark2:#2C2010;
-  --radius:14px;--radius-sm:9px;--shadow:0 2px 16px rgba(0,0,0,.08);
+  --gold:#C8A35B;--gold-light:#2A3550;--gold-dark:#E0C48A;--gold-mid:#C8A35B;
+  --marble:#0A1628;--surface:#0F2038;--border:rgba(200,163,91,.22);
+  --text:#F0E6CC;--text2:#B8AC8E;--text3:#7E8AA0;
+  --dark:#04101F;--dark2:#0A1628;
+  --radius:14px;--radius-sm:9px;--shadow:0 2px 16px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F5EDD8;min-height:100vh;background:#0F0800}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F5EDD8;min-height:100vh;background:#04101F}
 button{font-family:inherit;cursor:pointer}
 
-.header{background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);color:#fff;padding:28px 20px 24px;text-align:center}
+.header{background:linear-gradient(135deg,#081424 0%,#0E1E36 100%);color:#fff;padding:28px 20px 24px;text-align:center}
 .progress-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
 .progress-steps{display:flex;align-items:center;justify-content:center;gap:0}
 .ps{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;position:relative}
@@ -56,21 +56,21 @@ button{font-family:inherit;cursor:pointer}
 
 .recheio-section{margin-bottom:14px}
 .recheio-tipo-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;padding:4px 10px;border-radius:20px;display:inline-block}
-.label-trad{background:var(--teal-light,#E1F5EE);color:var(--teal)}
-.label-prem{background:#FEF3D0;color:var(--gold-dark)}
+.label-trad{background:#16332B;color:var(--teal)}
+.label-prem{background:#2A3550;color:var(--gold-dark)}
 .recheio-list{display:flex;flex-wrap:wrap;gap:6px}
 .recheio-tag{padding:7px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;background:var(--surface);cursor:pointer;transition:all .2s;font-weight:500}
-.recheio-tag.sel-1{border-color:var(--teal);background:#E1F5EE;color:var(--teal);font-weight:700}
+.recheio-tag.sel-1{border-color:var(--teal);background:#16332B;color:#5DCAA5;font-weight:700}
 .recheio-tag.sel-2{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark);font-weight:700}
 .recheio-tag.prem{border-style:dashed;border-color:#C8A830}
-.recheio-tag.prem.sel-1,.recheio-tag.prem.sel-2{border-style:solid;background:#FEF3D0;color:var(--gold-dark)}
+.recheio-tag.prem.sel-1,.recheio-tag.prem.sel-2{border-style:solid;background:#2A3550;color:var(--gold-dark)}
 .recheio-info{background:var(--gold-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;font-size:12px;color:var(--gold-dark);margin-bottom:12px;display:flex;gap:6px;align-items:flex-start}
-.recheio-selecionados{background:#F5F5F0;border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:10px;display:none}
+.recheio-selecionados{background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:10px;display:none}
 .rs-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px}
 .rs-items{display:flex;gap:6px;flex-wrap:wrap}
 .rs-item{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px}
-.rs-item.trad{background:#E1F5EE;color:var(--teal)}
-.rs-item.prem{background:#FEF3D0;color:var(--gold-dark)}
+.rs-item.trad{background:#16332B;color:#5DCAA5}
+.rs-item.prem{background:#2A3550;color:var(--gold-dark)}
 
 .deco-opcao{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;background:var(--surface);transition:all .2s}
 .deco-opcao.sel{border-color:var(--gold);background:var(--gold-light)}
@@ -86,7 +86,7 @@ button{font-family:inherit;cursor:pointer}
 .extra-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s}
 .extra-btn.sel .extra-check{background:var(--gold);border-color:var(--gold);color:#fff}
 
-.photo-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;background:#FAFAF7;transition:all .2s;margin-bottom:10px}
+.photo-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;background:rgba(255,255,255,.03);transition:all .2s;margin-bottom:10px}
 .photo-zone:active{border-color:var(--gold);background:var(--gold-light)}
 .photo-zone i{font-size:28px;color:var(--gold);display:block;margin-bottom:6px}
 .photo-zone p{font-size:13px;color:var(--text2);font-weight:600}
@@ -171,7 +171,7 @@ button{font-family:inherit;cursor:pointer}
     </div>
 
     <button onclick="document.getElementById('boas-vindas').style.display='none'"
-      style="width:100%;padding:16px 24px;background:linear-gradient(135deg,#C8A35B 0%,#7A6030 100%);color:#fff;border:none;border-radius:50px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.05em;box-shadow:0 4px 20px rgba(184,151,42,.4);margin-bottom:12px">
+      style="width:100%;padding:16px 24px;background:linear-gradient(135deg,#C8A35B 0%,#E0C48A 100%);color:#fff;border:none;border-radius:50px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.05em;box-shadow:0 4px 20px rgba(184,151,42,.4);margin-bottom:12px">
       Montar meu bolo ✨
     </button>
     <div style="font-size:11px;color:rgba(200,163,91,.5);letter-spacing:.05em">
@@ -323,9 +323,9 @@ button{font-family:inherit;cursor:pointer}
   <button class="btn-next" onclick="nextStep(1)" id="btn-next-1" disabled>Próximo: Cobertura <i class="ti ti-arrow-right"></i></button>
 </div>
 
-<div id="alerta-recheio-prem" style="display:none;margin:0 14px 14px;background:#FEF3D0;border:1.5px solid #C8A830;border-radius:12px;padding:14px;gap:10px;align-items:flex-start;flex-direction:row">
+<div id="alerta-recheio-prem" style="display:none;margin:0 14px 14px;background:#2A3550;border:1.5px solid #C8A830;border-radius:12px;padding:14px;gap:10px;align-items:flex-start;flex-direction:row">
   <span style="font-size:24px;flex-shrink:0">⭐</span>
-  <div><div style="font-size:13px;font-weight:700;color:#7A6010;margin-bottom:3px">Recheio Premium selecionado!</div><div style="font-size:12px;color:#9A7A20;line-height:1.6">O valor do seu bolo já reflete o preço com recheio premium. <strong>Nenhuma cobrança adicional surpresa!</strong> 🌟</div></div>
+  <div><div style="font-size:13px;font-weight:700;color:#E0C48A;margin-bottom:3px">Recheio Premium selecionado!</div><div style="font-size:12px;color:#C8B89A;line-height:1.6">O valor do seu bolo já reflete o preço com recheio premium. <strong>Nenhuma cobrança adicional surpresa!</strong> 🌟</div></div>
 </div>
 
 <!-- STEP 2: COBERTURA -->
@@ -341,9 +341,9 @@ button{font-family:inherit;cursor:pointer}
   <button class="btn-next" onclick="nextStep(2)" id="btn-next-2" disabled>Próximo: Decoração <i class="ti ti-arrow-right"></i></button>
 </div>
 
-<div id="alerta-buttercream" style="display:none;margin:0 14px 14px;background:#FFF8E6;border:1.5px solid #C8A35B;border-radius:12px;padding:14px;gap:10px;align-items:flex-start;flex-direction:row">
+<div id="alerta-buttercream" style="display:none;margin:0 14px 14px;background:#2A3550;border:1.5px solid #C8A35B;border-radius:12px;padding:14px;gap:10px;align-items:flex-start;flex-direction:row">
   <span style="font-size:24px;flex-shrink:0">✨</span>
-  <div><div style="font-size:13px;font-weight:700;color:#7A6030;margin-bottom:3px">Buttercream Premium selecionado!</div><div style="font-size:12px;color:#9A7A30;line-height:1.6">Acabamento sofisticado e elegante. Um acréscimo de <strong>R$ 50,00</strong> será adicionado ao valor. 🧁</div></div>
+  <div><div style="font-size:13px;font-weight:700;color:#E0C48A;margin-bottom:3px">Buttercream Premium selecionado!</div><div style="font-size:12px;color:#C8B89A;line-height:1.6">Acabamento sofisticado e elegante. Um acréscimo de <strong>R$ 50,00</strong> será adicionado ao valor. 🧁</div></div>
 </div>
 
 <!-- STEP 3: DECORAÇÃO -->
@@ -364,21 +364,21 @@ button{font-family:inherit;cursor:pointer}
         <input type="text" id="tema-input" placeholder="Ex: Frozen, Safari, Dinossauro, Princesas..." style="width:100%;padding:11px 13px;border:1.5px solid var(--gold);border-radius:var(--radius-sm);font-size:15px;font-weight:600;background:var(--surface);color:var(--text);font-family:inherit">
         <p style="font-size:11px;color:var(--gold-dark);margin-top:6px">💡 Quanto mais detalhes, melhor conseguimos personalizar!</p>
       </div>
-      <div style="margin-top:12px;background:#F0F9F5;border:1.5px solid #9FE1CB;border-radius:10px;padding:14px">
-        <div style="font-size:13px;font-weight:700;color:#0F6E56;margin-bottom:10px">🎨 Quer ajuda para definir a decoração do tema?</div>
-        <p style="font-size:12px;color:#2A6A50;margin-bottom:10px;line-height:1.6">Podemos criar sugestões personalizadas de decoração para você!</p>
+      <div style="margin-top:12px;background:#0E2A24;border:1.5px solid #2D6B58;border-radius:10px;padding:14px">
+        <div style="font-size:13px;font-weight:700;color:#5DCAA5;margin-bottom:10px">🎨 Quer ajuda para definir a decoração do tema?</div>
+        <p style="font-size:12px;color:#9FBFB0;margin-bottom:10px;line-height:1.6">Podemos criar sugestões personalizadas de decoração para você!</p>
         <div style="display:flex;gap:8px">
-          <button id="btn-ajuda-sim" onclick="setAjudaTema(true)" style="flex:1;padding:10px;border-radius:8px;border:2px solid #9FE1CB;background:white;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#0F6E56;transition:all .2s">✅ Sim, quero!</button>
-          <button id="btn-ajuda-nao" onclick="setAjudaTema(false)" style="flex:1;padding:10px;border-radius:8px;border:2px solid #ddd;background:#f5f5f5;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#999;transition:all .2s">❌ Não preciso</button>
+          <button id="btn-ajuda-sim" onclick="setAjudaTema(true)" style="flex:1;padding:10px;border-radius:8px;border:2px solid #2D6B58;background:#0F2038;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:#5DCAA5;transition:all .2s">✅ Sim, quero!</button>
+          <button id="btn-ajuda-nao" onclick="setAjudaTema(false)" style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--border);background:#0F2038;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--text3);transition:all .2s">❌ Não preciso</button>
         </div>
       </div>
-      <div id="ajuda-tema-box" style="display:none;margin-top:12px;background:#FFF8E6;border:1.5px solid #C8A35B;border-radius:10px;padding:14px">
-        <div style="font-size:12px;font-weight:700;color:#7A6030;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">✨ Conte um pouco mais</div>
-        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Cores preferidas</label><input type="text" id="ajuda-cores" placeholder="Ex: Rosa, dourado e branco" style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white"></div>
-        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Elementos que não podem faltar</label><input type="text" id="ajuda-obrigatorios" placeholder="Ex: Nome da criança, borboletas..." style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white"></div>
-        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Algo que NÃO pode aparecer</label><input type="text" id="ajuda-proibidos" placeholder="Ex: Sem personagens, sem azul..." style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white"></div>
-        <div><label style="font-size:11px;font-weight:600;color:#9A7A30;display:block;margin-bottom:4px">Observações extras</label><textarea id="ajuda-obs" placeholder="Ex: Prefere algo delicado e minimalista..." style="width:100%;padding:9px 11px;border:1.5px solid #C8A35B;border-radius:7px;font-size:13px;font-family:inherit;background:white;resize:none;min-height:60px;line-height:1.5"></textarea></div>
-        <div style="margin-top:10px;background:rgba(200,163,91,.12);border-radius:7px;padding:10px 12px;font-size:11px;color:#7A6030;line-height:1.6">⚠️ <strong>Importante:</strong> As sugestões são apenas <em>inspiração visual</em>. Não garantimos resultado idêntico às imagens geradas.</div>
+      <div id="ajuda-tema-box" style="display:none;margin-top:12px;background:#2A3550;border:1.5px solid var(--gold);border-radius:10px;padding:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--gold-dark);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">✨ Conte um pouco mais</div>
+        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Cores preferidas</label><input type="text" id="ajuda-cores" placeholder="Ex: Rosa, dourado e branco" style="width:100%;padding:9px 11px;border:1.5px solid var(--gold);border-radius:7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
+        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Elementos que não podem faltar</label><input type="text" id="ajuda-obrigatorios" placeholder="Ex: Nome da criança, borboletas..." style="width:100%;padding:9px 11px;border:1.5px solid var(--gold);border-radius:7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
+        <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Algo que NÃO pode aparecer</label><input type="text" id="ajuda-proibidos" placeholder="Ex: Sem personagens, sem azul..." style="width:100%;padding:9px 11px;border:1.5px solid var(--gold);border-radius:7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)"></div>
+        <div><label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Observações extras</label><textarea id="ajuda-obs" placeholder="Ex: Prefere algo delicado e minimalista..." style="width:100%;padding:9px 11px;border:1.5px solid var(--gold);border-radius:7px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);resize:none;min-height:60px;line-height:1.5"></textarea></div>
+        <div style="margin-top:10px;background:rgba(200,163,91,.12);border-radius:7px;padding:10px 12px;font-size:11px;color:#E0C48A;line-height:1.6">⚠️ <strong>Importante:</strong> As sugestões são apenas <em>inspiração visual</em>. Não garantimos resultado idêntico às imagens geradas.</div>
       </div>
     </div>
   </div>
@@ -444,9 +444,9 @@ button{font-family:inherit;cursor:pointer}
   </div>
   <div class="card">
     <div class="regras">
-      <p>📅 <span>Pedidos com <strong>mínimo 3 dias</strong> de antecedência</span></p>
-      <p>💰 <span>Sinal de <strong>50%</strong> para confirmar encomenda</span></p>
-      <p>📱 <span>PIX: <strong>(27) 9 9521-3194</strong></span></p>
+      <p id="regra-dias-dynamic">📅 <span>Pedidos com <strong>mínimo 3 dias</strong> de antecedência</span></p>
+      <p id="regra-sinal-dynamic">💰 <span>Sinal de <strong>50%</strong> para confirmar encomenda</span></p>
+      <p>📱 <span>PIX: <strong class="pix-dynamic">(27) 9 9521-3194</strong></span></p>
     </div>
   </div>
   <button class="btn-back" onclick="prevStep(4)"><i class="ti ti-arrow-left"></i> Voltar</button>
@@ -463,7 +463,7 @@ button{font-family:inherit;cursor:pointer}
     <div id="comp-preview-cliente" style="margin-bottom:8px"></div>
     <button onclick="document.getElementById('comp-file-cliente').click()" style="width:100%;padding:11px;background:rgba(200,163,91,.15);color:var(--gold-dark);border:1.5px solid var(--gold);border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-upload"></i> <span id="comp-btn-txt">Adicionar comprovante (foto ou PDF)</span></button>
     <input type="file" id="comp-file-cliente" accept="image/*,application/pdf" style="display:none" onchange="addCompCliente(event)">
-    <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">PIX: (27) 9 9521-3194 · Sinal de 50%</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px;text-align:center">PIX: <span class="pix-dynamic">(27) 9 9521-3194</span> · Sinal de <span id="sinal-pct-dynamic">50</span>%</div>
   </div>
   <button class="btn-back" onclick="prevStep(5)"><i class="ti ti-arrow-left"></i> Voltar e ajustar</button>
   <button class="btn-next" onclick="enviarPedido()" id="btn-enviar"><i class="ti ti-send"></i> Confirmar pedido</button>
@@ -475,11 +475,11 @@ button{font-family:inherit;cursor:pointer}
     <i class="ti ti-circle-check"></i>
     <h2>Pedido enviado! 🎉</h2>
     <p>Seu pedido foi recebido pela Sucrée Confeitaria. Entraremos em contato pelo WhatsApp para confirmar e enviar os dados para o pagamento do sinal.</p>
-    <div id="aviso-decoracao-sucesso" style="display:none;background:#FFF8E6;border:1.5px solid #C8A35B;border-radius:12px;padding:14px;margin:14px 0;text-align:left">
-      <div style="font-size:13px;font-weight:700;color:#7A6030;margin-bottom:6px">🎨 Sugestões de decoração a caminho!</div>
-      <div style="font-size:12px;color:#9A7A30;line-height:1.7">Vamos criar <strong>3 propostas exclusivas</strong> de decoração para o seu tema e enviar pelo WhatsApp em breve.<br><br>⚠️ <em>As imagens são apenas inspiração visual.</em></div>
+    <div id="aviso-decoracao-sucesso" style="display:none;background:#2A3550;border:1.5px solid #C8A35B;border-radius:12px;padding:14px;margin:14px 0;text-align:left">
+      <div style="font-size:13px;font-weight:700;color:#E0C48A;margin-bottom:6px">🎨 Sugestões de decoração a caminho!</div>
+      <div style="font-size:12px;color:#C8B89A;line-height:1.7">Vamos criar <strong>3 propostas exclusivas</strong> de decoração para o seu tema e enviar pelo WhatsApp em breve.<br><br>⚠️ <em>As imagens são apenas inspiração visual.</em></div>
     </div>
-    <div class="pix-box">💳 PIX para sinal (50%)<br><span style="font-size:17px;letter-spacing:.05em">(27) 9 9521-3194</span></div>
+    <div class="pix-box">💳 PIX para sinal (<span id="sinal-pct-dynamic2">50</span>%)<br><span style="font-size:17px;letter-spacing:.05em" class="pix-dynamic">(27) 9 9521-3194</span></div>
     <p style="font-size:13px;color:var(--text3)">Obrigada por escolher a Sucrée! Com amor e carinho em cada detalhe. 🤍</p>
   </div>
 </div>
@@ -492,6 +492,58 @@ const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
 var NTFY_CANAL = 'sucree_6a6490b03a94';
 var WHATSAPP_SUCREE = '5527995213194';
+
+// Config dinâmica (carregada do Supabase). Valores abaixo são fallback caso a nuvem não responda.
+var cardapioCfg = {
+  pixKey: '(27) 9 9521-3194', minDias: 3, sinalPct: 50,
+  buttercream: 50, topoValor: 45, floresValor: 50,
+  precos: { 10:{trad:110,prem:140}, 15:{trad:200,prem:240}, 20:{trad:250,prem:280}, 25:{trad:300,prem:335}, 30:{trad:350,prem:390} }
+};
+
+async function loadCardapioConfigFromCloud() {
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/config?user_id=eq.herberth_admin&select=sucree_config', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const rows = await r.json();
+    if (rows && rows[0] && rows[0].sucree_config) {
+      const cloud = JSON.parse(rows[0].sucree_config);
+      cardapioCfg = {...cardapioCfg, ...cloud};
+      aplicarCardapioCfgNaTela();
+    }
+  } catch(e) { console.log('Config cloud erro (usando padrão):', e); }
+}
+
+function aplicarCardapioCfgNaTela() {
+  // Atualiza textos de PIX em todos os pontos da tela
+  document.querySelectorAll('.pix-dynamic').forEach(function(el) {
+    el.textContent = cardapioCfg.pixKey;
+  });
+  // Atualiza regra de dias mínimos e % de sinal
+  var elDias = document.getElementById('regra-dias-dynamic');
+  if (elDias) elDias.innerHTML = '📅 <span>Pedidos com <strong>mínimo ' + cardapioCfg.minDias + ' dias</strong> de antecedência</span>';
+  document.querySelectorAll('#sinal-pct-dynamic, #sinal-pct-dynamic2').forEach(function(el) {
+    el.textContent = cardapioCfg.sinalPct;
+  });
+  var elSinal = document.getElementById('regra-sinal-dynamic');
+  if (elSinal) elSinal.innerHTML = '💰 <span>Sinal de <strong>' + cardapioCfg.sinalPct + '%</strong> para confirmar encomenda</span>';
+
+  // Atualiza preços e onclick dos botões de tamanho com base na config
+  [10,15,20,25,30].forEach(function(aro){
+    var p = cardapioCfg.precos[aro];
+    if (!p) return;
+    var btn = document.getElementById('tam-' + aro);
+    if (!btn) return;
+    btn.setAttribute('onclick', 'setTamanho(' + aro + ',' + p.trad + ',' + p.prem + ')');
+    var elTrad = btn.querySelector('.tam-p-trad');
+    var elPrem = btn.querySelector('.tam-p-prem');
+    if (elTrad) elTrad.textContent = 'R$ ' + parseFloat(p.trad).toFixed(2).replace('.',',');
+    if (elPrem) elPrem.textContent = 'Premium: R$ ' + parseFloat(p.prem).toFixed(2).replace('.',',');
+  });
+
+  // Recalcula o mapa usado pelo "Preciso de ajuda para escolher"
+  CONVIDADOS_MAP = getConvidadosMap();
+}
 
 let pedido = {};
 try {
@@ -514,7 +566,14 @@ function prevStep(from){goStep(from-1);}
 
 function setModoTamanho(modo){document.getElementById('ajuda-tamanho-box').style.display='none';if(modo==='ajuda'){document.getElementById('box-convidados').style.display='block';document.getElementById('box-tamanhos').style.display='none';document.getElementById('box-massa').style.display='none';}else{document.getElementById('box-convidados').style.display='none';document.getElementById('box-tamanhos').style.display='block';document.getElementById('box-massa').style.display='block';}}
 
-const CONVIDADOS_MAP=[{max:3,aro:10,trad:110,prem:140,fatias:'até 3 fatias'},{max:10,aro:15,trad:200,prem:240,fatias:'até 10 fatias'},{max:20,aro:20,trad:250,prem:280,fatias:'até 20 fatias'},{max:30,aro:25,trad:300,prem:335,fatias:'até 30 fatias'},{max:999,aro:30,trad:350,prem:390,fatias:'até 45 fatias'}];
+function getConvidadosMap(){return [
+  {max:3,aro:10,trad:cardapioCfg.precos[10].trad,prem:cardapioCfg.precos[10].prem,fatias:'até 3 fatias'},
+  {max:10,aro:15,trad:cardapioCfg.precos[15].trad,prem:cardapioCfg.precos[15].prem,fatias:'até 10 fatias'},
+  {max:20,aro:20,trad:cardapioCfg.precos[20].trad,prem:cardapioCfg.precos[20].prem,fatias:'até 20 fatias'},
+  {max:30,aro:25,trad:cardapioCfg.precos[25].trad,prem:cardapioCfg.precos[25].prem,fatias:'até 30 fatias'},
+  {max:999,aro:30,trad:cardapioCfg.precos[30].trad,prem:cardapioCfg.precos[30].prem,fatias:'até 45 fatias'}
+];}
+let CONVIDADOS_MAP=getConvidadosMap();
 let sugestaoAtual=null,sugestaoAtual2=null;
 
 function sugerirTamanho(){const qtd=parseInt(document.getElementById('qtd-convidados').value)||0;const box=document.getElementById('sugestao-box');if(!qtd){box.style.display='none';return;}if(qtd>45){const s1=CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];sugestaoAtual=s1;document.getElementById('sugestao-texto').innerHTML='🎂 2 bolos Aro 30 cm';document.getElementById('sugestao-desc').innerHTML='Para '+qtd+' convidados sugerimos <strong>2 bolos</strong>!';document.getElementById('sugestao-btn').textContent='Sim, quero 2 bolos!';}else{const sug=CONVIDADOS_MAP.find(m=>qtd<=m.max)||CONVIDADOS_MAP[CONVIDADOS_MAP.length-1];sugestaoAtual=sug;document.getElementById('sugestao-texto').textContent='Aro '+sug.aro+' cm';document.getElementById('sugestao-desc').textContent=sug.fatias+' · R$ '+sug.trad.toFixed(2)+' (tradicional) / R$ '+sug.prem.toFixed(2)+' (premium)';document.getElementById('sugestao-btn').textContent='Usar esta sugestão ✓';}box.style.display='block';}
@@ -530,7 +589,7 @@ function renderRecheioTags(){const selecionados=pedido.recheios.map(r=>r.nome);d
 function renderRecheioSelecionados(){const box=document.getElementById('recheio-selecionados');const list=document.getElementById('rs-items-list');if(pedido.recheios.length===0){box.style.display='none';return;}box.style.display='block';list.innerHTML=pedido.recheios.map(r=>`<span class="rs-item ${r.tipo}">${r.nome} ${r.tipo==='prem'?'⭐':''}</span>`).join('');}
 
 let pedidoAjudaTema=false;
-function setAjudaTema(quer){pedidoAjudaTema=quer;const sim=document.getElementById('btn-ajuda-sim');const nao=document.getElementById('btn-ajuda-nao');const box=document.getElementById('ajuda-tema-box');if(quer){sim.style.background='#0F6E56';sim.style.color='#fff';sim.style.borderColor='#0F6E56';nao.style.background='#f5f5f5';nao.style.color='#999';nao.style.borderColor='#ddd';box.style.display='block';}else{nao.style.background='#C8503A';nao.style.color='#fff';nao.style.borderColor='#C8503A';sim.style.background='white';sim.style.color='#0F6E56';sim.style.borderColor='#9FE1CB';box.style.display='none';}}
+function setAjudaTema(quer){pedidoAjudaTema=quer;const sim=document.getElementById('btn-ajuda-sim');const nao=document.getElementById('btn-ajuda-nao');const box=document.getElementById('ajuda-tema-box');if(quer){sim.style.background='#2D6B58';sim.style.color='#fff';sim.style.borderColor='#2D6B58';nao.style.background='#0F2038';nao.style.color='var(--text3)';nao.style.borderColor='var(--border)';box.style.display='block';}else{nao.style.background='#A32D2D';nao.style.color='#fff';nao.style.borderColor='#A32D2D';sim.style.background='#0F2038';sim.style.color='#5DCAA5';sim.style.borderColor='#2D6B58';box.style.display='none';}}
 
 function setCobertura(id,nome){pedido.cobertura=id;pedido.coberturaNome=nome;document.querySelectorAll('#step-2 .opcao-btn').forEach(b=>b.classList.remove('sel'));document.getElementById('cob-'+id).classList.add('sel');document.getElementById('btn-next-2').disabled=false;savePedidoLocal();const alerta=document.getElementById('alerta-buttercream');if(alerta)alerta.style.display=id==='buttercream'?'flex':'none';}
 function setDeco(tipo){pedido.deco=tipo;if(tipo==='tematico')pedido.topo=true;else pedido.topo=false;document.querySelectorAll('.deco-opcao').forEach(b=>b.classList.remove('sel'));document.getElementById('deco-'+tipo).classList.add('sel');document.getElementById('tema-box').style.display=tipo==='tematico'?'block':'none';}
@@ -542,11 +601,11 @@ function setRetira(val){pedido.retira=val;const sim=document.getElementById('btn
 function formatCep(el){let v=el.value.replace(/\D/g,'').slice(0,8);if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5);el.value=v;if(v.replace('-','').length===8)buscarCep(v);}
 async function buscarCep(cep){const digits=cep.replace(/\D/g,'');if(digits.length!==8)return;const loading=document.getElementById('cep-loading');const ok=document.getElementById('cep-ok');loading.style.display='block';ok.style.display='none';try{const r=await fetch('https://viacep.com.br/ws/'+digits+'/json/');const d=await r.json();loading.style.display='none';if(d.erro){toast('CEP não encontrado');return;}document.getElementById('ent-rua').value=d.logradouro||'';document.getElementById('ent-bairro').value=d.bairro||'';document.getElementById('ent-cidade').value=d.localidade||'';ok.style.display='block';document.getElementById('ent-numero').focus();toast('✅ Endereço preenchido!');}catch(e){loading.style.display='none';toast('Digite o endereço manualmente');}}
 
-function calcTotal(){const hasPrem=pedido.recheios.some(r=>r.tipo==='prem');const precoBase=hasPrem?pedido.precoPrem:pedido.precoTrad;const plusButtercream=pedido.cobertura==='buttercream'?50:0;const plusTopo=(pedido.topo||pedido.deco==='tematico')?45:0;const plusFlores=pedido.flores?50:0;const total=precoBase+plusButtercream+plusTopo+plusFlores;const sinal=total*0.5;return{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem};}
+function calcTotal(){const hasPrem=pedido.recheios.some(r=>r.tipo==='prem');const precoBase=hasPrem?pedido.precoPrem:pedido.precoTrad;const plusButtercream=pedido.cobertura==='buttercream'?cardapioCfg.buttercream:0;const plusTopo=(pedido.topo||pedido.deco==='tematico')?cardapioCfg.topoValor:0;const plusFlores=pedido.flores?cardapioCfg.floresValor:0;const total=precoBase+plusButtercream+plusTopo+plusFlores;const sinal=total*(cardapioCfg.sinalPct/100);return{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem};}
 
-function renderResumo(){const{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem}=calcTotal();const dataFmt=pedido.data?new Date(pedido.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const recheioNomes=pedido.recheios.map(r=>r.nome+(r.tipo==='prem'?' ⭐':'')).join(' + ');document.getElementById('resumo-content').innerHTML=`<div class="resumo-row"><span>📐 Tamanho</span><span><b>Aro ${pedido.aro} cm</b></span></div><div class="resumo-row"><span>🧁 Massa</span><span>${pedido.massaNome||'—'}</span></div><div class="resumo-row"><span>🍓 Recheio(s)</span><span style="text-align:right;max-width:60%">${recheioNomes||'—'}</span></div><div class="resumo-row"><span>✨ Cobertura</span><span>${pedido.coberturaNome||'—'}</span></div><div class="resumo-row"><span>🎨 Decoração</span><span>${pedido.deco==='tematico'?'Temático'+(pedido.tema?' — '+pedido.tema:''):'Espatulado'}</span></div>${pedido.flores?'<div class="resumo-row"><span>💐 Flores Naturais</span><span>Sim</span></div>':''}<div class="resumo-row"><span>👤 Cliente</span><span>${pedido.nome||'—'}</span></div><div class="resumo-row"><span>📅 Entrega</span><span>${dataFmt} ${pedido.hora?'às '+pedido.hora:''}</span></div><div class="resumo-row"><span>📍 Retirada</span><span>${pedido.retira?'Sim, retira':'Não, entrego'}</span></div>`;document.getElementById('total-content').innerHTML=`<div class="resumo-row"><span>Bolo ${pedido.aro}cm ${hasPrem?'(premium)':'(tradicional)'}</span><span>R$ ${precoBase.toFixed(2)}</span></div>${plusButtercream?`<div class="resumo-row"><span>Buttercream</span><span>R$ ${plusButtercream.toFixed(2)}</span></div>`:''} ${plusTopo?`<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''} ${plusFlores?`<div class="resumo-row"><span>💐 Flores</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}<div class="resumo-total"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div><div class="sinal-box">💰 Sinal para confirmar (50%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: (27) 9 9521-3194</div>`;}
+function renderResumo(){const{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem}=calcTotal();const dataFmt=pedido.data?new Date(pedido.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const recheioNomes=pedido.recheios.map(r=>r.nome+(r.tipo==='prem'?' ⭐':'')).join(' + ');document.getElementById('resumo-content').innerHTML=`<div class="resumo-row"><span>📐 Tamanho</span><span><b>Aro ${pedido.aro} cm</b></span></div><div class="resumo-row"><span>🧁 Massa</span><span>${pedido.massaNome||'—'}</span></div><div class="resumo-row"><span>🍓 Recheio(s)</span><span style="text-align:right;max-width:60%">${recheioNomes||'—'}</span></div><div class="resumo-row"><span>✨ Cobertura</span><span>${pedido.coberturaNome||'—'}</span></div><div class="resumo-row"><span>🎨 Decoração</span><span>${pedido.deco==='tematico'?'Temático'+(pedido.tema?' — '+pedido.tema:''):'Espatulado'}</span></div>${pedido.flores?'<div class="resumo-row"><span>💐 Flores Naturais</span><span>Sim</span></div>':''}<div class="resumo-row"><span>👤 Cliente</span><span>${pedido.nome||'—'}</span></div><div class="resumo-row"><span>📅 Entrega</span><span>${dataFmt} ${pedido.hora?'às '+pedido.hora:''}</span></div><div class="resumo-row"><span>📍 Retirada</span><span>${pedido.retira?'Sim, retira':'Não, entrego'}</span></div>`;document.getElementById('total-content').innerHTML=`<div class="resumo-row"><span>Bolo ${pedido.aro}cm ${hasPrem?'(premium)':'(tradicional)'}</span><span>R$ ${precoBase.toFixed(2)}</span></div>${plusButtercream?`<div class="resumo-row"><span>Buttercream</span><span>R$ ${plusButtercream.toFixed(2)}</span></div>`:''} ${plusTopo?`<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''} ${plusFlores?`<div class="resumo-row"><span>💐 Flores</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}<div class="resumo-total"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div><div class="sinal-box">💰 Sinal para confirmar (${cardapioCfg.sinalPct}%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: ${cardapioCfg.pixKey}</div>`;}
 
-function addCompCliente(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{pedido.comprovante=ev.target.result;savePedidoLocal();const prev=document.getElementById('comp-preview-cliente');const isImg=file.type.startsWith('image/');if(isImg){prev.innerHTML=`<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px">`;}else{prev.innerHTML=`<div style="background:#fff;border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:var(--gold-dark);margin-bottom:6px">📄 ${file.name}</div>`;}document.getElementById('comp-btn-txt').textContent='Trocar comprovante';toast('✅ Comprovante adicionado!');};reader.readAsDataURL(file);e.target.value='';}
+function addCompCliente(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{pedido.comprovante=ev.target.result;savePedidoLocal();const prev=document.getElementById('comp-preview-cliente');const isImg=file.type.startsWith('image/');if(isImg){prev.innerHTML=`<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px">`;}else{prev.innerHTML=`<div style="background:#0F2038;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:var(--gold-dark);margin-bottom:6px">📄 ${file.name}</div>`;}document.getElementById('comp-btn-txt').textContent='Trocar comprovante';toast('✅ Comprovante adicionado!');};reader.readAsDataURL(file);e.target.value='';}
 
 async function enviarPedido(){const btn=document.getElementById('btn-enviar');btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Enviando...';if(pedidoAjudaTema){pedido.ajudaTema=true;pedido.ajudaCores=document.getElementById('ajuda-cores')?.value||'';pedido.ajudaObrigatorios=document.getElementById('ajuda-obrigatorios')?.value||'';pedido.ajudaProibidos=document.getElementById('ajuda-proibidos')?.value||'';pedido.ajudaObs=document.getElementById('ajuda-obs')?.value||'';}const{total,sinal}=calcTotal();const hasPrem=pedido.recheios.some(r=>r.tipo==='prem');const novoPedido={id:'cp_'+Date.now().toString(36)+Math.random().toString(36).slice(2),cliente:pedido.nome,telefone:pedido.tel,data:pedido.data,hora:pedido.hora,retira:pedido.retira,endereco:pedido.endereco||null,aro:pedido.aro,massa:pedido.massaNome,recheio1:pedido.recheios[0]?.nome||null,recheio2:pedido.recheios[1]?.nome||null,recheio1tipo:pedido.recheios[0]?.tipo||null,recheio2tipo:pedido.recheios[1]?.tipo||null,cobertura:pedido.coberturaNome,deco:pedido.deco,tema:pedido.tema||null,topo:pedido.topo,flores:pedido.flores,obsDeco:pedido.obsDeco||null,enderecoObj:pedido.enderecoObj||null,inspiPhoto:pedido.inspiPhoto||null,valorBolo:hasPrem?pedido.precoPrem:pedido.precoTrad,valorTotal:total,sinal:sinal,status:'pendente',origem:'cardapio_online',user_id:'herberth_admin'};try{const resp=await fetch(SUPABASE_URL+'/rest/v1/pedidos_confeitaria',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},body:JSON.stringify({id:novoPedido.id,user_id:novoPedido.user_id,cliente:novoPedido.cliente,telefone:novoPedido.telefone,data:novoPedido.data||null,hora:novoPedido.hora||null,retira:novoPedido.retira,endereco:novoPedido.endereco||null,aro:novoPedido.aro,massa:novoPedido.massa,recheio1:novoPedido.recheio1,recheio2:novoPedido.recheio2,recheio1tipo:novoPedido.recheio1tipo,recheio2tipo:novoPedido.recheio2tipo,cobertura:novoPedido.cobertura,deco:novoPedido.deco,tema:novoPedido.tema||null,topo:novoPedido.topo,flores:novoPedido.flores,obs_deco:novoPedido.obsDeco||null,inspi_photo:novoPedido.inspiPhoto||null,valor_bolo:novoPedido.valorBolo,valor_total:novoPedido.valorTotal,sinal:novoPedido.sinal,status:'pendente',origem:'cardapio_online'})});if(resp.ok||resp.status===201||resp.status===200){clearPedidoLocal();goStep(6);if(pedidoAjudaTema){const aviso=document.getElementById('aviso-decoracao-sucesso');if(aviso)aviso.style.display='block';}setTimeout(()=>notificarWhatsApp(novoPedido),1500);setTimeout(()=>enviarFichaCozinha(novoPedido),2000);}else{throw new Error('Erro '+resp.status);}}catch(e){let pendentes=[];try{pendentes=JSON.parse(localStorage.getItem('pedidos_pendentes')||'[]');}catch(er){}pendentes.push(novoPedido);localStorage.setItem('pedidos_pendentes',JSON.stringify(pendentes));goStep(6);}}
 
@@ -558,7 +617,10 @@ if(pedido.cobertura)setCobertura(pedido.cobertura,pedido.coberturaNome);
 if(pedido.deco)setDeco(pedido.deco);
 if(pedido.recheios&&pedido.recheios.length>0){renderRecheioTags();renderRecheioSelecionados();document.getElementById('btn-next-1').disabled=false;}
 
-function notificarWhatsApp(p){try{const dataFmt=p.data?new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const msg=encodeURIComponent('🎂 *NOVO PEDIDO — Sucrée Confeitaria*\n\n'+'👤 *Cliente:* '+(p.cliente||'—')+'\n'+'📱 *WhatsApp:* '+(p.telefone||'—')+'\n'+'📅 *Entrega:* '+dataFmt+' às '+(p.hora||'—')+'\n'+'🚗 *Retirada:* '+(p.retira?'Sim, cliente retira':'Não — entrego no endereço')+'\n'+(p.endereco?'📍 *Endereço:* '+p.endereco+'\n':'')+'\n🎂 *Bolo:*\n'+'• Tamanho: Aro '+(p.aro||'—')+'\n'+'• Massa: '+(p.massa||'—')+'\n'+'• Recheio 1: '+(p.recheio1||'—')+'\n'+'• Recheio 2: '+(p.recheio2||'—')+'\n'+'• Cobertura: '+(p.cobertura||'—')+'\n'+(p.tema?'• Tema: '+p.tema+'\n':'')+'\n💰 *Total:* R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'\n💰 *Sinal (50%):* R$ '+parseFloat(p.sinal||0).toFixed(2)+'\n\n🆔 Pedido: '+p.id);window.open('https://wa.me/'+WHATSAPP_SUCREE+'?text='+msg,'_blank');}catch(e){console.log('WhatsApp erro:',e);}try{fetch('https://ntfy.sh/'+NTFY_CANAL,{method:'POST',headers:{'Title':'Novo Pedido - Sucree','Priority':'high','Tags':'cake,moneybag','Content-Type':'text/plain; charset=utf-8'},body:(p.cliente||'Cliente')+' - Aro '+(p.aro||'?')+' - R$ '+parseFloat(p.valorTotal||0).toFixed(2)}).then(r=>console.log('Ntfy:',r.status)).catch(e=>console.log('Ntfy erro:',e));}catch(e2){console.log('Ntfy erro:',e2);}}
+// Carrega config dinâmica (PIX, preços, dias mínimos, sinal) do painel admin
+loadCardapioConfigFromCloud();
+
+function notificarWhatsApp(p){try{const dataFmt=p.data?new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const msg=encodeURIComponent('🎂 *NOVO PEDIDO — Sucrée Confeitaria*\n\n'+'👤 *Cliente:* '+(p.cliente||'—')+'\n'+'📱 *WhatsApp:* '+(p.telefone||'—')+'\n'+'📅 *Entrega:* '+dataFmt+' às '+(p.hora||'—')+'\n'+'🚗 *Retirada:* '+(p.retira?'Sim, cliente retira':'Não — entrego no endereço')+'\n'+(p.endereco?'📍 *Endereço:* '+p.endereco+'\n':'')+'\n🎂 *Bolo:*\n'+'• Tamanho: Aro '+(p.aro||'—')+'\n'+'• Massa: '+(p.massa||'—')+'\n'+'• Recheio 1: '+(p.recheio1||'—')+'\n'+'• Recheio 2: '+(p.recheio2||'—')+'\n'+'• Cobertura: '+(p.cobertura||'—')+'\n'+(p.tema?'• Tema: '+p.tema+'\n':'')+'\n💰 *Total:* R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'\n💰 *Sinal ('+cardapioCfg.sinalPct+'%):* R$ '+parseFloat(p.sinal||0).toFixed(2)+'\n\n🆔 Pedido: '+p.id);window.open('https://wa.me/'+WHATSAPP_SUCREE+'?text='+msg,'_blank');}catch(e){console.log('WhatsApp erro:',e);}try{fetch('https://ntfy.sh/'+NTFY_CANAL,{method:'POST',headers:{'Title':'Novo Pedido - Sucree','Priority':'high','Tags':'cake,moneybag','Content-Type':'text/plain; charset=utf-8'},body:(p.cliente||'Cliente')+' - Aro '+(p.aro||'?')+' - R$ '+parseFloat(p.valorTotal||0).toFixed(2)}).then(r=>console.log('Ntfy:',r.status)).catch(e=>console.log('Ntfy erro:',e));}catch(e2){console.log('Ntfy erro:',e2);}}
 
 function enviarFichaCozinha(p){var massaReceitas={'fofinha':'Pão de Ló Fofinha','fofinha-chocolate':'Pão de Ló Fofinha Chocolate','classica':'Massa Clássica (Amanteigada)','classica-chocolate':'Massa Clássica Chocolate'};var massaNome=massaReceitas[p.massa]||p.massa||'—';var dataFmt=p.data?new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}):'—';var multMassa={'10':'½ receita','15':'1 receita','20':'1¾ receitas','25':'2¾ receitas','30':'4 receitas'};var msg='👩‍🍳 *FICHA DE COZINHA — Sucrée*\n\n'+'📋 *Pedido:* '+(p.cliente||'Cliente')+'\n'+'📅 *Entrega:* '+dataFmt+' às '+(p.hora||'—')+'\n\n'+'🎂 *BOLO ARO '+(p.aro||'?')+'cm*\n'+'━━━━━━━━━━━━━━━━━\n'+'🍞 *Massa:* '+massaNome+'\n'+'   → Quantidade: '+(multMassa[String(p.aro)]||'—')+'\n\n'+'🎂 *Recheio 1:* '+(p.recheio1||'—')+'\n'+'🎂 *Recheio 2:* '+(p.recheio2&&p.recheio2!==p.recheio1?p.recheio2:'(mesmo recheio)')+'\n\n'+'🧁 *Cobertura:* '+(p.cobertura||'—')+'\n'+(p.tema?'🎨 *Tema:* '+p.tema+'\n':'')+(p.obsDeco?'💬 *Obs:* '+p.obsDeco+'\n':'')+'\n━━━━━━━━━━━━━━━━━\n'+'💰 Valor: R$ '+parseFloat(p.valorTotal||0).toFixed(2);try{window.open('https://wa.me/'+WHATSAPP_SUCREE+'?text='+encodeURIComponent(msg),'_blank');}catch(e){console.log('Ficha erro:',e);}}
 </script>
