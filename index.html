@@ -301,8 +301,13 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 .deco-option h3 { font-size:15px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;margin-bottom:6px; }
 .deco-option p { font-size:13px;color:var(--text2);line-height:1.6; }
 .deco-copy-btn { background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-top:10px; }
+
+.ingr-sug-chips { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:3px; }
+.ingr-sug-chip { font-size:11px; padding:3px 9px; border-radius:12px; background:rgba(200,163,91,.15); border:1px solid rgba(200,163,91,.35); color:var(--gold); cursor:pointer; white-space:nowrap; transition:all .15s; }
+.ingr-sug-chip:hover { background:var(--gold); color:#fff; }
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN OVERLAY -->
@@ -417,6 +422,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     <span style="color:var(--gold);font-weight:700">Nova</span>
   </button>
   <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+  <button class="bni" onclick="goPage('estoque')" id="nav-estoque" title="Estoque e preços"><i class="ti ti-package"></i><span>Estoque</span></button>
   <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
   <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
   <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
@@ -530,6 +536,18 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <div class="fg"><label>Tempo (min)</label><input type="number" id="ftm" value="60" min="1"></div>
       </div>
       <div class="fg"><label>Unidade de venda</label><select id="funit"><option value="porção">Porção</option><option value="kg">kg</option><option value="unidade">Unidade</option><option value="fatia">Fatia</option><option value="dúzia">Dúzia</option></select></div>
+
+      <div class="fg" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <input type="checkbox" id="fpanela" onchange="togglePanelaMexedora()" style="width:18px;height:18px;accent-color:var(--gold)">
+        <label for="fpanela" style="margin-bottom:0;cursor:pointer">🥘 Usa panela mexedora</label>
+      </div>
+      <div id="panela-mexedora-box" style="display:none">
+        <div class="fr">
+          <div class="fg"><label>Tempo na panela (min)</label><input type="number" id="fpanela-tempo" value="" min="0" placeholder="Ex: 12"></div>
+          <div class="fg"><label>Velocidade</label><input type="text" id="fpanela-vel" value="" placeholder="Ex: 3 ou Média"></div>
+        </div>
+      </div>
+
       <div class="info-box"><i class="ti ti-star" style="flex-shrink:0;margin-top:1px"></i><span>Marque o ingrediente principal na aba Ingredientes para habilitar o cálculo por quantidade.</span></div>
     </div>
     <div id="et1" style="display:none">
@@ -773,9 +791,9 @@ if("serviceWorker" in navigator){
 }
 </script>
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=18"></script>
-<script src="js/app-features.js?v=18"></script>
-<script src="js/version.js?v=18"></script>
+<script src="js/app-core.js?v=19"></script>
+<script src="js/app-features.js?v=19"></script>
+<script src="js/version.js?v=19"></script>
 
 </body>
 </html>
