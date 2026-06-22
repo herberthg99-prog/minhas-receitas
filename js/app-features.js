@@ -716,12 +716,19 @@ function getCustoRecheioAro(nomeRecheio, aro) {
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   if (!pesoBase) return 0;
   var custoPorGrama = p.cost / pesoBase;
-  var qtdAro = (sucreeConfig.custos?.recheioAro || {})[aro] || 0;
+  // Busca a quantidade específica cadastrada para ESTE recheio (qtdAro), com fallback pro valor genérico antigo
+  var qtdAro = 0;
+  try {
+    var cardapioCfgRaw = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
+    var recheioCfg = cardapioCfgRaw && cardapioCfgRaw.recheios ? cardapioCfgRaw.recheios.find(function(r){ return r.nome === nomeRecheio; }) : null;
+    if (recheioCfg && recheioCfg.qtdAro && recheioCfg.qtdAro[aro]) qtdAro = recheioCfg.qtdAro[aro];
+  } catch(e) {}
+  if (!qtdAro) qtdAro = (sucreeConfig.custos?.recheioAro || {})[aro] || 0;
   if (!qtdAro) return p.cost;
   return custoPorGrama * qtdAro;
 }
 
-function getCustoCaldaAro(tipocalda, aro) {
+function getCustoCaldaAro(tipocalda, aro, tipoMassa) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = tipocalda === 'chocolate' ? (vincs.caldaChoco || 'Calda de Chocolate') : (vincs.caldaBranca || 'Calda Branca de Ninho');
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
@@ -730,7 +737,10 @@ function getCustoCaldaAro(tipocalda, aro) {
   if (!p || !p.cost) return 0;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   if (!pesoBase) return 0;
-  var qtdAro = (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
+  // Detecta se é massa tipo Chiffon (Pão de ló) para usar quantidade de calda diferente
+  var ehChiffon = (tipoMassa||'').toLowerCase().indexOf('chiffon') >= 0 || (tipoMassa||'').toLowerCase().indexOf('pão de ló') >= 0 || (tipoMassa||'').toLowerCase().indexOf('fofinha') >= 0;
+  var grupoCalda = ehChiffon ? 'caldaAroChiffon' : 'caldaAro';
+  var qtdAro = (sucreeConfig.custos?.[grupoCalda] || {})[aro] || (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
   if (!qtdAro) return 0;
   return (p.cost / pesoBase) * qtdAro;
 }
@@ -1089,10 +1099,20 @@ function abrirDetalhamentoCusto(id) {
   html += linhaSub('Limpeza', opDetalhado.limpeza);
   html += linhaSub('Mão de obra (padrão por aro)', opDetalhado.maoDeObra);
 
-  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Informe manualmente (ajustes/extras)</div>';
-  html += linhaEditavel('Custo da calda (se usou)', 'dc-calda', p.custoCalda);
-  html += linhaEditavel('Custo do cakeboard / tábua EXTRA (0 se cliente levou o próprio, sem custo)', 'dc-cakeboard', p.custoCakeboard);
-  html += linhaEditavel('Custo da caixa de papel EXTRA (0 se cliente não quis)', 'dc-caixa', p.custoCaixa);
+  function selectCalda(label, id_, valorAtual) {
+    return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
+      + '<select id="'+id_+'" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+      + '<option value=""'+(!valorAtual?' selected':'')+'>Não usou calda</option>'
+      + '<option value="chocolate"'+(valorAtual==='chocolate'?' selected':'')+'>Calda de Chocolate</option>'
+      + '<option value="branca"'+(valorAtual==='branca'?' selected':'')+'>Calda Branca de Ninho</option>'
+      + '</select></div>';
+  }
+
+  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Informe manualmente</div>';
+  html += selectCalda('Usou calda?', 'dc-tipocalda', p.tipoCalda);
+  html += '<div style="font-size:11px;color:var(--text3);margin:18px 0 6px;line-height:1.5">Os campos abaixo já têm um valor padrão dentro do "Operacional" acima. Só preencha aqui se este pedido específico teve uma DIFERENÇA em relação ao padrão (ex: cliente trouxe a própria caixa → diferença negativa, ou pediu embalagem especial → diferença positiva). Deixe 0,00 se não houve diferença.</div>';
+  html += linhaEditavel('Diferença no cakeboard/tábua (R$, pode ser negativo)', 'dc-cakeboard', p.custoCakeboard);
+  html += linhaEditavel('Diferença na caixa de papel (R$, pode ser negativo)', 'dc-caixa', p.custoCaixa);
   if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
   if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
   html += linhaEditavel('Mão de obra extra (além da padrão já calculada acima)', 'dc-maoobra', p.custoMaoObra);
@@ -1103,20 +1123,24 @@ function abrirDetalhamentoCusto(id) {
 
   function recalcular() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
-    const manualTotal = g('dc-calda') + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-maoobra');
+    const tipoCaldaSel = document.getElementById('dc-tipocalda')?.value || '';
+    const custoCalda = tipoCaldaSel ? getCustoCaldaAro(tipoCaldaSel, aro, p.massa) : 0;
+    const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-maoobra');
     const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoCoberturaAuto + op + manualTotal;
     const valorTotal = parseFloat(p.valorTotal||0);
     const lucro = valorTotal - custoTotal;
     const margemPct = valorTotal ? (lucro/valorTotal*100) : 0;
     document.getElementById('dc-resultado').innerHTML =
-      '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Custo total real</span><span style="font-weight:700">R$ '+custoTotal.toFixed(2)+'</span></div>'
+      (custoCalda ? '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--text3)"><span>Calda calculada</span><span>R$ '+custoCalda.toFixed(2)+'</span></div>' : '')
+      + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Custo total real</span><span style="font-weight:700">R$ '+custoTotal.toFixed(2)+'</span></div>'
       + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Valor cobrado</span><span style="font-weight:700">R$ '+valorTotal.toFixed(2)+'</span></div>'
       + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Lucro estimado</span><span style="font-weight:800;color:'+(lucro>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucro.toFixed(2)+' ('+margemPct.toFixed(0)+'%)</span></div>';
   }
   setTimeout(function(){
-    ['dc-calda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-maoobra'].forEach(function(idc){
+    ['dc-tipocalda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-maoobra'].forEach(function(idc){
       const el = document.getElementById(idc);
       if (el) el.addEventListener('input', recalcular);
+      if (el) el.addEventListener('change', recalcular);
     });
     recalcular();
   }, 0);
@@ -1124,7 +1148,7 @@ function abrirDetalhamentoCusto(id) {
   document.getElementById('modal-item-btn-confirmar').textContent = 'Salvar custos';
   document.getElementById('modal-item-btn-confirmar').onclick = function() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
-    p.custoCalda = g('dc-calda');
+    p.tipoCalda = document.getElementById('dc-tipocalda')?.value || null;
     p.custoCakeboard = g('dc-cakeboard');
     p.custoCaixa = g('dc-caixa');
     if (p.topo) p.custoRealTopo = g('dc-topo');
@@ -1133,7 +1157,7 @@ function abrirDetalhamentoCusto(id) {
     savePedidos();
     try {
       sb.from('pedidos_confeitaria').update({
-        custo_calda: p.custoCalda,
+        tipo_calda: p.tipoCalda,
         custo_cakeboard: p.custoCakeboard, custo_caixa: p.custoCaixa,
         custo_real_topo: p.custoRealTopo ?? null, custo_real_flores: p.custoRealFlores ?? null,
         custo_mao_obra: p.custoMaoObra
@@ -1246,6 +1270,11 @@ let sucreeConfig = {
     tabuaAro:   { 10:3.95, 15:5.60, 20:7.50, 25:9.75, 30:12.25 },
     embalagemAro:{ 10:4.45, 15:5.37, 20:5.95, 25:6.89, 30:7.87  },
     maoDeObra:  { 10:40,   15:60,   20:80,   25:100,  30:130   },
+    recheioAro: { 10:225,  15:900,  20:1350, 25:2250, 30:3150  },
+    caldaAro:   { 10:40,   15:160,  20:240,  25:400,  30:560   },
+    caldaAroChiffon: { 10:60, 15:240, 20:360, 25:600, 30:840   },
+    coberturaAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
+    chantillyAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
     margemLucro:30, valorHora:25, indiretoPct:15, margemNegocio:30
   }
 };
@@ -1375,6 +1404,33 @@ function renderConfigPage() {
     </div>
 
     <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-scale"></i> Quantidades reais por aro (gramas)</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Usado no Detalhamento de Custo para calcular automaticamente o gasto de massa, calda e cobertura. A quantidade de cada RECHEIO específico (Brigadeiro, Ninho, Morango, etc.) é configurada individualmente — edite o recheio em "Recheios" abaixo.</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--bg)">
+            <th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Aro</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Massa</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Calda (Amanteigada)</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Calda (Chiffon)</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Cobertura</th>
+          </tr></thead>
+          <tbody>
+            ${[10,15,20,25,30].map(aro => `
+            <tr>
+              <td style="padding:6px;border-bottom:1px solid var(--border);font-weight:700">${aro} cm</td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(typeof ARO_MASSA_G!=='undefined'?ARO_MASSA_G[aro]:'')||''}" min="0" id="qtd-massa-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.caldaAro||{})[aro]||''}" min="0" id="qtd-calda-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.caldaAroChiffon||{})[aro]||''}" min="0" id="qtd-calda-chiffon-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.coberturaAro||{})[aro]||''}" min="0" id="qtd-cobertura-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">💡 "Chiffon" se aplica a massas Pão de Ló / Fofinha. As demais (Amanteigada) usam a coluna do meio.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-info-circle"></i> Informações gerais</div>
       <div class="fg"><label>Chave PIX</label><input type="text" id="cfg-pix" value="${sucreeConfig.pixKey}" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.pixKey=this.value"></div>
       <div class="fg" style="margin-bottom:0"><label>Mínimo de dias de antecedência</label><input type="number" id="cfg-dias" value="${sucreeConfig.minDias}" min="1" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.minDias=parseInt(this.value)||3"></div>
@@ -1415,8 +1471,22 @@ function renderConfigPage() {
 }
 
 function salvarConfig() {
+  if (!sucreeConfig.custos.caldaAro) sucreeConfig.custos.caldaAro = {};
+  if (!sucreeConfig.custos.caldaAroChiffon) sucreeConfig.custos.caldaAroChiffon = {};
+  if (!sucreeConfig.custos.coberturaAro) sucreeConfig.custos.coberturaAro = {};
+  [10,15,20,25,30].forEach(function(aro){
+    var elMassa = document.getElementById('qtd-massa-'+aro);
+    var elCalda = document.getElementById('qtd-calda-'+aro);
+    var elCaldaChiffon = document.getElementById('qtd-calda-chiffon-'+aro);
+    var elCobertura = document.getElementById('qtd-cobertura-'+aro);
+    if (elMassa && elMassa.value) { if (typeof ARO_MASSA_G !== 'undefined') ARO_MASSA_G[aro] = parseFloat(elMassa.value)||0; }
+    if (elCalda) sucreeConfig.custos.caldaAro[aro] = parseFloat(elCalda.value)||0;
+    if (elCaldaChiffon) sucreeConfig.custos.caldaAroChiffon[aro] = parseFloat(elCaldaChiffon.value)||0;
+    if (elCobertura) sucreeConfig.custos.coberturaAro[aro] = parseFloat(elCobertura.value)||0;
+  });
   saveConfig();
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
+  try { localStorage.setItem('mr_aro_massa_g', JSON.stringify(ARO_MASSA_G)); } catch(e) {}
   toast('Configurações salvas! ✅');
 }
 
