@@ -790,8 +790,20 @@ if("serviceWorker" in navigator){
   });
 }
 </script>
+<!-- MODAL: editar/adicionar item do cardápio -->
+<div id="modal-item-cardapio" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1A1208;border:1px solid var(--gold);border-radius:16px;padding:22px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto">
+    <h3 id="modal-item-titulo" style="color:#F5EDD8;font-size:17px;margin-bottom:16px">Editar item</h3>
+    <div id="modal-item-campos"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="fecharModalItemCardapio()" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--text2);background:none;color:var(--text2);font-family:inherit;cursor:pointer">Cancelar</button>
+      <button onclick="salvarModalItemCardapio()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--gold);color:#1A1208;font-weight:700;font-family:inherit;cursor:pointer">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=19"></script>
+<script src="js/app-core.js?v=20"></script>
 <script src="js/app-features.js?v=19"></script>
 <script src="js/version.js?v=19"></script>
 
