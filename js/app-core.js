@@ -1318,7 +1318,7 @@ async function loadPedidosFromCloud() {
       cobertura:p.cobertura,deco:p.deco,tema:p.tema,topo:p.topo,flores:p.flores,
       custoRealTopo:p.custo_real_topo ?? null, custoRealFlores:p.custo_real_flores ?? null,
       obsDeco:p.obs_deco,inspiPhoto:p.inspi_photo,fotoConfirmada:p.foto_confirmada,fotoPronto:p.foto_pronto,
-      custoCalda:p.custo_calda,custoCobertura:p.custo_cobertura,custoCakeboard:p.custo_cakeboard,custoCaixa:p.custo_caixa,custoMaoObra:p.custo_mao_obra,
+      tipoCalda:p.tipo_calda,custoCakeboard:p.custo_cakeboard,custoCaixa:p.custo_caixa,custoMaoObra:p.custo_mao_obra,
       valorBolo:p.valor_bolo,valorTotal:p.valor_total,
       sinal:p.sinal,pagamento:p.pagamento,status:p.status||'pendente',origem:p.origem,
       createdAt:new Date(p.created_at).getTime()
@@ -1569,6 +1569,10 @@ var ARO_MASSA_G = {
   25: 2250,
   30: 3150
 };
+try {
+  var savedAroMassa = JSON.parse(localStorage.getItem('mr_aro_massa_g') || 'null');
+  if (savedAroMassa) ARO_MASSA_G = {...ARO_MASSA_G, ...savedAroMassa};
+} catch(e) {}
 
 function renderCalcMassa() {
   document.getElementById('page-calc').innerHTML = `
@@ -2868,6 +2872,14 @@ function abrirModalItemCardapio(tipo, idx) {
     campos += field('Nome do recheio', 'mi-nome', item.nome, 'ex: Pistache');
     campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
     campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
+    var qtdPorAro = item.qtdAro || {};
+    campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Quantidade usada por aro (g)</div>';
+    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px">';
+    [10,15,20,25,30].forEach(function(aro){
+      campos += '<div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-align:center">Aro '+aro+'</label>'
+        + '<input type="number" id="mi-qtd-'+aro+'" value="'+(qtdPorAro[aro]||'')+'" min="0" placeholder="g" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:12px;text-align:center"></div>';
+    });
+    campos += '</div>';
   } else {
     campos += field('Nome', 'mi-nome', item.nome, 'ex: Massa Fofinha');
     campos += field('Emoji (usado se não houver foto)', 'mi-icon', item.icon || '🎂', '', 4);
@@ -2917,7 +2929,12 @@ function salvarModalItemCardapio() {
     var nome = g('mi-nome').trim() || itemAntigo.nome;
     if (!nome) { toast('⚠️ Informe o nome do recheio'); return; }
     var nomeAntigo = itemAntigo.nome;
-    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros' };
+    var qtdAro = {};
+    [10,15,20,25,30].forEach(function(aro){
+      var v = parseFloat(g('mi-qtd-'+aro));
+      if (v) qtdAro[aro] = v;
+    });
+    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros', qtdAro: qtdAro };
     if (idx != null) {
       cfg.recheios[idx] = novoRecheio;
       if (nomeAntigo && nomeAntigo !== nome && cfg.combinacoes) {
