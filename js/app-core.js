@@ -2884,9 +2884,18 @@ function salvarModalItemCardapio() {
     var nome = g('mi-nome').trim() || itemAntigo.nome;
     if (!nome) { toast('⚠️ Informe o nome'); return; }
     var id = itemAntigo.id || nome.toLowerCase().replace(/[^a-z0-9]/g,'');
-    var novoItem = { id: id, nome: nome, icon: g('mi-icon')||'🎂', desc: g('mi-desc')||'' };
+    var iconValue = (g('mi-icon')||'').trim();
+    var imgValue = (tipo === 'massas' || tipo === 'coberturas') ? (g('mi-img')||'').trim() : '';
+    // Proteção: se o campo emoji recebeu por engano um nome de arquivo de imagem, e o campo de foto está vazio, corrige automaticamente
+    var pareceArquivoImagem = /\.(jpg|jpeg|png|webp|gif)$/i.test(iconValue);
+    if (pareceArquivoImagem && !imgValue) {
+      imgValue = iconValue;
+      iconValue = '🎂';
+      toast('⚠️ Nome de arquivo estava no campo errado — corrigido automaticamente');
+    }
+    var novoItem = { id: id, nome: nome, icon: iconValue || '🎂', desc: g('mi-desc')||'' };
     if (tipo === 'massas' || tipo === 'coberturas') {
-      novoItem.img = (g('mi-img')||'').trim();
+      novoItem.img = imgValue;
     }
     if (tipo === 'coberturas') {
       novoItem.preco = parseFloat((g('mi-preco')||'0').replace(',','.')) || 0;
