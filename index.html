@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#C8A35B">
+<meta name="theme-color" content="#D4A24A">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Minhas Receitas</title>
@@ -13,45 +13,57 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --gold:#C8A35B;--coral:#C8A35B;--coral-light:#F7F0E0;--coral-dark:#7A6030;
-  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#9FE1CB;
-  --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#B5D4F4;
-  --amber-light:#FAEEDA;--amber-dark:#633806;
-  --green-light:#EAF3DE;--green-dark:#27500A;
-  --red-light:#FCEBEB;--red-dark:#791F1F;
-  --bg:#1A1208;--surface:rgba(44,30,10,0.95);--border:rgba(200,163,91,0.2);
-  --text:#F0E6CC;--text2:rgba(200,163,91,0.8);--text3:rgba(200,163,91,0.45);
-  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.1);
+  --gold:#D4A24A;--coral:#E6C06D;--coral-light:#0D2D5A;--coral-dark:#A87528;
+  --teal:#5DCAA5;--teal-light:#0D2D5A;--teal-mid:#5DCAA5;
+  --blue:#1B5EA8;--blue-light:#0D2D5A;--blue-mid:#1B5EA8;
+  --amber-light:#0D2D5A;--amber-dark:#D4A24A;
+  --green-light:#0D2D5A;--green-dark:#5DCAA5;
+  --red-light:#3A1414;--red-dark:#E07A7A;
+  --bg:#020B18;--surface:rgba(13,45,90,0.55);--border:rgba(212,162,74,0.3);
+  --text:#F8F7F4;--text2:rgba(217,217,217,0.85);--text3:rgba(138,155,184,0.7);
+  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#120D05;color:var(--text);font-size:15px;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(160deg,#071B3A 0%,#020B18 60%);color:var(--text);font-size:15px;min-height:100vh}
 button{font-family:inherit;cursor:pointer}
-.app{display:none;flex-direction:column;min-height:100vh;max-width:100%;margin:0 auto;position:relative;background:#120D05}
-.topbar{background:linear-gradient(180deg,#1A1005,#241508);border-bottom:1px solid rgba(200,163,91,.3);padding:8px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.app{display:none;flex-direction:column;min-height:100vh;max-width:100%;margin:0 auto;position:relative;background:transparent}
+.topbar{background:rgba(2,11,24,.9);border-bottom:1px solid rgba(212,162,74,.3);padding:8px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 4px 20px rgba(0,0,0,.4);backdrop-filter:blur(10px)}
 .logo{font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px}
 .logo i{color:var(--gold);font-size:22px}
-.sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(200,163,91,.75)}
+.sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(217,217,217,.75)}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
-.sync-dot.ok{background:#2A8A6A}.sync-dot.err{background:#A32D2D}.sync-dot.syncing{background:var(--gold);animation:pulse .7s infinite alternate}
+.sync-dot.ok{background:#5DCAA5}.sync-dot.err{background:#E07A7A}.sync-dot.syncing{background:var(--gold);animation:pulse .7s infinite alternate}
 @keyframes pulse{to{opacity:.2}}
-.content{flex:1;padding:14px 14px 80px}
+.content{flex:1;padding:14px 14px 24px}
 .page{display:none}.page.act{display:block}
-.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:linear-gradient(to top,#0E0902,#1A1005);border-top:1px solid rgba(200,163,91,.25);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.5)}
-.bni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;border:none;background:none;font-size:10px;color:rgba(200,163,91,.38);font-family:inherit;cursor:pointer;transition:color .2s}
-.bni i{font-size:22px}.bni.act{color:#C8A35B}
-.card{background:rgba(30,20,8,.92);border:1px solid rgba(200,163,91,.2);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:84px;background:rgba(2,11,24,.92);border-right:1px solid rgba(212,162,74,.25);display:flex;flex-direction:column;align-items:center;padding:10px 0;z-index:60;overflow-y:auto;backdrop-filter:blur(10px)}
+@media(max-width:380px){
+  .sidebar{width:64px}
+  .app{padding-left:64px}
+  .bni{font-size:8px;padding:9px 2px}
+  .bni i{font-size:18px}
+  .bni span{display:none}
+}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(212,162,74,.3);border-radius:4px}
+.bni{width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;padding:11px 4px;border:none;background:none;font-size:9px;color:rgba(217,217,217,.4);font-family:inherit;cursor:pointer;transition:color .2s;text-align:center}
+.bni i{font-size:21px}.bni.act{color:#D4A24A}
+@media(min-width:0px){
+  .app{padding-left:84px}
+}
+.card{background:rgba(13,45,90,.45);border:1px solid rgba(212,162,74,.3);border-radius:var(--radius);padding:14px;margin-bottom:12px;backdrop-filter:blur(6px)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
-.met{background:rgba(30,20,8,.9);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;border:1px solid rgba(200,163,91,.18)}
+.met{background:rgba(13,45,90,.4);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;border:1px solid rgba(212,162,74,.25)}
 .ml{font-size:11px;color:var(--text2);margin-bottom:3px}.mv{font-size:17px;font-weight:700}
 .mv.coral{color:var(--gold)}.mv.green{color:var(--teal)}.mv.blue{color:var(--blue)}
 .st{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:9px;display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.05em}
-.rc{background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.28);border-radius:14px;margin-bottom:12px;box-shadow:0 4px 24px rgba(0,0,0,.5);cursor:pointer;position:relative;overflow:hidden}
+.rc{background:linear-gradient(160deg,rgba(13,45,90,.6),rgba(7,27,58,.7));border:1px solid rgba(212,162,74,.28);border-radius:14px;margin-bottom:12px;box-shadow:0 4px 24px rgba(0,0,0,.4);cursor:pointer;position:relative;overflow:hidden}
 .rc.shared{border-left:3px solid var(--blue)}
-.rn{font-size:16px;font-weight:700;margin-bottom:5px;color:#F5EDD8;font-family:Georgia,serif}
-.rm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;color:rgba(200,163,91,.7)}
+.rn{font-size:16px;font-weight:700;margin-bottom:5px;color:#F8F7F4;font-family:Georgia,serif}
+.rm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;color:rgba(212,162,74,.7)}
 .racts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-.rb{background:rgba(200,163,91,.1);border:1px solid rgba(200,163,91,.3);color:#C8A35B;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.rb{background:rgba(212,162,74,.1);border:1px solid rgba(212,162,74,.3);color:#D4A24A;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
 .rb.share-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);font-weight:600}
 .tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
 .td{background:var(--amber-light);color:var(--amber-dark)}.ts{background:var(--teal-light);color:var(--teal)}
@@ -62,7 +74,7 @@ button{font-family:inherit;cursor:pointer}
 .fg{margin-bottom:12px}
 .fg label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
 .fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;-webkit-appearance:none}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,163,91,.2)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,162,74,.2)}
 .fg textarea{resize:vertical;min-height:80px;line-height:1.6}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btnp{background:var(--gold);color:#fff;border:none;padding:12px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s}
@@ -79,12 +91,12 @@ button{font-family:inherit;cursor:pointer}
 .tb{flex:0 0 auto;border:none;background:none;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:600;color:var(--text2);font-family:inherit;white-space:nowrap}
 .tb.act{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
 .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:flex;flex-direction:column;justify-content:flex-end}
-.sheet{background:#150F04;border-radius:18px 18px 0 0;max-height:92vh;display:flex;flex-direction:column;width:100%;overflow:hidden;border-top:1px solid rgba(200,163,91,.3)}
+.sheet{background:#020B18;border-radius:18px 18px 0 0;max-height:92vh;display:flex;flex-direction:column;width:100%;overflow:hidden;border-top:1px solid rgba(212,162,74,.3)}
 .sheet-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 6px}
-.sheet-header{padding:14px 16px;border-bottom:1px solid rgba(200,163,91,.18);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#1E1408}
+.sheet-header{padding:14px 16px;border-bottom:1px solid rgba(212,162,74,.18);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#0A2348}
 .sheet-header h2{font-size:16px;font-weight:700}
 .sheet-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
-.sheet-footer{padding:12px 16px;border-top:1px solid rgba(200,163,91,.18);display:flex;gap:8px;flex-shrink:0;background:#1E1408}
+.sheet-footer{padding:12px 16px;border-top:1px solid rgba(212,162,74,.18);display:flex;gap:8px;flex-shrink:0;background:#0A2348}
 .sheet-footer .btnp{flex:1;justify-content:center}
 .xb{background:none;border:none;font-size:20px;color:var(--text2);padding:4px;border-radius:var(--radius-sm)}
 .it{width:100%;border-collapse:collapse;font-size:12px}
@@ -167,7 +179,7 @@ button{font-family:inherit;cursor:pointer}
 .est p{font-size:14px;margin-bottom:14px}
 .flex-row{display:flex;align-items:center;gap:8px}
 .text-sm{font-size:12px;color:var(--text2)}
-.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#1A1208,#2C1E0A);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(160deg,#020B18,#071B3A);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
 .loading-overlay i{font-size:36px;color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-overlay p{font-size:14px;color:var(--text2);font-weight:600}
@@ -186,16 +198,16 @@ button{font-family:inherit;cursor:pointer}
   background:rgba(10,6,0,.85);border-radius:14px;
   padding:10px 10px 12px;width:100%;max-width:360px;
   box-shadow:0 4px 40px rgba(0,0,0,.8);
-  text-align:center;border:1px solid rgba(200,163,91,.25);
+  text-align:center;border:1px solid rgba(212,162,74,.25);
   backdrop-filter:blur(16px);
   position:relative;z-index:1;
 }
-.login-input{width:100%;padding:8px 14px;border:1px solid rgba(200,163,91,.25);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(30,20,8,.8);color:var(--text);margin-bottom:7px;transition:border-color .2s}
-.login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(200,163,91,.15)}
+.login-input{width:100%;padding:8px 14px;border:1px solid rgba(212,162,74,.25);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(30,20,8,.8);color:var(--text);margin-bottom:7px;transition:border-color .2s}
+.login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,162,74,.15)}
 .login-btn{width:100%;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:6px;transition:opacity .15s}
 .login-btn:active{opacity:.8}
 .login-err{font-size:12px;color:#A32D2D;margin-top:3px;min-height:16px}
-.login-hint{font-size:10px;color:rgba(200,163,91,.3);margin-top:8px}
+.login-hint{font-size:10px;color:rgba(212,162,74,.3);margin-top:8px}
 .login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;font-size:12px;color:var(--text2);text-align:left}
 .login-setup p{font-weight:700;margin-bottom:4px;color:var(--text)}
 .pwd-toggle{position:relative;margin-bottom:7px}
@@ -219,7 +231,7 @@ button{font-family:inherit;cursor:pointer}
 
 .aro-btn{padding:8px 4px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;text-align:center}
 .aro-btn.sel{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
-.pedido-card{background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.25);border-radius:12px;padding:13px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);cursor:pointer;position:relative}
+.pedido-card{background:linear-gradient(160deg,#0A2348,#0D2D5A);border:1px solid rgba(212,162,74,.25);border-radius:12px;padding:13px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);cursor:pointer;position:relative}
 .pedido-card:hover{border-color:var(--border)}
 .pedido-card.status-confirmado{border-left:3px solid var(--teal)}
 .pedido-card.status-producao{border-left:3px solid var(--coral)}
@@ -227,11 +239,11 @@ button{font-family:inherit;cursor:pointer}
 .pedido-card.status-entregue{border-left:3px solid #888}
 .pedido-card.status-cancelado{opacity:.6}
 .status-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
-.sb-pendente{background:#FAEEDA;color:#633806}
+.sb-pendente{background:rgba(212,162,74,.15);color:#E6C06D}
 .sb-confirmado{background:var(--teal-light);color:var(--teal)}
 .sb-producao{background:var(--gold-light);color:var(--gold-dark)}
 .sb-pronto{background:var(--blue-light);color:var(--blue)}
-.sb-entregue{background:#F1EFE8;color:#5F5E5A}
+.sb-entregue{background:rgba(93,202,165,.15);color:#5DCAA5}
 .sb-cancelado{background:var(--red-light);color:var(--red-dark)}
 .total-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:0.5px solid var(--border)}
 .total-row.grand{font-size:17px;font-weight:700;color:var(--gold);border-bottom:none;border-top:1.5px solid var(--border);margin-top:6px;padding-top:8px}
@@ -250,26 +262,26 @@ button{font-family:inherit;cursor:pointer}
 @media (min-width: 900px) { .recipes-grid { grid-template-columns: repeat(4, 1fr); } }
 
 .rc-card {
-  background: #1E1408;
+  background: #0A2348;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid rgba(200,163,91,.18);
+  border: 1px solid rgba(212,162,74,.18);
   transition: transform .15s;
   position: relative;
 }
 .rc-card:active { transform: scale(.97); }
-.rc-card-thumb { width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#2A1C0A; }
-.rc-card-no-photo { width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#2A1C0A,#1A1208);display:flex;align-items:center;justify-content:center;font-size:40px; }
+.rc-card-thumb { width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#0D2D5A; }
+.rc-card-no-photo { width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#0D2D5A,#020B18);display:flex;align-items:center;justify-content:center;font-size:40px; }
 .rc-card-body { padding: 8px 10px 6px; }
-.rc-card-name { font-size:13px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.rc-card-name { font-size:13px;font-weight:700;color:#F8F7F4;font-family:Georgia,serif;line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
 .rc-card-meta { display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:6px; }
-.rc-card-actions { display:flex;justify-content:space-around;padding:5px 0;border-top:1px solid rgba(200,163,91,.12); }
+.rc-card-actions { display:flex;justify-content:space-around;padding:5px 0;border-top:1px solid rgba(212,162,74,.12); }
 .rc-card-btn { background:none;border:none;color:var(--text2);font-size:17px;padding:4px 6px;border-radius:6px;cursor:pointer; }
 .rc-card-btn.azul{color:var(--blue)}.rc-card-btn.verde{color:var(--teal)}.rc-card-btn.ouro{color:var(--gold)}.rc-card-btn.vermelho{color:#A32D2D}.rc-card-btn.shared-on{color:var(--blue)}
 .rc-shared-badge { position:absolute;top:6px;right:6px;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px; }
 .rc-lucro-badge { position:absolute;top:6px;left:6px; }
-.alpha-divider { grid-column:1/-1;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;padding:6px 2px 4px;border-bottom:1px solid rgba(200,163,91,.2); }
+.alpha-divider { grid-column:1/-1;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;padding:6px 2px 4px;border-bottom:1px solid rgba(212,162,74,.2); }
 
 @media (min-width: 700px) {
   .overlay { align-items: center; justify-content: center; }
@@ -298,12 +310,12 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
 .deco-option { border:2px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;background:var(--surface);cursor:pointer;transition:border-color .2s; }
 .deco-option:hover { border-color: var(--gold); }
-.deco-option h3 { font-size:15px;font-weight:700;color:#F5EDD8;font-family:Georgia,serif;margin-bottom:6px; }
+.deco-option h3 { font-size:15px;font-weight:700;color:#F8F7F4;font-family:Georgia,serif;margin-bottom:6px; }
 .deco-option p { font-size:13px;color:var(--text2);line-height:1.6; }
 .deco-copy-btn { background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-top:10px; }
 
 .ingr-sug-chips { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:3px; }
-.ingr-sug-chip { font-size:11px; padding:3px 9px; border-radius:12px; background:rgba(200,163,91,.15); border:1px solid rgba(200,163,91,.35); color:var(--gold); cursor:pointer; white-space:nowrap; transition:all .15s; }
+.ingr-sug-chip { font-size:11px; padding:3px 9px; border-radius:12px; background:rgba(212,162,74,.15); border:1px solid rgba(212,162,74,.35); color:var(--gold); cursor:pointer; white-space:nowrap; transition:all .15s; }
 .ingr-sug-chip:hover { background:var(--gold); color:#fff; }
 </style>
 </head>
@@ -321,7 +333,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <!-- LOGO CANTO SUPERIOR ESQUERDO -->
   <div style="position:absolute;top:24px;left:20px;z-index:2">
     <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
-      style="height:100px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 24px rgba(200,163,91,1))">
+      style="height:100px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 24px rgba(212,162,74,1))">
   </div>
 
   <!-- CARD COMPACTO NO RODAPÉ -->
@@ -336,7 +348,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <span>Administrador</span>
       </button>
       <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid rgba(200,163,91,.2);background:rgba(26,18,8,.8);color:rgba(200,163,91,.6);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+        style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid rgba(212,162,74,.2);background:rgba(26,18,8,.8);color:rgba(212,162,74,.6);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
         <span style="font-size:18px">👤</span>
         <span>Convidado</span>
       </button>
@@ -347,7 +359,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
     </div>
 
-    <div id="login-user-label" style="font-size:10px;font-weight:600;color:rgba(200,163,91,.5);margin-bottom:5px;text-align:left;width:100%;letter-spacing:.05em;text-transform:uppercase">Senha do Administrador</div>
+    <div id="login-user-label" style="font-size:10px;font-weight:600;color:rgba(212,162,74,.5);margin-bottom:5px;text-align:left;width:100%;letter-spacing:.05em;text-transform:uppercase">Senha do Administrador</div>
 
     <div class="pwd-toggle">
       <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
@@ -369,6 +381,22 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     <span class="login-forgot" id="login-forgot" onclick="forgotPwd()" style="display:none">Esqueci minha senha</span>
     <div class="login-hint" id="login-hint">Acesso completo ao app de receitas</div>
   </div>
+</div>
+
+<div class="sidebar" id="bottomnav">
+  <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
+  <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
+  <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
+    <i class="ti ti-circle-plus" style="font-size:24px;color:var(--gold)"></i>
+    <span style="color:var(--gold);font-weight:700">Nova</span>
+  </button>
+  <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+  <button class="bni" onclick="goPage('estoque')" id="nav-estoque" title="Estoque e preços"><i class="ti ti-package"></i><span>Estoque</span></button>
+  <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
+  <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
+  <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
+  <button class="bni" onclick="goPage('rascunho')" id="nav-rascunho" title="Rascunhos"><i class="ti ti-pencil"></i><span>Rascunho</span></button>
+  <button class="bni" onclick="goPage('deco')" id="nav-deco" title="Gerador de Decoração"><i class="ti ti-sparkles"></i><span>Deco IA</span></button>
 </div>
 
 <div class="app" id="app">
@@ -414,40 +442,25 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <div class="page" id="page-metas"></div>
   <div class="page" id="page-cardapio-cfg"></div>
 </div>
-<div class="bottomnav" id="bottomnav">
-  <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
-  <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
-  <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
-    <i class="ti ti-circle-plus" style="font-size:30px;color:var(--gold)"></i>
-    <span style="color:var(--gold);font-weight:700">Nova</span>
-  </button>
-  <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
-  <button class="bni" onclick="goPage('estoque')" id="nav-estoque" title="Estoque e preços"><i class="ti ti-package"></i><span>Estoque</span></button>
-  <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
-  <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
-  <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
-  <button class="bni" onclick="goPage('rascunho')" id="nav-rascunho" title="Rascunhos"><i class="ti ti-pencil"></i><span>Rascunho</span></button>
-  <button class="bni" onclick="goPage('deco')" id="nav-deco" title="Gerador de Decoração"><i class="ti ti-sparkles"></i><span>Deco IA</span></button>
-</div>
 
 <!-- CARDAPIO SHARE BOTTOM SHEET -->
 <div class="overlay" id="modal-cardapio-share" style="display:none" onclick="if(event.target===this)cm('modal-cardapio-share')">
 <div class="sheet" style="border-radius:18px 18px 0 0">
   <div class="sheet-handle"></div>
-  <div style="background:linear-gradient(135deg,#2C2416 0%,#4A3A1A 100%);padding:20px 20px 24px;text-align:center;position:relative;overflow:hidden">
+  <div style="background:linear-gradient(135deg,#0A2348 0%,#1B5EA8 100%);padding:20px 20px 24px;text-align:center;position:relative;overflow:hidden">
     <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(184,151,42,.12)"></div>
     <div style="position:absolute;bottom:-20px;left:-20px;width:70px;height:70px;border-radius:50%;background:rgba(184,151,42,.08)"></div>
-    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:140px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(200,163,91,.3))">
-    <div style="font-size:13px;color:#C8B89A">Compartilhe o cardápio com seus clientes</div>
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:140px;height:auto;margin-bottom:10px;filter:drop-shadow(0 2px 12px rgba(212,162,74,.3))">
+    <div style="font-size:13px;color:#8A9BB8">Compartilhe o cardápio com seus clientes</div>
   </div>
   <div style="padding:16px">
-    <div style="background:#F5F4F1;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <i class="ti ti-link" style="color:#B8972A;flex-shrink:0"></i>
+    <div style="background:rgba(13,45,90,.5);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <i class="ti ti-link" style="color:#D4A24A;flex-shrink:0"></i>
       <span style="font-size:11px;color:var(--text2);word-break:break-all;flex:1">herberthg99-prog.github.io/minhas-receitas/cardapio.html</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button onclick="compartilharCardapioWhats()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-brand-whatsapp" style="font-size:20px"></i> Enviar pelo WhatsApp</button>
-      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#B8972A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-copy" style="font-size:20px"></i> Copiar link</button>
+      <button onclick="copiarLinkCardapio()" style="width:100%;padding:14px;background:#D4A24A;color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-copy" style="font-size:20px"></i> Copiar link</button>
       <button onclick="abrirCardapioNovAba()" style="width:100%;padding:14px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-external-link" style="font-size:20px"></i> Abrir cardápio</button>
     </div>
     <div style="margin-top:14px;text-align:center">
@@ -459,9 +472,9 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
-  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:130px;height:auto;filter:brightness(1.8) drop-shadow(0 2px 20px rgba(200,163,91,.8));margin-bottom:8px">
-  <i class="ti ti-loader" style="font-size:28px;color:#C8A35B;animation:spin 1s linear infinite"></i>
-  <p id="loading-text" style="color:rgba(200,163,91,.8);font-size:13px;letter-spacing:.05em">Conectando à nuvem...</p>
+  <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" style="width:130px;height:auto;filter:brightness(1.8) drop-shadow(0 2px 20px rgba(212,162,74,.8));margin-bottom:8px">
+  <i class="ti ti-loader" style="font-size:28px;color:#D4A24A;animation:spin 1s linear infinite"></i>
+  <p id="loading-text" style="color:rgba(212,162,74,.8);font-size:13px;letter-spacing:.05em">Conectando à nuvem...</p>
 </div>
 
 <!-- CHOICE SHEET -->
@@ -618,7 +631,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     <div class="flex-row">
       <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
       <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:#0F6E56"><i class="ti ti-printer"></i> Imprimir</button>
-      <button class="rb" onclick="toggleFullReceita()" style="font-size:12px;color:#C8A35B;background:rgba(200,163,91,.1);border-color:rgba(200,163,91,.4)"><i class="ti ti-maximize" id="ico-full"></i></button>
+      <button class="rb" onclick="toggleFullReceita()" style="font-size:12px;color:#D4A24A;background:rgba(212,162,74,.1);border-color:rgba(212,162,74,.4)"><i class="ti ti-maximize" id="ico-full"></i></button>
       <button class="xb" onclick="cm('modal-view')"><i class="ti ti-x"></i></button>
     </div>
   </div>
@@ -792,12 +805,12 @@ if("serviceWorker" in navigator){
 </script>
 <!-- MODAL: editar/adicionar item do cardápio -->
 <div id="modal-item-cardapio" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#1A1208;border:1px solid var(--gold);border-radius:16px;padding:22px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto">
-    <h3 id="modal-item-titulo" style="color:#F5EDD8;font-size:17px;margin-bottom:16px">Editar item</h3>
+  <div style="background:#020B18;border:1px solid var(--gold);border-radius:16px;padding:22px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto">
+    <h3 id="modal-item-titulo" style="color:#F8F7F4;font-size:17px;margin-bottom:16px">Editar item</h3>
     <div id="modal-item-campos"></div>
     <div style="display:flex;gap:10px;margin-top:18px">
       <button onclick="fecharModalItemCardapio()" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--text2);background:none;color:var(--text2);font-family:inherit;cursor:pointer">Cancelar</button>
-      <button id="modal-item-btn-confirmar" onclick="salvarModalItemCardapio()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--gold);color:#1A1208;font-weight:700;font-family:inherit;cursor:pointer">Salvar</button>
+      <button id="modal-item-btn-confirmar" onclick="salvarModalItemCardapio()" style="flex:1;padding:12px;border-radius:10px;border:none;background:var(--gold);color:#020B18;font-weight:700;font-family:inherit;cursor:pointer">Salvar</button>
     </div>
   </div>
 </div>
