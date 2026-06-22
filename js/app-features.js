@@ -814,8 +814,14 @@ function calcPedidoTotal() {
     </div>`;
 }
 
+function isGrupoRecheio(g) {
+  if (!g) return false;
+  var norm = g.toString().trim().toLowerCase();
+  return norm === 'recheio' || norm === 'recheios';
+}
+
 function getRecheios() {
-  const todos = recipes.map(r => r.name);
+  const todos = recipes.filter(r => isGrupoRecheio(r.group)).map(r => r.name);
   return [...new Set(todos)];
 }
 
@@ -1764,7 +1770,7 @@ function simularPrecificacao() {
 
 function renderVinculoRecheios() {
   var recheiosNomes = [...new Set(
-    recipes.filter(function(r){ return r.group === 'Recheios' || r.recipe_group === 'Recheios'; })
+    recipes.filter(function(r){ return isGrupoRecheio(r.group); })
            .map(function(r){ return r.name; })
   )].sort();
   if (!recheiosNomes.length) return '<div style="font-size:12px;color:var(--text3)">Nenhuma receita de recheio cadastrada ainda.</div>';
@@ -1775,7 +1781,7 @@ function renderVinculoRecheios() {
       + '<label style="font-size:12px">Recheio cardápio: <strong>' + nome + '</strong></label>'
       + '<select id="cfg-vinc-' + nome.replace(/[^a-zA-Z0-9]/g,'_') + '" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:var(--surface);color:var(--text);font-family:inherit">'
       + '<option value="">— Usar esta mesma receita —</option>'
-      + recipes.filter(function(r){ return r.group==='Recheios'||r.recipe_group==='Recheios'; })
+      + recipes.filter(function(r){ return isGrupoRecheio(r.group); })
                .map(function(r){ return '<option value="'+r.name+'"'+(r.name===cur?' selected':'')+'>' + r.name + '</option>'; })
                .join('')
       + '</select></div>';
