@@ -7,14 +7,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <style>
 :root{
-  --gold:#D4A24A;--gold-light:#0D2D5A;--gold-dark:#E6C06D;--gold-mid:#D4A24A;
-  --marble:#071B3A;--surface:#0D2D5A;--border:rgba(212,162,74,.25);
+  --gold:#D4A24A;--gold-light:rgba(212,162,74,.14);--gold-dark:#E6C06D;--gold-mid:#D4A24A;
+  --marble:#071B3A;--surface:rgba(13,45,90,.55);--surface-solid:#0D2D5A;--border:rgba(212,162,74,.3);
   --text:#F8F7F4;--text2:#D9D9D9;--text3:#8A9BB8;
+  --teal:#5DCAA5;--coral:#E6C06D;
   --dark:#020B18;--dark2:#071B3A;
   --radius:14px;--radius-sm:9px;--shadow:0 2px 16px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F8F7F4;min-height:100vh;background:#020B18}
+html{background:#020B18}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#F8F7F4;min-height:100vh;background-image:url('bg-textura-veludo.jpg');background-size:cover;background-position:top center;background-repeat:no-repeat;background-color:#020B18}
+body::before{content:'';position:fixed;inset:0;background:rgba(2,11,24,.55);z-index:-1;pointer-events:none}
 button{font-family:inherit;cursor:pointer}
 
 .header{background:linear-gradient(135deg,#020B18 0%,#0D2D5A 100%);color:#fff;padding:28px 20px 24px;text-align:center}
@@ -35,8 +38,9 @@ button{font-family:inherit;cursor:pointer}
 .content{max-width:480px;margin:0 auto;padding:16px}
 .step{display:none}.step.act{display:block}
 
-.card{background:rgba(44,30,10,.85);border:1px solid rgba(212,162,74,.25);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 2px 16px rgba(0,0,0,.06);backdrop-filter:blur(4px)}
-.section-title{font-size:13px;font-weight:800;color:var(--gold-dark);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card{background:rgba(7,27,58,.6);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.section-title{font-size:13px;font-weight:800;color:var(--gold-dark);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.section-title i{font-size:15px}
 
 .tamanho-grid{display:flex;flex-direction:column;gap:8px}
 .tamanho-btn{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;transition:all .2s;text-align:left}
@@ -45,33 +49,33 @@ button{font-family:inherit;cursor:pointer}
 .tamanho-btn .tam-nome{font-size:15px;font-weight:800;color:var(--text)}
 .tamanho-btn .tam-fatias{font-size:12px;color:var(--text2)}
 .tamanho-btn .tam-preco{text-align:right}
-.tamanho-btn .tam-p-trad{font-size:13px;font-weight:700;color:var(--teal)}
-.tamanho-btn .tam-p-prem{font-size:12px;color:var(--coral);margin-top:1px}
+.tamanho-btn .tam-p-trad{font-size:13px;font-weight:700;color:var(--text2)}
+.tamanho-btn .tam-p-prem{font-size:12px;color:var(--text3);margin-top:1px}
 
-.opcao-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
-.opcao-btn{border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;background:var(--surface);cursor:pointer;transition:all .2s;text-align:center}
+.opcao-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0;align-items:stretch}
+.opcao-btn{border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;background:var(--surface);cursor:pointer;transition:all .2s;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100%}
 .opcao-btn.sel{border-color:var(--gold);background:var(--gold-light)}
 .opcao-btn .op-icon{font-size:26px;display:block;margin-bottom:5px}
 .opcao-btn .op-icon img{width:56px;height:56px;border-radius:10px;object-fit:cover;display:block;margin:0 auto}
 .opcao-btn .op-nome{font-size:13px;font-weight:800;color:var(--text);display:block;margin-bottom:2px}
-.opcao-btn .op-desc{font-size:11px;color:var(--text2);line-height:1.4}
-.opcao-btn .op-preco{font-size:11px;color:var(--coral);font-weight:700;margin-top:4px;display:block}
+.opcao-btn .op-desc{font-size:11px;color:var(--text2);line-height:1.4;flex:1}
+.opcao-btn .op-preco{font-size:11px;color:var(--gold-dark);font-weight:700;margin-top:4px;display:block}
 
-.recheio-section{margin-bottom:14px}
-.recheio-tipo-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;padding:4px 10px;border-radius:20px;display:inline-block}
-.label-trad{background:#16332B;color:var(--teal)}
-.label-prem{background:#0D2D5A;color:var(--gold-dark)}
-.recheio-list{display:flex;flex-wrap:wrap;gap:6px}
-.recheio-tag{padding:7px 13px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;background:var(--surface);cursor:pointer;transition:all .2s;font-weight:500}
-.recheio-tag.sel-1{border-color:var(--teal);background:#16332B;color:#5DCAA5;font-weight:700}
-.recheio-tag.sel-2{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark);font-weight:700}
-.recheio-tag.prem{border-style:dashed;border-color:#C8A830}
-.recheio-tag.prem.sel-1,.recheio-tag.prem.sel-2{border-style:solid;background:#0D2D5A;color:var(--gold-dark)}
-.recheio-info{background:var(--gold-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;font-size:12px;color:var(--gold-dark);margin-bottom:12px;display:flex;gap:6px;align-items:flex-start}
-.recheio-selecionados{background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:10px;display:none}
-.rs-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.recheio-section{margin-bottom:18px}
+.recheio-tipo-label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding:5px 12px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+.label-trad{background:rgba(93,202,165,.15);color:#5DCAA5;border:1px solid rgba(93,202,165,.35)}
+.label-prem{background:rgba(212,162,74,.15);color:var(--gold-dark);border:1px solid rgba(212,162,74,.4)}
+.recheio-list{display:flex;flex-wrap:wrap;gap:8px}
+.recheio-tag{padding:9px 16px;border:1.5px solid var(--border);border-radius:24px;font-size:13px;background:rgba(13,45,90,.45);cursor:pointer;transition:all .2s;font-weight:600;color:var(--text2)}
+.recheio-tag.sel-1{border-color:#5DCAA5;background:rgba(93,202,165,.18);color:#5DCAA5;font-weight:700;box-shadow:0 0 0 1px rgba(93,202,165,.3)}
+.recheio-tag.sel-2{border-color:var(--gold);background:rgba(212,162,74,.18);color:var(--gold-dark);font-weight:700;box-shadow:0 0 0 1px rgba(212,162,74,.4)}
+.recheio-tag.prem{border-style:dashed;border-color:rgba(212,162,74,.6);color:var(--gold-dark)}
+.recheio-tag.prem.sel-1,.recheio-tag.prem.sel-2{border-style:solid;background:rgba(212,162,74,.18);color:var(--gold-dark);box-shadow:0 0 0 1px rgba(212,162,74,.4)}
+.recheio-info{background:rgba(212,162,74,.12);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;color:var(--gold-dark);margin-bottom:14px;display:flex;gap:7px;align-items:flex-start;line-height:1.5}
+.recheio-selecionados{background:rgba(7,27,58,.5);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:12px;display:none}
+.rs-label{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
 .rs-items{display:flex;gap:6px;flex-wrap:wrap}
-.rs-item{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px}
+.rs-item{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
 .rs-item.trad{background:#16332B;color:#5DCAA5}
 .rs-item.prem{background:#0D2D5A;color:var(--gold-dark)}
 
@@ -97,10 +101,15 @@ button{font-family:inherit;cursor:pointer}
 .photo-zone p{font-size:13px;color:var(--text2);font-weight:600}
 .photo-zone small{font-size:11px;color:var(--text3)}
 
-.resumo-row{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:1px solid var(--border)}
+.resumo-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;padding:10px 0;border-bottom:1px solid rgba(138,155,184,.15)}
 .resumo-row:last-child{border-bottom:none}
-.resumo-total{display:flex;justify-content:space-between;font-size:19px;font-weight:800;color:var(--gold-dark);padding:10px 0 0;border-top:2px solid var(--gold);margin-top:6px}
-.sinal-box{background:var(--gold-light);border:1px solid var(--gold);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:13px;color:var(--gold-dark)}
+.resumo-row span:first-child{color:var(--text3);display:flex;align-items:center;gap:7px}
+.resumo-row span:first-child i{font-size:15px;color:var(--gold)}
+.resumo-row span:last-child{color:var(--text);font-weight:600;text-align:right}
+.resumo-total{display:flex;justify-content:space-between;align-items:baseline;font-size:22px;font-weight:700;color:var(--text);padding:14px 0 0;border-top:1px solid var(--border);margin-top:8px;letter-spacing:.02em}
+.resumo-total span:first-child{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--gold-dark);text-transform:uppercase}
+.sinal-box{background:rgba(212,162,74,.1);border:1px solid rgba(212,162,74,.4);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;font-size:13px;color:var(--text2);line-height:1.6}
+.sinal-box b{color:var(--gold-dark);font-size:15px}
 
 .fg{margin-bottom:12px}
 .fg label{font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
@@ -113,9 +122,9 @@ button{font-family:inherit;cursor:pointer}
 .retira-btn{padding:13px;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s}
 .retira-btn.sel{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
 
-.btn-next{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:800;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;box-shadow:0 3px 12px rgba(212,162,74,.3);transition:opacity .2s}
+.btn-next{width:100%;padding:15px;background:linear-gradient(135deg,#A87528 0%,var(--gold) 55%,var(--gold) 100%);color:#2C1B05;border:none;border-radius:var(--radius-sm);font-size:16px;font-weight:800;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;box-shadow:0 3px 12px rgba(212,162,74,.3);transition:opacity .2s}
 .btn-next:active{opacity:.85}
-.btn-next:disabled{opacity:.4;cursor:default}
+.btn-next:disabled{opacity:1;cursor:default;background:rgba(212,162,74,.18);color:var(--text3);box-shadow:none;border:1px solid var(--border)}
 .btn-back{width:100%;padding:13px;background:none;color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;font-family:inherit}
 
 .regras{background:var(--gold-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--gold-dark);line-height:1.7}
@@ -176,7 +185,7 @@ button{font-family:inherit;cursor:pointer}
     </div>
 
     <button onclick="document.getElementById('boas-vindas').style.display='none'"
-      style="width:100%;padding:16px 24px;background:linear-gradient(135deg,#D4A24A 0%,#E6C06D 100%);color:#fff;border:none;border-radius:50px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.05em;box-shadow:0 4px 20px rgba(212,162,74,.4);margin-bottom:12px">
+      style="width:100%;padding:16px 24px;background:linear-gradient(135deg,#A87528 0%,#D4A24A 55%,#D4A24A 100%);color:#2C1B05;border:none;border-radius:50px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.05em;box-shadow:0 4px 20px rgba(212,162,74,.4);margin-bottom:12px">
       Montar meu bolo ✨
     </button>
     <div style="font-size:11px;color:rgba(212,162,74,.5);letter-spacing:.05em">
@@ -214,7 +223,7 @@ button{font-family:inherit;cursor:pointer}
 <!-- STEP 0: TAMANHO + MASSA -->
 <div class="step act" id="step-0">
   <div class="card" id="ajuda-tamanho-box">
-    <div class="section-title">🎂 Tamanho do bolo</div>
+    <div class="section-title"><i class="ti ti-ruler-2"></i>Tamanho do bolo</div>
     <div style="display:flex;flex-direction:column;gap:8px">
       <button class="tamanho-btn" onclick="setModoTamanho('sei')" id="modo-sei" style="justify-content:center;font-size:14px;font-weight:700;padding:14px">✅ Já sei o tamanho que quero</button>
       <button class="tamanho-btn" onclick="setModoTamanho('ajuda')" id="modo-ajuda" style="justify-content:center;font-size:14px;font-weight:700;padding:14px">🤔 Preciso de ajuda para escolher</button>
@@ -223,7 +232,7 @@ button{font-family:inherit;cursor:pointer}
 
   <div id="box-convidados" style="display:none">
     <div class="card">
-      <div class="section-title">👥 Quantos convidados?</div>
+      <div class="section-title"><i class="ti ti-users"></i>Quantos convidados?</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Informe a quantidade de convidados e indicamos o tamanho ideal!</p>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
         <input type="number" id="qtd-convidados" placeholder="Ex: 20" min="1" max="200"
@@ -243,7 +252,7 @@ button{font-family:inherit;cursor:pointer}
 
   <div id="box-tamanhos" style="display:none">
   <div class="card">
-    <div class="section-title">🎂 Selecione o tamanho</div>
+    <div class="section-title"><i class="ti ti-ruler-2"></i>Selecione o tamanho</div>
     <div class="tamanho-grid" id="tamanho-grid">
       <button class="tamanho-btn" onclick="setTamanho(10,110,140)" id="tam-10">
         <div class="tam-info"><div class="tam-nome">Aro 10 cm</div><div class="tam-fatias">Até 3 fatias</div></div>
@@ -271,7 +280,7 @@ button{font-family:inherit;cursor:pointer}
 
   <div id="box-massa" style="display:none">
   <div class="card">
-    <div class="section-title">🧁 Tipo de massa</div>
+    <div class="section-title"><i class="ti ti-cake"></i>Tipo de massa</div>
     <div class="opcao-grid">
       <div id="massas-container">
         <button class="opcao-btn" onclick="setMassa('fofinha','Massa Fofinha')" id="massa-fofinha"><span class="op-icon"><img src="massa-fofinha.jpg" alt=""></span><span class="op-nome">Massa Fofinha</span><span class="op-desc">Pão de ló — leve, suave e aerada</span></button>
@@ -289,7 +298,7 @@ button{font-family:inherit;cursor:pointer}
 <!-- STEP 1: RECHEIOS -->
 <div class="step" id="step-1">
   <div class="card">
-    <div class="section-title">🍓 Escolha até 2 recheios</div>
+    <div class="section-title"><i class="ti ti-cherry"></i>Escolha até 2 recheios</div>
     <div class="recheio-info"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Toque para selecionar. Na combinação de 1 tradicional + 1 premium, aplica-se o valor premium.</div>
     <div id="recheio-selecionados" class="recheio-selecionados"><div class="rs-label">SELECIONADOS:</div><div class="rs-items" id="rs-items-list"></div></div>
     <div class="recheio-section">
@@ -336,7 +345,7 @@ button{font-family:inherit;cursor:pointer}
 <!-- STEP 2: COBERTURA -->
 <div class="step" id="step-2">
   <div class="card">
-    <div class="section-title">✨ Cobertura</div>
+    <div class="section-title"><i class="ti ti-sparkles"></i>Cobertura</div>
     <div class="opcao-grid">
       <button class="opcao-btn" onclick="setCobertura('chantininho','Chantininho')" id="cob-chantininho"><span class="op-icon"><img src="cobertura-chantininho.jpg" alt=""></span><span class="op-nome">Chantininho</span><span class="op-desc">Chantilly com leite ninho — suave e delicioso</span><span class="op-preco">Incluso</span></button>
       <button class="opcao-btn" onclick="setCobertura('buttercream','Buttercream')" id="cob-buttercream"><span class="op-icon"><img src="cobertura-buttercream.jpg" alt=""></span><span class="op-nome">Buttercream</span><span class="op-desc">Creme de manteiga suave — acabamento premium</span><span class="op-preco">+ R$ 50,00</span></button>
@@ -354,9 +363,9 @@ button{font-family:inherit;cursor:pointer}
 <!-- STEP 3: DECORAÇÃO -->
 <div class="step" id="step-3">
   <div class="card">
-    <div class="section-title">🎨 Tipo de decoração</div>
+    <div class="section-title"><i class="ti ti-palette"></i>Tipo de decoração</div>
     <div class="deco-opcao" onclick="setDeco('espatulado')" id="deco-espatulado">
-      <div class="deco-left"><div class="deco-icon"><img src="cobertura-chantininho.jpg" alt=""></div><div><div class="deco-nome">Apenas Espatulado</div><div class="deco-desc">Acabamento liso e elegante</div></div></div>
+      <div class="deco-left"><div class="deco-icon"><img src="massa-classica.jpg" alt=""></div><div><div class="deco-nome">Apenas Espatulado</div><div class="deco-desc">Acabamento liso e elegante</div></div></div>
       <div class="deco-preco">Incluso</div>
     </div>
     <div class="deco-opcao" onclick="setDeco('tematico')" id="deco-tematico">
@@ -389,7 +398,7 @@ button{font-family:inherit;cursor:pointer}
   </div>
 
   <div class="card">
-    <div class="section-title">✨ Adicionais</div>
+    <div class="section-title"><i class="ti ti-plus"></i>Adicionais</div>
     <div class="extra-btn" onclick="toggleExtra('flores')" id="extra-flores">
       <div class="extra-left"><img src="deco-flores-naturais.jpg" alt=""><div class="extra-check">✓</div><div><div style="font-size:14px;font-weight:700">Flores Naturais</div><div style="font-size:12px;color:var(--text2)">Arranjo de flores naturais</div></div></div>
       <div style="font-size:15px;font-weight:800;color:var(--coral)">R$ 50,00</div>
@@ -397,7 +406,7 @@ button{font-family:inherit;cursor:pointer}
   </div>
 
   <div class="card">
-    <div class="section-title">📸 Foto de inspiração (opcional)</div>
+    <div class="section-title"><i class="ti ti-camera"></i>Foto de inspiração (opcional)</div>
     <div class="photo-zone" onclick="document.getElementById('inspi-file').click()"><i class="ti ti-photo-search"></i><p>Adicionar foto de inspiração</p><small>Selecione da galeria do seu celular</small></div>
     <input type="file" id="inspi-file" accept="image/*" style="display:none" onchange="addInspiPhoto(event)">
     <div id="inspi-preview"></div>
@@ -411,12 +420,12 @@ button{font-family:inherit;cursor:pointer}
 <!-- STEP 4: ENTREGA -->
 <div class="step" id="step-4">
   <div class="card">
-    <div class="section-title">👤 Seus dados</div>
+    <div class="section-title"><i class="ti ti-user"></i>Seus dados</div>
     <div class="fg"><label>Nome completo</label><input type="text" id="cli-nome" placeholder="Seu nome"></div>
     <div class="fg"><label>WhatsApp</label><input type="tel" id="cli-tel" placeholder="(27) 99999-9999"></div>
   </div>
   <div class="card">
-    <div class="section-title">📅 Data e horário</div>
+    <div class="section-title"><i class="ti ti-calendar-event"></i>Data e horário</div>
     <div class="fr">
       <div class="fg"><label>Data de entrega</label><input type="date" id="ent-data"></div>
       <div class="fg"><label>Horário</label><input type="time" id="ent-hora"></div>
@@ -460,8 +469,8 @@ button{font-family:inherit;cursor:pointer}
 
 <!-- STEP 5: RESUMO -->
 <div class="step" id="step-5">
-  <div class="card"><div class="section-title">🎂 Resumo do pedido</div><div id="resumo-content"></div></div>
-  <div class="card"><div class="section-title">💰 Total</div><div id="total-content"></div></div>
+  <div class="card"><div class="section-title"><i class="ti ti-gift"></i>Resumo do pedido</div><div id="resumo-content"></div></div>
+  <div class="card"><div class="section-title"><i class="ti ti-receipt"></i>Total</div><div id="total-content"></div></div>
   <div class="card" style="border:1.5px dashed var(--gold);background:var(--gold-light)">
     <div style="font-size:13px;font-weight:800;color:var(--gold-dark);margin-bottom:6px">💳 Comprovante de pagamento <span style="font-size:11px;font-weight:400;color:var(--text3)">(opcional)</span></div>
     <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Você pode enviar agora ou depois.</p>
@@ -608,7 +617,7 @@ async function buscarCep(cep){const digits=cep.replace(/\D/g,'');if(digits.lengt
 
 function calcTotal(){const hasPrem=pedido.recheios.some(r=>r.tipo==='prem');const precoBase=hasPrem?pedido.precoPrem:pedido.precoTrad;const plusButtercream=pedido.cobertura==='buttercream'?cardapioCfg.buttercream:0;const plusTopo=(pedido.topo||pedido.deco==='tematico')?cardapioCfg.topoValor:0;const plusFlores=pedido.flores?cardapioCfg.floresValor:0;const total=precoBase+plusButtercream+plusTopo+plusFlores;const sinal=total*(cardapioCfg.sinalPct/100);return{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem};}
 
-function renderResumo(){const{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem}=calcTotal();const dataFmt=pedido.data?new Date(pedido.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const recheioNomes=pedido.recheios.map(r=>r.nome+(r.tipo==='prem'?' ⭐':'')).join(' + ');document.getElementById('resumo-content').innerHTML=`<div class="resumo-row"><span>📐 Tamanho</span><span><b>Aro ${pedido.aro} cm</b></span></div><div class="resumo-row"><span>🧁 Massa</span><span>${pedido.massaNome||'—'}</span></div><div class="resumo-row"><span>🍓 Recheio(s)</span><span style="text-align:right;max-width:60%">${recheioNomes||'—'}</span></div><div class="resumo-row"><span>✨ Cobertura</span><span>${pedido.coberturaNome||'—'}</span></div><div class="resumo-row"><span>🎨 Decoração</span><span>${pedido.deco==='tematico'?'Temático'+(pedido.tema?' — '+pedido.tema:''):'Espatulado'}</span></div>${pedido.flores?'<div class="resumo-row"><span>💐 Flores Naturais</span><span>Sim</span></div>':''}<div class="resumo-row"><span>👤 Cliente</span><span>${pedido.nome||'—'}</span></div><div class="resumo-row"><span>📅 Entrega</span><span>${dataFmt} ${pedido.hora?'às '+pedido.hora:''}</span></div><div class="resumo-row"><span>📍 Retirada</span><span>${pedido.retira?'Sim, retira':'Não, entrego'}</span></div>`;document.getElementById('total-content').innerHTML=`<div class="resumo-row"><span>Bolo ${pedido.aro}cm ${hasPrem?'(premium)':'(tradicional)'}</span><span>R$ ${precoBase.toFixed(2)}</span></div>${plusButtercream?`<div class="resumo-row"><span>Buttercream</span><span>R$ ${plusButtercream.toFixed(2)}</span></div>`:''} ${plusTopo?`<div class="resumo-row"><span>🪄 Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''} ${plusFlores?`<div class="resumo-row"><span>💐 Flores</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}<div class="resumo-total"><span>TOTAL</span><span>R$ ${total.toFixed(2)}</span></div><div class="sinal-box">💰 Sinal para confirmar (${cardapioCfg.sinalPct}%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: ${cardapioCfg.pixKey}</div>`;}
+function renderResumo(){const{precoBase,plusButtercream,plusTopo,plusFlores,total,sinal,hasPrem}=calcTotal();const dataFmt=pedido.data?new Date(pedido.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const recheioNomes=pedido.recheios.map(r=>r.nome+(r.tipo==='prem'?' <span style="color:var(--gold-dark)">★</span>':'')).join(' + ');document.getElementById('resumo-content').innerHTML=`<div class="resumo-row"><span><i class="ti ti-ruler-2"></i>Tamanho</span><span>Aro ${pedido.aro} cm</span></div><div class="resumo-row"><span><i class="ti ti-cake"></i>Massa</span><span>${pedido.massaNome||'—'}</span></div><div class="resumo-row"><span><i class="ti ti-cherry"></i>Recheio(s)</span><span style="text-align:right;max-width:60%">${recheioNomes||'—'}</span></div><div class="resumo-row"><span><i class="ti ti-sparkles"></i>Cobertura</span><span>${pedido.coberturaNome||'—'}</span></div><div class="resumo-row"><span><i class="ti ti-palette"></i>Decoração</span><span>${pedido.deco==='tematico'?'Temático'+(pedido.tema?' — '+pedido.tema:''):'Espatulado'}</span></div>${pedido.flores?'<div class="resumo-row"><span><i class="ti ti-flower"></i>Flores Naturais</span><span>Sim</span></div>':''}<div class="resumo-row"><span><i class="ti ti-user"></i>Cliente</span><span>${pedido.nome||'—'}</span></div><div class="resumo-row"><span><i class="ti ti-calendar-event"></i>Entrega</span><span>${dataFmt} ${pedido.hora?'às '+pedido.hora:''}</span></div><div class="resumo-row"><span><i class="ti ti-map-pin"></i>Retirada</span><span>${pedido.retira?'Sim, retira':'Não, entrego'}</span></div>`;document.getElementById('total-content').innerHTML=`<div class="resumo-row"><span>Bolo ${pedido.aro}cm ${hasPrem?'(premium)':'(tradicional)'}</span><span>R$ ${precoBase.toFixed(2)}</span></div>${plusButtercream?`<div class="resumo-row"><span>Buttercream</span><span>R$ ${plusButtercream.toFixed(2)}</span></div>`:''} ${plusTopo?`<div class="resumo-row"><span><i class="ti ti-crown"></i>Topo do Bolo</span><span>R$ ${plusTopo.toFixed(2)}</span></div>`:''} ${plusFlores?`<div class="resumo-row"><span><i class="ti ti-flower"></i>Flores</span><span>R$ ${plusFlores.toFixed(2)}</span></div>`:''}<div class="resumo-total"><span>Total</span><span>R$ ${total.toFixed(2)}</span></div><div class="sinal-box"><i class="ti ti-pig-money"></i> Sinal para confirmar (${cardapioCfg.sinalPct}%): <b>R$ ${sinal.toFixed(2)}</b><br>PIX: ${cardapioCfg.pixKey}</div>`;}
 
 function addCompCliente(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{pedido.comprovante=ev.target.result;savePedidoLocal();const prev=document.getElementById('comp-preview-cliente');const isImg=file.type.startsWith('image/');if(isImg){prev.innerHTML=`<img src="${ev.target.result}" style="width:100%;border-radius:8px;max-height:160px;object-fit:cover;margin-bottom:6px">`;}else{prev.innerHTML=`<div style="background:#071B3A;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-weight:700;color:var(--gold-dark);margin-bottom:6px">📄 ${file.name}</div>`;}document.getElementById('comp-btn-txt').textContent='Trocar comprovante';toast('✅ Comprovante adicionado!');};reader.readAsDataURL(file);e.target.value='';}
 
