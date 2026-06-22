@@ -1323,7 +1323,7 @@ async function loadPedidosFromCloud() {
       sinal:p.sinal,pagamento:p.pagamento,status:p.status||'pendente',origem:p.origem,
       createdAt:new Date(p.created_at).getTime()
     }));
-    const deletedIds=window._deletedPedidoIds||new Set();
+    const deletedIds=(typeof getDeletedPedidoIds==='function')?getDeletedPedidoIds():(window._deletedPedidoIds||new Set());
     const cloudIds=new Set(cloudPedidos.map(p=>p.id));
     const localOnly=pedidos.filter(p=>!cloudIds.has(p.id)&&!deletedIds.has(p.id));
     pedidos=[...cloudPedidos.filter(p=>!deletedIds.has(p.id)),...localOnly];
