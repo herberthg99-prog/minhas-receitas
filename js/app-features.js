@@ -790,7 +790,10 @@ function getRecheios() {
 
 function populateRecheioSelects() {
   const recheios = getRecheios();
-  const opts = recheios.map(r => `<option value="${r}">${r}</option>`).join('');
+  // Garante que o recheio já salvo no pedido sempre apareça como opção, mesmo que ainda não tenha sido cadastrado em Receitas
+  const extras = [curPedido.recheio1, curPedido.recheio2].filter(function(n){ return n && !recheios.includes(n); });
+  const todasOpcoes = [...recheios, ...extras];
+  const opts = todasOpcoes.map(r => `<option value="${r.replace(/"/g,'&quot;')}">${r}</option>`).join('');
   const sel1 = document.getElementById('p-recheio1');
   const sel2 = document.getElementById('p-recheio2');
   if(sel1) sel1.innerHTML = '<option value="">Selecione o recheio...</option>' + opts;
