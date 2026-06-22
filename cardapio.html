@@ -665,26 +665,18 @@ var combinacoesCfg = [
   {a:'Morango Fresco', b:'Chocolate Branco', destaque:false}
 ];
 
-// Imagens still-life existentes, mapeadas por nome original — usadas como fallback de imagem
-var IMAGENS_MASSA_PADRAO = {
-  'Massa Fofinha':'massa-fofinha.jpg', 'Massa Fofinha Chocolate':'massa-fofinha-chocolate.jpg',
-  'Massa Clássica':'massa-classica.jpg', 'Massa Clássica Chocolate':'massa-classica-chocolate.jpg'
-};
-var IMAGENS_COBERTURA_PADRAO = {
-  'Chantininho':'cobertura-chantininho.jpg', 'Buttercream':'cobertura-buttercream.jpg'
-};
-function imagemMassa(nome,iconFallback){ return IMAGENS_MASSA_PADRAO[nome] || null; }
-function imagemCobertura(nome){ return IMAGENS_COBERTURA_PADRAO[nome] || null; }
+function imagemMassa(m){ return m && m.img ? m.img : null; }
+function imagemCobertura(c){ return c && c.img ? c.img : null; }
 
 var massasCfg = [
-  {id:'fofinha', nome:'Massa Fofinha', desc:'Pão de ló — leve, suave e aerada'},
-  {id:'fofinha-chocolate', nome:'Massa Fofinha Chocolate', desc:'Pão de ló de chocolate — leve e aerada'},
-  {id:'classica', nome:'Massa Clássica', desc:'Amanteigada — macia, úmida e saborosa'},
-  {id:'classica-chocolate', nome:'Massa Clássica Chocolate', desc:'Amanteigada de chocolate — encorpada'}
+  {id:'fofinha', nome:'Massa Fofinha', desc:'Pão de ló — leve, suave e aerada', img:'massa-fofinha.jpg'},
+  {id:'fofinha-chocolate', nome:'Massa Fofinha Chocolate', desc:'Pão de ló de chocolate — leve e aerada', img:'massa-fofinha-chocolate.jpg'},
+  {id:'classica', nome:'Massa Clássica', desc:'Amanteigada — macia, úmida e saborosa', img:'massa-classica.jpg'},
+  {id:'classica-chocolate', nome:'Massa Clássica Chocolate', desc:'Amanteigada de chocolate — encorpada', img:'massa-classica-chocolate.jpg'}
 ];
 var coberturasCfg = [
-  {id:'chantininho', nome:'Chantininho', desc:'Chantilly com leite ninho — suave e delicioso', preco:0},
-  {id:'buttercream', nome:'Buttercream', desc:'Creme de manteiga suave — acabamento premium', preco:50}
+  {id:'chantininho', nome:'Chantininho', desc:'Chantilly com leite ninho — suave e delicioso', preco:0, img:'cobertura-chantininho.jpg'},
+  {id:'buttercream', nome:'Buttercream', desc:'Creme de manteiga suave — acabamento premium', preco:50, img:'cobertura-buttercream.jpg'}
 ];
 var tamanhosCfg = [
   {aro:10, fatias:'Até 3 fatias'}, {aro:15, fatias:'Até 10 fatias'}, {aro:20, fatias:'Até 20 fatias'},
@@ -695,8 +687,8 @@ function renderMassasDinamico(){
   const cont=document.getElementById('massas-container');
   if(!cont)return;
   cont.innerHTML=massasCfg.map(m=>{
-    const img=imagemMassa(m.nome);
-    const iconHtml=img?`<img src="${img}" alt="">`:'🎂';
+    const img=imagemMassa(m);
+    const iconHtml=img?`<img src="${img}" alt="">`:(m.icon||'🎂');
     return `<button class="opcao-btn" onclick="setMassa('${m.id}','${m.nome.replace(/'/g,"\\'")}')" id="massa-${m.id}"><span class="op-icon">${iconHtml}</span><span class="op-nome">${m.nome}</span><span class="op-desc">${m.desc||''}</span></button>`;
   }).join('');
 }
@@ -705,8 +697,8 @@ function renderCoberturasDinamico(){
   const cont=document.getElementById('coberturas-container');
   if(!cont)return;
   cont.innerHTML=coberturasCfg.map(c=>{
-    const img=imagemCobertura(c.nome);
-    const iconHtml=img?`<img src="${img}" alt="">`:'🍰';
+    const img=imagemCobertura(c);
+    const iconHtml=img?`<img src="${img}" alt="">`:(c.icon||'🍰');
     const precoTxt=c.preco?('+ R$ '+parseFloat(c.preco).toFixed(2).replace('.',',')):'Incluso';
     return `<button class="opcao-btn" onclick="setCobertura('${c.id}','${c.nome.replace(/'/g,"\\'")}')" id="cob-${c.id}"><span class="op-icon">${iconHtml}</span><span class="op-nome">${c.nome}</span><span class="op-desc">${c.desc||''}</span><span class="op-preco">${precoTxt}</span></button>`;
   }).join('');
