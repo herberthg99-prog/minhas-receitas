@@ -196,7 +196,10 @@ button{font-family:inherit;cursor:pointer}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-<div class="header" style="background:rgba(2,11,24,0.85);border-bottom:1px solid rgba(212,162,74,0.3);backdrop-filter:blur(8px);padding:20px 16px 16px;text-align:center">
+<div class="header" style="background:rgba(2,11,24,0.85);border-bottom:1px solid rgba(212,162,74,0.3);backdrop-filter:blur(8px);padding:20px 16px 16px;text-align:center;position:relative">
+  <button onclick="reiniciarPedido()" title="Limpar pedido e recomeçar" style="position:absolute;top:14px;right:14px;background:rgba(212,162,74,.12);border:1px solid var(--border);color:var(--text3);border-radius:20px;padding:6px 12px;font-size:11px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:5px">
+    <i class="ti ti-refresh" style="font-size:13px"></i> Recomeçar
+  </button>
   <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée Confeitaria" style="width:180px;max-width:70%;height:auto;margin-bottom:6px;filter:drop-shadow(0 2px 8px rgba(212,162,74,.2))">
   <div style="font-size:13px;color:var(--text3);letter-spacing:.12em;font-style:italic">Monte o bolo dos seus sonhos ✨</div>
   <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-top:10px">
@@ -362,7 +365,7 @@ button{font-family:inherit;cursor:pointer}
   <div class="card">
     <div class="section-title"><i class="ti ti-palette"></i>Tipo de decoração</div>
     <div class="deco-opcao" onclick="setDeco('espatulado')" id="deco-espatulado">
-      <div class="deco-left"><div class="deco-icon"><img src="massa-classica.jpg" alt=""></div><div><div class="deco-nome">Apenas Espatulado</div><div class="deco-desc">Acabamento liso e elegante</div></div></div>
+      <div class="deco-left"><div class="deco-icon"><img src="deco-espatulado.jpg" alt=""></div><div><div class="deco-nome">Apenas Espatulado</div><div class="deco-desc">Acabamento liso e elegante</div></div></div>
       <div class="deco-preco">Incluso</div>
     </div>
     <div class="deco-opcao" onclick="setDeco('tematico')" id="deco-tematico">
@@ -567,6 +570,7 @@ try {
 
 function savePedidoLocal(){try{localStorage.setItem('sucree_pedido_em_andamento',JSON.stringify(pedido));}catch(e){}}
 function clearPedidoLocal(){try{localStorage.removeItem('sucree_pedido_em_andamento');}catch(e){}}
+function reiniciarPedido(){if(confirm('Isso vai limpar o pedido em andamento e começar do zero. Deseja continuar?')){clearPedidoLocal();location.reload();}}
 
 let curStep=0;
 function toast(msg,dur=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
