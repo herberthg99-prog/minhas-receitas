@@ -184,7 +184,7 @@ function goPage(p) {
   if (p === 'compras')  renderListaCompras();
   if (p === 'ficha')    renderFichaProducao();
   if (p === 'metas')         renderMetas();
-  if (p === 'cardapio-cfg') renderCardapioConfig();
+  if (p === 'cardapio-cfg') { loadCardapioConfigFromCloud().then(renderCardapioConfig); renderCardapioConfig(); }
 }
 
 // ═══════ RENDER HOME ═══════
@@ -2592,12 +2592,45 @@ function getCardapioConfig() {
       {id:'classica-chocolate',nome:'Massa Clássica Chocolate', icon:'🍫🧈',desc:'Amanteigada de chocolate — encorpada'},
     ],
     recheios: [
-      {id:'brig4leites',  nome:'Brigadeiro 4 Leites',      icon:'🍫'},
-      {id:'brigbranco',   nome:'Brigadeiro Branco',         icon:'🤍'},
-      {id:'brigchoco',    nome:'Brigadeiro de Chocolate',   icon:'🍫'},
-      {id:'ganache',      nome:'Ganache de Chocolate',      icon:'🍫'},
-      {id:'mousse',       nome:'Mousse de Chocolate Branco',icon:'☁️'},
-      {id:'chantininho',  nome:'Chantininho',               icon:'🍦'},
+      {nome:'Brigadeiro',               tipo:'trad', categoria:'Chocolates'},
+      {nome:'Brigadeiro Branco',        tipo:'trad', categoria:'Chocolates'},
+      {nome:'Chocolate',                tipo:'trad', categoria:'Chocolates'},
+      {nome:'Chocolate Branco',         tipo:'trad', categoria:'Chocolates'},
+      {nome:'Leite Ninho',              tipo:'trad', categoria:'Leites'},
+      {nome:'Doce de Leite',            tipo:'trad', categoria:'Leites'},
+      {nome:'Abacaxi',                  tipo:'trad', categoria:'Frutas'},
+      {nome:'Maracujá',                 tipo:'trad', categoria:'Frutas'},
+      {nome:'Coco',                     tipo:'trad', categoria:'Frutas'},
+      {nome:'Ameixa',                   tipo:'trad', categoria:'Frutas'},
+      {nome:'Morango Fresco',           tipo:'prem', categoria:'Frutas Nobres'},
+      {nome:'Frutas Vermelhas',         tipo:'prem', categoria:'Frutas Nobres'},
+      {nome:'Pistache',                 tipo:'prem', categoria:'Oleaginosas'},
+      {nome:'Nozes',                    tipo:'prem', categoria:'Oleaginosas'},
+      {nome:'Avelã',                    tipo:'prem', categoria:'Oleaginosas'},
+      {nome:'Amêndoas',                 tipo:'prem', categoria:'Oleaginosas'},
+      {nome:'Ferrero Rocher',           tipo:'prem', categoria:'Chocolates Gourmet'},
+      {nome:'Trufa Belga',              tipo:'prem', categoria:'Chocolates Gourmet'},
+      {nome:'Chocolate Belga',          tipo:'prem', categoria:'Chocolates Gourmet'},
+      {nome:'Kinder Bueno',             tipo:'prem', categoria:'Chocolates Gourmet'},
+      {nome:'Caramelo Salgado',         tipo:'prem', categoria:'Especiais'},
+      {nome:'Doce de Leite Argentino',  tipo:'prem', categoria:'Especiais'},
+      {nome:'Baunilha Bourbon',         tipo:'prem', categoria:'Especiais'},
+    ],
+    combinacoes: [
+      {a:'Abacaxi', b:'Coco', destaque:false},
+      {a:'Doce de Leite', b:'Ameixa', destaque:false},
+      {a:'Brigadeiro', b:'Brigadeiro Branco', destaque:false},
+      {a:'Leite Ninho', b:'Brigadeiro Branco', destaque:false},
+      {a:'Chocolate', b:'Coco', destaque:false},
+      {a:'Maracujá', b:'Chocolate Branco', destaque:false},
+      {a:'Leite Ninho', b:'Morango Fresco', destaque:true, medalha:'🥇'},
+      {a:'Pistache', b:'Morango Fresco', destaque:true, medalha:'🥈'},
+      {a:'Pistache', b:'Frutas Vermelhas', destaque:true, medalha:'🏅'},
+      {a:'Nozes', b:'Doce de Leite Argentino', destaque:true, medalha:'🥉'},
+      {a:'Ferrero Rocher', b:'Chocolate Belga', destaque:true, medalha:'🏅'},
+      {a:'Trufa Belga', b:'Caramelo Salgado', destaque:false},
+      {a:'Avelã', b:'Chocolate Belga', destaque:false},
+      {a:'Morango Fresco', b:'Chocolate Branco', destaque:false},
     ],
     coberturas: [
       {id:'chantininho',    nome:'Chantininho',           icon:'🍦', desc:'Cobertura espatulada suave'},
@@ -2614,7 +2647,12 @@ function getCardapioConfig() {
   };
   try {
     var saved = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
-    return saved || def;
+    if (saved) {
+      if (!saved.combinacoes) saved.combinacoes = def.combinacoes;
+      if (!saved.recheios || !saved.recheios.length || !saved.recheios[0].categoria) saved.recheios = def.recheios;
+      return saved;
+    }
+    return def;
   } catch(e) { return def; }
 }
 
@@ -2627,6 +2665,15 @@ function saveCardapioConfig(cfg) {
       cardapio_config: JSON.stringify(cfg)
     }, { onConflict: 'user_id' }).then(function(){});
   } catch(e) {}
+}
+
+async function loadCardapioConfigFromCloud() {
+  try {
+    const { data } = await sb.from('config').select('cardapio_config').eq('user_id', USER_ID).limit(1);
+    if (data && data.length && data[0].cardapio_config) {
+      localStorage.setItem('mr_cardapio_config', data[0].cardapio_config);
+    }
+  } catch(e) { console.log('loadCardapioConfigFromCloud erro:', e.message); }
 }
 
 function renderCardapioConfig() {
@@ -2655,15 +2702,51 @@ function renderCardapioConfig() {
     <!-- RECHEIOS -->
     <div class="card" style="margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="st" style="margin-bottom:0"><i class="ti ti-cake"></i> Recheios</div>
+        <div class="st" style="margin-bottom:0"><i class="ti ti-cherry"></i> Recheios</div>
         <button onclick="addItemCardapio('recheios')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
       </div>
-      ${cfg.recheios.map(function(r,i) {
+      ${(function(){
+        var porTipo = {trad:{}, prem:{}};
+        cfg.recheios.forEach(function(r,i){
+          var t = r.tipo || 'trad';
+          var c = r.categoria || 'Outros';
+          if (!porTipo[t][c]) porTipo[t][c] = [];
+          porTipo[t][c].push({r:r, idx:i});
+        });
+        function renderGrupo(label, tipoKey, cor) {
+          var cats = porTipo[tipoKey];
+          var catKeys = Object.keys(cats);
+          if (!catKeys.length) return '';
+          var html = '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:' + cor + ';margin:14px 0 8px">' + label + '</div>';
+          catKeys.forEach(function(catName){
+            html += '<div style="font-size:11px;font-weight:700;color:var(--text2);margin:8px 0 5px">' + catName + '</div>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">';
+            cats[catName].forEach(function(entry){
+              html += '<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg);border-radius:20px;padding:6px 6px 6px 12px;font-size:12px">'
+                + entry.r.nome
+                + '<button onclick="editarItemCardapio(\'recheios\',' + entry.idx + ')" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;padding:2px"><i class="ti ti-pencil"></i></button>'
+                + '<button onclick="removerItemCardapio(\'recheios\',' + entry.idx + ')" style="background:none;border:none;color:#A32D2D;font-size:13px;cursor:pointer;padding:2px 6px"><i class="ti ti-trash"></i></button>'
+                + '</span>';
+            });
+            html += '</div>';
+          });
+          return html;
+        }
+        return renderGrupo('Tradicional', 'trad', 'var(--teal)') + renderGrupo('Premium', 'prem', 'var(--gold)');
+      })()}
+    </div>
+
+    <!-- COMBINAÇÕES DE RECHEIO -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="st" style="margin-bottom:0"><i class="ti ti-bulb"></i> Combinações sugeridas</div>
+        <button onclick="addCombinacaoCardapio()" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Aparecem para o cliente quando ele seleciona o 1º recheio, como sugestão de combinação.</div>
+      ${(cfg.combinacoes||[]).map(function(c,i){
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
-          + '<span style="font-size:22px">' + r.icon + '</span>'
-          + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + r.nome + '</div></div>'
-          + '<button onclick="editarItemCardapio(\'recheios\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
-          + '<button onclick="removerItemCardapio(\'recheios\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
+          + '<div style="flex:1;font-size:13px;font-weight:700;color:#F5EDD8">' + (c.destaque ? (c.medalha||'⭐')+' ' : '') + c.a + ' + ' + c.b + '</div>'
+          + '<button onclick="removerCombinacaoCardapio(' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
           + '</div>';
       }).join('')}
     </div>
@@ -2716,11 +2799,22 @@ function addItemCardapio(tipo) {
     var fatias = prompt('Quantas fatias? (ex: até 15 fatias)', 'até 15 fatias');
     cfg.tamanhos.push({ aro: parseInt(aro), fatias: fatias||'—' });
     cfg.tamanhos.sort(function(a,b){ return a.aro - b.aro; });
+  } else if (tipo === 'recheios') {
+    var nome = prompt('Nome do recheio:');
+    if (!nome) return;
+    var tipoRecheio = (prompt('Tipo: digite "trad" para Tradicional ou "prem" para Premium', 'trad') || 'trad').toLowerCase();
+    if (tipoRecheio !== 'prem') tipoRecheio = 'trad';
+    var categoria = prompt('Categoria (ex: Chocolates, Leites, Frutas, Oleaginosas...):', 'Outros') || 'Outros';
+    cfg.recheios.push({ nome: nome, tipo: tipoRecheio, categoria: categoria });
+    saveCardapioConfig(cfg);
+    toast('✅ ' + nome + ' adicionado!');
+    renderCardapioConfig();
+    return;
   } else {
     var nome = prompt('Nome do item:');
     if (!nome) return;
     var icon = prompt('Emoji/ícone:', '🎂');
-    var desc = tipo !== 'recheios' ? (prompt('Descrição breve (opcional):') || '') : '';
+    var desc = prompt('Descrição breve (opcional):') || '';
     var id = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
     cfg[tipo].push({ id: id, nome: nome, icon: icon||'🎂', desc: desc });
   }
@@ -2729,17 +2823,53 @@ function addItemCardapio(tipo) {
   renderCardapioConfig();
 }
 
+function addCombinacaoCardapio() {
+  var cfg = getCardapioConfig();
+  var nomesDisponiveis = cfg.recheios.map(function(r){ return r.nome; }).join(', ');
+  var a = prompt('Primeiro recheio da combinação (nome exato):\n\nDisponíveis: ' + nomesDisponiveis);
+  if (!a) return;
+  var b = prompt('Segundo recheio da combinação (nome exato):');
+  if (!b) return;
+  var destaque = confirm('Marcar como combinação "mais vendida" (destaque com medalha)?');
+  var medalha = '';
+  if (destaque) medalha = prompt('Qual emoji de medalha? (ex: 🥇 🥈 🥉 🏅)', '🏅') || '🏅';
+  if (!cfg.combinacoes) cfg.combinacoes = [];
+  cfg.combinacoes.push({ a: a, b: b, destaque: destaque, medalha: medalha });
+  saveCardapioConfig(cfg);
+  toast('✅ Combinação adicionada!');
+  renderCardapioConfig();
+}
+
+function removerCombinacaoCardapio(idx) {
+  var cfg = getCardapioConfig();
+  if (!confirm('Remover esta combinação?')) return;
+  cfg.combinacoes.splice(idx, 1);
+  saveCardapioConfig(cfg);
+  renderCardapioConfig();
+}
+
 function editarItemCardapio(tipo, idx) {
   var cfg = getCardapioConfig();
   var item = cfg[tipo][idx];
   if (!item) return;
+  if (tipo === 'recheios') {
+    var novoNome = prompt('Nome:', item.nome);
+    if (!novoNome) return;
+    var novoTipo = (prompt('Tipo: "trad" ou "prem"', item.tipo||'trad') || item.tipo).toLowerCase();
+    if (novoTipo !== 'prem') novoTipo = 'trad';
+    var novaCategoria = prompt('Categoria:', item.categoria||'Outros') || item.categoria;
+    cfg.recheios[idx] = { nome: novoNome, tipo: novoTipo, categoria: novaCategoria };
+    saveCardapioConfig(cfg);
+    renderCardapioConfig();
+    return;
+  }
   var novoNome = prompt('Nome:', item.nome);
   if (!novoNome) return;
   var novoIcon = prompt('Emoji:', item.icon || '🎂');
-  var novoDesc = tipo !== 'recheios' ? (prompt('Descrição:', item.desc||'') || '') : '';
+  var novoDesc = prompt('Descrição:', item.desc||'') || '';
   cfg[tipo][idx].nome = novoNome;
   cfg[tipo][idx].icon = novoIcon || item.icon;
-  if (tipo !== 'recheios') cfg[tipo][idx].desc = novoDesc;
+  cfg[tipo][idx].desc = novoDesc;
   saveCardapioConfig(cfg);
   renderCardapioConfig();
 }
@@ -2758,4 +2888,3 @@ function salvarCardapioConfig() {
   saveCardapioConfig(cfg);
   toast('✅ Cardápio atualizado! Seus clientes já veem as alterações.');
 }
-
