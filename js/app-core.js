@@ -133,6 +133,7 @@ function localToDb(r) {
     id: r.id, user_id: USER_ID,
     name: r.name, cat: r.cat, recipe_group: r.group || null,
     unit: r.unit, yield_qty: r.yield_qty || r.yield || 6,
+    peso_total: r.pesoTotal || null,
     time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
     preparo: r.preparo || '', comment: r.comment || '',
     usa_panela_mexedora: r.usaPanelaMexedora || false,
@@ -150,6 +151,7 @@ function dbToLocal(row) {
   return {
     id: row.id, name: row.name, cat: row.cat, group: row.recipe_group || '',
     unit: row.unit || 'porção', yield_qty: row.yield_qty || 6, yield: row.yield_qty || 6,
+    pesoTotal: row.peso_total || null,
     time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
     preparo: row.preparo || '', comment: row.comment || '',
     usaPanelaMexedora: row.usa_panela_mexedora || false,
@@ -657,6 +659,7 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   document.getElementById('fcat').value = cat;
   document.getElementById('fgrp').value = grp || '';
   document.getElementById('fyld').value = pre?.yield || 6;
+  document.getElementById('fpesoTotal').value = pre?.pesoTotal || '';
   document.getElementById('ftm').value = pre?.time || 60;
   document.getElementById('funit').value = pre?.unit || 'porção';
   document.getElementById('fmrg').value = 100; document.getElementById('fext').value = 0;
@@ -683,6 +686,7 @@ function openEdit(id) {
   document.getElementById('fcat').value = r.cat || 'salgada';
   document.getElementById('fgrp').value = r.group || '';
   document.getElementById('fyld').value = r.yield_qty || r.yield || 6;
+  document.getElementById('fpesoTotal').value = r.pesoTotal || '';
   document.getElementById('ftm').value = r.time || 60;
   document.getElementById('funit').value = r.unit || 'porção';
   document.getElementById('fmrg').value = r.margin || 100;
@@ -904,6 +908,7 @@ async function saveRecipe() {
     unit: document.getElementById('funit').value,
     yield_qty: parseFloat(document.getElementById('fyld').value)||6,
     yield: parseFloat(document.getElementById('fyld').value)||6,
+    pesoTotal: parseFloat(document.getElementById('fpesoTotal').value)||null,
     time: parseFloat(document.getElementById('ftm').value)||60,
     margin: parseFloat(document.getElementById('fmrg').value)||100,
     extra: parseFloat(document.getElementById('fext').value)||0,
