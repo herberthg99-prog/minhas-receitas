@@ -2586,10 +2586,10 @@ function editarMeta() {
 function getCardapioConfig() {
   var def = {
     massas: [
-      {id:'fofinha',          nome:'Massa Fofinha',             icon:'☁️', desc:'Pão de ló — leve, suave e aerada'},
-      {id:'fofinha-chocolate',nome:'Massa Fofinha Chocolate',   icon:'🍫', desc:'Pão de ló de chocolate — leve e aerada'},
-      {id:'classica',         nome:'Massa Clássica',            icon:'🧈', desc:'Amanteigada — macia, úmida e saborosa'},
-      {id:'classica-chocolate',nome:'Massa Clássica Chocolate', icon:'🍫🧈',desc:'Amanteigada de chocolate — encorpada'},
+      {id:'fofinha',          nome:'Massa Fofinha',             icon:'☁️', desc:'Pão de ló — leve, suave e aerada', img:'massa-fofinha.jpg'},
+      {id:'fofinha-chocolate',nome:'Massa Fofinha Chocolate',   icon:'🍫', desc:'Pão de ló de chocolate — leve e aerada', img:'massa-fofinha-chocolate.jpg'},
+      {id:'classica',         nome:'Massa Clássica',            icon:'🧈', desc:'Amanteigada — macia, úmida e saborosa', img:'massa-classica.jpg'},
+      {id:'classica-chocolate',nome:'Massa Clássica Chocolate', icon:'🍫🧈',desc:'Amanteigada de chocolate — encorpada', img:'massa-classica-chocolate.jpg'},
     ],
     recheios: [
       {nome:'Brigadeiro',               tipo:'trad', categoria:'Chocolates'},
@@ -2633,8 +2633,8 @@ function getCardapioConfig() {
       {a:'Morango Fresco', b:'Chocolate Branco', destaque:false},
     ],
     coberturas: [
-      {id:'chantininho',    nome:'Chantininho',           icon:'🍦', desc:'Cobertura espatulada suave', preco:0},
-      {id:'buttercream',    nome:'Buttercream',           icon:'🧈', desc:'Cobertura firme e elegante', preco:50},
+      {id:'chantininho',    nome:'Chantininho',           icon:'🍦', desc:'Cobertura espatulada suave', preco:0, img:'cobertura-chantininho.jpg'},
+      {id:'buttercream',    nome:'Buttercream',           icon:'🧈', desc:'Cobertura firme e elegante', preco:50, img:'cobertura-buttercream.jpg'},
       {id:'ganache',        nome:'Ganache de Chocolate',  icon:'🍫', desc:'Cobertura de chocolate', preco:0},
     ],
     tamanhos: [
@@ -2689,10 +2689,12 @@ function renderCardapioConfig() {
         <button onclick="addItemCardapio('massas')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
       </div>
       ${cfg.massas.map(function(m,i) {
+        var imgInfo = m.img ? ('📷 ' + m.img) : '🎭 sem foto (usando emoji)';
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
           + '<span style="font-size:22px">' + m.icon + '</span>'
           + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + m.nome + '</div>'
-          + '<div style="font-size:11px;color:var(--text2)">' + (m.desc||'') + '</div></div>'
+          + '<div style="font-size:11px;color:var(--text2)">' + (m.desc||'') + '</div>'
+          + '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + imgInfo + '</div></div>'
           + '<button onclick="editarItemCardapio(\'massas\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
           + '<button onclick="removerItemCardapio(\'massas\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
           + '</div>';
@@ -2759,10 +2761,12 @@ function renderCardapioConfig() {
       </div>
       ${cfg.coberturas.map(function(cb,i) {
         var precoTxt = cb.preco ? ('+ R$ ' + parseFloat(cb.preco).toFixed(2).replace('.',',')) : 'Incluso';
+        var imgInfo = cb.img ? ('📷 ' + cb.img) : '🎭 sem foto (usando emoji)';
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
           + '<span style="font-size:22px">' + cb.icon + '</span>'
           + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + cb.nome + '</div>'
-          + '<div style="font-size:11px;color:var(--text2)">' + (cb.desc||'') + ' · <b style="color:var(--gold)">' + precoTxt + '</b></div></div>'
+          + '<div style="font-size:11px;color:var(--text2)">' + (cb.desc||'') + ' · <b style="color:var(--gold)">' + precoTxt + '</b></div>'
+          + '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + imgInfo + '</div></div>'
           + '<button onclick="editarItemCardapio(\'coberturas\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
           + '<button onclick="removerItemCardapio(\'coberturas\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
           + '</div>';
@@ -2814,10 +2818,14 @@ function addItemCardapio(tipo) {
   } else {
     var nome = prompt('Nome do item:');
     if (!nome) return;
-    var icon = prompt('Emoji/ícone:', '🎂');
+    var icon = prompt('Emoji/ícone (usado se não houver foto):', '🎂');
     var desc = prompt('Descrição breve (opcional):') || '';
     var id = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
     var item = { id: id, nome: nome, icon: icon||'🎂', desc: desc };
+    if (tipo === 'coberturas' || tipo === 'massas') {
+      var img = prompt('Nome do arquivo de foto (ex: massa-fofinha.jpg)\nDeixe em branco para usar apenas o emoji.\nLembre-se de fazer upload dessa imagem no GitHub (raiz do repositório).', '');
+      if (img) item.img = img.trim();
+    }
     if (tipo === 'coberturas') {
       var precoStr = prompt('Valor adicional desta cobertura? (0 se for incluso/sem custo extra)', '0');
       item.preco = parseFloat((precoStr||'0').replace(',','.')) || 0;
@@ -2879,11 +2887,15 @@ function editarItemCardapio(tipo, idx) {
   }
   var novoNome = prompt('Nome:', item.nome);
   if (!novoNome) return;
-  var novoIcon = prompt('Emoji:', item.icon || '🎂');
+  var novoIcon = prompt('Emoji (usado se não houver foto):', item.icon || '🎂');
   var novoDesc = prompt('Descrição:', item.desc||'') || '';
   cfg[tipo][idx].nome = novoNome;
   cfg[tipo][idx].icon = novoIcon || item.icon;
   cfg[tipo][idx].desc = novoDesc;
+  if (tipo === 'coberturas' || tipo === 'massas') {
+    var novaImg = prompt('Nome do arquivo de foto (ex: massa-fofinha.jpg)\nDeixe em branco para usar apenas o emoji.', item.img || '');
+    cfg[tipo][idx].img = (novaImg||'').trim();
+  }
   if (tipo === 'coberturas') {
     var precoStr = prompt('Valor adicional desta cobertura? (0 se incluso)', String(item.preco||0));
     cfg[tipo][idx].preco = parseFloat((precoStr||'0').replace(',','.')) || 0;
