@@ -2869,7 +2869,8 @@ function editarItemCardapio(tipo, idx) {
   if (tipo === 'recheios') {
     var nomeAntigo = item.nome;
     var novoNome = prompt('Nome:', item.nome);
-    if (!novoNome) return;
+    if (novoNome === null) return;
+    if (!novoNome.trim()) novoNome = item.nome;
     var novoTipo = (prompt('Tipo: "trad" ou "prem"', item.tipo||'trad') || item.tipo).toLowerCase();
     if (novoTipo !== 'prem') novoTipo = 'trad';
     var novaCategoria = prompt('Categoria:', item.categoria||'Outros') || item.categoria;
@@ -2886,9 +2887,12 @@ function editarItemCardapio(tipo, idx) {
     return;
   }
   var novoNome = prompt('Nome:', item.nome);
-  if (!novoNome) return;
+  if (novoNome === null) return; // só cancela se clicar "Cancelar" de fato
+  if (!novoNome.trim()) novoNome = item.nome; // campo vazio mantém o nome atual
   var novoIcon = prompt('Emoji (usado se não houver foto):', item.icon || '🎂');
-  var novoDesc = prompt('Descrição:', item.desc||'') || '';
+  if (novoIcon === null) novoIcon = item.icon;
+  var novoDesc = prompt('Descrição:', item.desc||'');
+  if (novoDesc === null) novoDesc = item.desc||'';
   cfg[tipo][idx].nome = novoNome;
   cfg[tipo][idx].icon = novoIcon || item.icon;
   cfg[tipo][idx].desc = novoDesc;
