@@ -2744,13 +2744,30 @@ function renderCardapioConfig() {
         <div class="st" style="margin-bottom:0"><i class="ti ti-bulb"></i> Combinações sugeridas</div>
         <button onclick="addCombinacaoCardapio()" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
       </div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Aparecem para o cliente quando ele seleciona o 1º recheio, como sugestão de combinação.</div>
-      ${(cfg.combinacoes||[]).map(function(c,i){
-        return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
-          + '<div style="flex:1;font-size:13px;font-weight:700;color:#F5EDD8">' + (c.destaque ? (c.medalha||'⭐')+' ' : '') + c.a + ' + ' + c.b + '</div>'
-          + '<button onclick="removerCombinacaoCardapio(' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
-          + '</div>';
-      }).join('')}
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Quando o cliente escolher o recheio base, é perguntado se ele quer ajuda — se sim, vê os recheios sugeridos abaixo.</div>
+      ${(function(){
+        var porBase = {};
+        (cfg.combinacoes||[]).forEach(function(c, i) {
+          if (!porBase[c.a]) porBase[c.a] = [];
+          porBase[c.a].push({ b: c.b, destaque: c.destaque, medalha: c.medalha, idx: i });
+        });
+        var bases = Object.keys(porBase);
+        if (!bases.length) return '<div style="font-size:13px;color:var(--text2)">Nenhuma combinação cadastrada ainda.</div>';
+        return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">' +
+          bases.map(function(base) {
+            var itens = porBase[base].map(function(it) {
+              return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+                + '<span style="font-size:13px;color:#F5EDD8">' + (it.destaque ? (it.medalha||'⭐')+' ' : '') + it.b + '</span>'
+                + '<button onclick="removerCombinacaoCardapio(' + it.idx + ')" style="background:none;border:none;color:#A32D2D;font-size:14px;cursor:pointer;padding:2px 6px"><i class="ti ti-trash"></i></button>'
+                + '</div>';
+            }).join('');
+            return '<div style="background:var(--bg);border-radius:10px;padding:12px">'
+              + '<div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;letter-spacing:.04em">' + base + '</div>'
+              + itens
+              + '</div>';
+          }).join('') +
+        '</div>';
+      })()}
     </div>
 
     <!-- COBERTURAS -->
@@ -2802,6 +2819,10 @@ function abrirModalItemCardapio(tipo, idx) {
   var cfg = getCardapioConfig();
   var item = (idx != null) ? cfg[tipo][idx] : {};
   _modalItemState = { tipo: tipo, idx: idx, item: item };
+
+  var btnConfirmar = document.getElementById('modal-item-btn-confirmar');
+  btnConfirmar.textContent = 'Salvar';
+  btnConfirmar.onclick = salvarModalItemCardapio;
 
   var titulo = (idx != null ? 'Editar ' : 'Adicionar ') +
     (tipo === 'massas' ? 'massa' : tipo === 'coberturas' ? 'cobertura' : tipo === 'recheios' ? 'recheio' : 'tamanho');
@@ -2931,47 +2952,91 @@ function editarItemCardapio(tipo, idx) {
   abrirModalItemCardapio(tipo, idx);
 }
 
+var _confirmCallback = null;
+
+function abrirModalConfirmacao(mensagem, callback) {
+  document.getElementById('modal-item-titulo').textContent = 'Confirmar';
+  document.getElementById('modal-item-campos').innerHTML = '<p style="color:#F5EDD8;font-size:14px;line-height:1.6">' + mensagem + '</p>';
+  document.getElementById('modal-item-btn-confirmar').textContent = 'Confirmar';
+  document.getElementById('modal-item-btn-confirmar').onclick = function() {
+    fecharModalItemCardapio();
+    callback();
+  };
+  document.getElementById('modal-item-cardapio').style.display = 'flex';
+}
+
 function addCombinacaoCardapio() {
   var cfg = getCardapioConfig();
-  var nomesDisponiveis = cfg.recheios.map(function(r){ return r.nome; }).join(', ');
-  var a = prompt('Primeiro recheio da combinação (nome exato):\n\nDisponíveis: ' + nomesDisponiveis);
-  if (!a) return;
-  var b = prompt('Segundo recheio da combinação (nome exato):');
-  if (!b) return;
-  var destaque = confirm('Marcar como combinação "mais vendida" (destaque com medalha)?');
-  var medalha = '';
-  if (destaque) medalha = prompt('Qual emoji de medalha? (ex: 🥇 🥈 🥉 🏅)', '🏅') || '🏅';
-  if (!cfg.combinacoes) cfg.combinacoes = [];
-  cfg.combinacoes.push({ a: a, b: b, destaque: destaque, medalha: medalha });
-  saveCardapioConfig(cfg);
-  toast('✅ Combinação adicionada!');
-  renderCardapioConfig();
+  var opts = cfg.recheios.map(function(r){ return '<option value="' + r.nome.replace(/"/g,'&quot;') + '">' + r.nome + '</option>'; }).join('');
+  document.getElementById('modal-item-titulo').textContent = 'Adicionar combinação';
+  document.getElementById('modal-item-campos').innerHTML =
+    '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio base (quem o cliente escolhe primeiro)</label>'
+    + '<select id="mc-a" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"><option value="">Selecione...</option>' + opts + '</select></div>'
+    + '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio sugerido (combina com o base)</label>'
+    + '<select id="mc-b" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"><option value="">Selecione...</option>' + opts + '</select></div>'
+    + '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">'
+    + '<input type="checkbox" id="mc-bidirecional" checked style="width:18px;height:18px">'
+    + '<label for="mc-bidirecional" style="font-size:13px;color:#F5EDD8">Também sugerir o caminho inverso (B → A)</label></div>'
+    + '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">'
+    + '<input type="checkbox" id="mc-destaque" style="width:18px;height:18px">'
+    + '<label for="mc-destaque" style="font-size:13px;color:#F5EDD8">Marcar como "mais vendida" (destaque com medalha)</label></div>'
+    + '<div id="mc-medalha-wrap" style="display:none;margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Medalha</label>'
+    + '<select id="mc-medalha" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+    + '<option value="🥇">🥇 Ouro</option><option value="🥈">🥈 Prata</option><option value="🥉">🥉 Bronze</option><option value="🏅">🏅 Medalha</option></select></div>';
+  var elDestaque = document.getElementById('mc-destaque');
+  elDestaque.addEventListener('change', function() {
+    document.getElementById('mc-medalha-wrap').style.display = elDestaque.checked ? 'block' : 'none';
+  });
+  document.getElementById('modal-item-btn-confirmar').textContent = 'Adicionar';
+  document.getElementById('modal-item-btn-confirmar').onclick = function() {
+    var a = document.getElementById('mc-a').value;
+    var b = document.getElementById('mc-b').value;
+    if (!a || !b) { toast('⚠️ Selecione os dois recheios'); return; }
+    if (a === b) { toast('⚠️ Selecione recheios diferentes'); return; }
+    var destaque = document.getElementById('mc-destaque').checked;
+    var medalha = destaque ? document.getElementById('mc-medalha').value : '';
+    var bidirecional = document.getElementById('mc-bidirecional').checked;
+    if (!cfg.combinacoes) cfg.combinacoes = [];
+    cfg.combinacoes.push({ a: a, b: b, destaque: destaque, medalha: medalha });
+    if (bidirecional) {
+      cfg.combinacoes.push({ a: b, b: a, destaque: destaque, medalha: medalha });
+    }
+    saveCardapioConfig(cfg);
+    toast('✅ Combinação adicionada!');
+    fecharModalItemCardapio();
+    renderCardapioConfig();
+  };
+  document.getElementById('modal-item-cardapio').style.display = 'flex';
 }
 
 function removerCombinacaoCardapio(idx) {
   var cfg = getCardapioConfig();
-  if (!confirm('Remover esta combinação?')) return;
-  cfg.combinacoes.splice(idx, 1);
-  saveCardapioConfig(cfg);
-  renderCardapioConfig();
+  var c = cfg.combinacoes[idx];
+  abrirModalConfirmacao('Remover a combinação "' + c.a + ' + ' + c.b + '"?', function() {
+    cfg.combinacoes.splice(idx, 1);
+    saveCardapioConfig(cfg);
+    renderCardapioConfig();
+  });
 }
 
 function removerItemCardapio(tipo, idx) {
   var cfg = getCardapioConfig();
   var item = cfg[tipo][idx];
-  if (!confirm('Remover "' + (item.nome||'Aro '+item.aro) + '" do cardápio?')) return;
-  if (tipo === 'recheios' && cfg.combinacoes) {
-    var antes = cfg.combinacoes.length;
-    cfg.combinacoes = cfg.combinacoes.filter(function(c) {
-      return c.a !== item.nome && c.b !== item.nome;
-    });
-    if (cfg.combinacoes.length < antes) {
-      toast('⚠️ ' + (antes - cfg.combinacoes.length) + ' combinação(ões) com este recheio também foram removidas');
+  abrirModalConfirmacao('Remover "' + (item.nome||'Aro '+item.aro) + '" do cardápio?', function() {
+    var cfg2 = getCardapioConfig();
+    if (tipo === 'recheios' && cfg2.combinacoes) {
+      var antes = cfg2.combinacoes.length;
+      cfg2.combinacoes = cfg2.combinacoes.filter(function(c) {
+        return c.a !== item.nome && c.b !== item.nome;
+      });
+      if (cfg2.combinacoes.length < antes) {
+        toast('⚠️ ' + (antes - cfg2.combinacoes.length) + ' combinação(ões) com este recheio também foram removidas');
+      }
     }
-  }
-  cfg[tipo].splice(idx, 1);
-  saveCardapioConfig(cfg);
-  renderCardapioConfig();
+    cfg2[tipo].splice(idx, 1);
+    saveCardapioConfig(cfg2);
+    renderCardapioConfig();
+  });
 }
 
 function salvarCardapioConfig() {
