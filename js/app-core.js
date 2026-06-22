@@ -42,20 +42,24 @@ function calcAt(r, ratio) {
 // formato decimal: converte g->kg, ml->L quando conveniente
 function fmtQtd(q, unit) {
   const u = (unit||'').toLowerCase().trim();
+  function semZeroDecimal(n, casas) {
+    const s = n.toFixed(casas);
+    return s.replace(/\.?0+$/, '').replace('.',',') || '0';
+  }
   if (u === 'g') {
-    if (q >= 1000) return (q/1000).toFixed(3).replace('.',',') + ' kg';
+    if (q >= 1000) return (q/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,'').replace('.',',') + ' kg';
     if (q >= 100)  return q.toFixed(0) + ' g';
-    if (q >= 10)   return q.toFixed(1) + ' g';
-    return q.toFixed(3).replace('.',',') + ' g';
+    if (q >= 10)   return semZeroDecimal(q, 1) + ' g';
+    return semZeroDecimal(q, 3) + ' g';
   }
   if (u === 'ml') {
-    if (q >= 1000) return (q/1000).toFixed(3).replace('.',',') + ' L';
+    if (q >= 1000) return (q/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,'').replace('.',',') + ' L';
     if (q >= 100)  return q.toFixed(0) + ' ml';
-    return q.toFixed(1) + ' ml';
+    return semZeroDecimal(q, 1) + ' ml';
   }
   if (q >= 100) return q.toFixed(0) + ' ' + (unit||'');
-  if (q >= 10)  return q.toFixed(1) + ' ' + (unit||'');
-  return q.toFixed(3).replace('.',',') + ' ' + (unit||'');
+  if (q >= 10)  return semZeroDecimal(q, 1) + ' ' + (unit||'');
+  return semZeroDecimal(q, 3) + ' ' + (unit||'');
 }
 
 // ═══════ CLOUD ═══════
