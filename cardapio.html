@@ -382,7 +382,7 @@ button{font-family:inherit;cursor:pointer}
 
     <div class="recheio-section">
       <div class="recheio-tipo-label label-trad"><i class="ti ti-circle-check" style="font-size:12px"></i> Tradicional</div>
-
+      <div id="recheios-trad-list">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;margin:10px 0 6px">Chocolates</div>
       <div class="recheio-list">
         <button class="recheio-tag" onclick="toggleRecheio('Brigadeiro','trad')">Brigadeiro</button>
@@ -404,11 +404,12 @@ button{font-family:inherit;cursor:pointer}
         <button class="recheio-tag" onclick="toggleRecheio('Coco','trad')">Coco</button>
         <button class="recheio-tag" onclick="toggleRecheio('Ameixa','trad')">Ameixa</button>
       </div>
+      </div>
     </div>
 
     <div class="recheio-section">
       <div class="recheio-tipo-label label-prem"><i class="ti ti-crown" style="font-size:12px"></i> Premium</div>
-
+      <div id="recheios-prem-list">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;margin:10px 0 6px">Frutas Nobres</div>
       <div class="recheio-list">
         <button class="recheio-tag prem" onclick="toggleRecheio('Morango Fresco','prem')">Morango Fresco</button>
@@ -436,6 +437,7 @@ button{font-family:inherit;cursor:pointer}
         <button class="recheio-tag prem" onclick="toggleRecheio('Caramelo Salgado','prem')">Caramelo Salgado</button>
         <button class="recheio-tag prem" onclick="toggleRecheio('Doce de Leite Argentino','prem')">Doce de Leite Argentino</button>
         <button class="recheio-tag prem" onclick="toggleRecheio('Baunilha Bourbon','prem')">Baunilha Bourbon</button>
+      </div>
       </div>
     </div>
   </div>
@@ -620,9 +622,52 @@ var cardapioCfg = {
   precos: { 10:{trad:110,prem:140}, 15:{trad:200,prem:240}, 20:{trad:250,prem:280}, 25:{trad:300,prem:335}, 30:{trad:350,prem:390} }
 };
 
+// Fallback local — usado até a config carregar do Supabase (ou se a nuvem não responder)
+var recheiosCfg = [
+  {nome:'Brigadeiro', tipo:'trad', categoria:'Chocolates'},
+  {nome:'Brigadeiro Branco', tipo:'trad', categoria:'Chocolates'},
+  {nome:'Chocolate', tipo:'trad', categoria:'Chocolates'},
+  {nome:'Chocolate Branco', tipo:'trad', categoria:'Chocolates'},
+  {nome:'Leite Ninho', tipo:'trad', categoria:'Leites'},
+  {nome:'Doce de Leite', tipo:'trad', categoria:'Leites'},
+  {nome:'Abacaxi', tipo:'trad', categoria:'Frutas'},
+  {nome:'Maracujá', tipo:'trad', categoria:'Frutas'},
+  {nome:'Coco', tipo:'trad', categoria:'Frutas'},
+  {nome:'Ameixa', tipo:'trad', categoria:'Frutas'},
+  {nome:'Morango Fresco', tipo:'prem', categoria:'Frutas Nobres'},
+  {nome:'Frutas Vermelhas', tipo:'prem', categoria:'Frutas Nobres'},
+  {nome:'Pistache', tipo:'prem', categoria:'Oleaginosas'},
+  {nome:'Nozes', tipo:'prem', categoria:'Oleaginosas'},
+  {nome:'Avelã', tipo:'prem', categoria:'Oleaginosas'},
+  {nome:'Amêndoas', tipo:'prem', categoria:'Oleaginosas'},
+  {nome:'Ferrero Rocher', tipo:'prem', categoria:'Chocolates Gourmet'},
+  {nome:'Trufa Belga', tipo:'prem', categoria:'Chocolates Gourmet'},
+  {nome:'Chocolate Belga', tipo:'prem', categoria:'Chocolates Gourmet'},
+  {nome:'Kinder Bueno', tipo:'prem', categoria:'Chocolates Gourmet'},
+  {nome:'Caramelo Salgado', tipo:'prem', categoria:'Especiais'},
+  {nome:'Doce de Leite Argentino', tipo:'prem', categoria:'Especiais'},
+  {nome:'Baunilha Bourbon', tipo:'prem', categoria:'Especiais'}
+];
+var combinacoesCfg = [
+  {a:'Abacaxi', b:'Coco', destaque:false},
+  {a:'Doce de Leite', b:'Ameixa', destaque:false},
+  {a:'Brigadeiro', b:'Brigadeiro Branco', destaque:false},
+  {a:'Leite Ninho', b:'Brigadeiro Branco', destaque:false},
+  {a:'Chocolate', b:'Coco', destaque:false},
+  {a:'Maracujá', b:'Chocolate Branco', destaque:false},
+  {a:'Leite Ninho', b:'Morango Fresco', destaque:true, medalha:'🥇'},
+  {a:'Pistache', b:'Morango Fresco', destaque:true, medalha:'🥈'},
+  {a:'Pistache', b:'Frutas Vermelhas', destaque:true, medalha:'🏅'},
+  {a:'Nozes', b:'Doce de Leite Argentino', destaque:true, medalha:'🥉'},
+  {a:'Ferrero Rocher', b:'Chocolate Belga', destaque:true, medalha:'🏅'},
+  {a:'Trufa Belga', b:'Caramelo Salgado', destaque:false},
+  {a:'Avelã', b:'Chocolate Belga', destaque:false},
+  {a:'Morango Fresco', b:'Chocolate Branco', destaque:false}
+];
+
 async function loadCardapioConfigFromCloud() {
   try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/config?user_id=eq.herberth_admin&select=sucree_config', {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/config?user_id=eq.herberth_admin&select=sucree_config,cardapio_config', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     });
     const rows = await r.json();
@@ -630,6 +675,14 @@ async function loadCardapioConfigFromCloud() {
       const cloud = JSON.parse(rows[0].sucree_config);
       cardapioCfg = {...cardapioCfg, ...cloud};
       aplicarCardapioCfgNaTela();
+    }
+    if (rows && rows[0] && rows[0].cardapio_config) {
+      const cloudCardapio = JSON.parse(rows[0].cardapio_config);
+      if (cloudCardapio.recheios && cloudCardapio.recheios.length) {
+        recheiosCfg = cloudCardapio.recheios;
+        combinacoesCfg = cloudCardapio.combinacoes || [];
+        renderRecheiosDinamico();
+      }
     }
   } catch(e) { console.log('Config cloud erro (usando padrão):', e); }
 }
@@ -707,31 +760,51 @@ function checkStep0(){savePedidoLocal();document.getElementById('btn-next-0').di
 
 function toggleRecheio(nome,tipo){const idx=pedido.recheios.findIndex(r=>r.nome===nome);if(idx>=0){pedido.recheios.splice(idx,1);}else{if(pedido.recheios.length>=2){toast('Máximo 2 recheios');return;}pedido.recheios.push({nome,tipo});}renderRecheioTags();renderRecheioSelecionados();document.getElementById('btn-next-1').disabled=pedido.recheios.length===0;const temPrem=pedido.recheios.some(r=>r.tipo==='prem');const alertaPrem=document.getElementById('alerta-recheio-prem');if(alertaPrem)alertaPrem.style.display=temPrem?'flex':'none';atualizarBotaoSugestao();}
 
-const COMBINACOES_RECHEIO={
-  'Abacaxi':[{nome:'Coco',destaque:true}],
-  'Coco':[{nome:'Abacaxi',destaque:true},{nome:'Chocolate',destaque:false}],
-  'Doce de Leite':[{nome:'Ameixa',destaque:true}],
-  'Ameixa':[{nome:'Doce de Leite',destaque:true}],
-  'Brigadeiro':[{nome:'Brigadeiro Branco',destaque:true}],
-  'Brigadeiro Branco':[{nome:'Brigadeiro',destaque:true},{nome:'Leite Ninho',destaque:true}],
-  'Leite Ninho':[{nome:'Brigadeiro Branco',destaque:true},{nome:'Morango Fresco',destaque:true}],
-  'Chocolate':[{nome:'Coco',destaque:false}],
-  'Maracujá':[{nome:'Chocolate Branco',destaque:true}],
-  'Chocolate Branco':[{nome:'Maracujá',destaque:true},{nome:'Morango Fresco',destaque:true}],
-  'Morango Fresco':[{nome:'Leite Ninho',destaque:true},{nome:'Pistache',destaque:true},{nome:'Chocolate Branco',destaque:true}],
-  'Pistache':[{nome:'Morango Fresco',destaque:true},{nome:'Frutas Vermelhas',destaque:true}],
-  'Frutas Vermelhas':[{nome:'Pistache',destaque:true}],
-  'Nozes':[{nome:'Doce de Leite Argentino',destaque:true}],
-  'Doce de Leite Argentino':[{nome:'Nozes',destaque:true}],
-  'Ferrero Rocher':[{nome:'Chocolate Belga',destaque:true}],
-  'Chocolate Belga':[{nome:'Ferrero Rocher',destaque:true},{nome:'Avelã',destaque:true}],
-  'Avelã':[{nome:'Chocolate Belga',destaque:true}],
-  'Trufa Belga':[{nome:'Caramelo Salgado',destaque:true}],
-  'Caramelo Salgado':[{nome:'Trufa Belga',destaque:true}]
-};
-const MEDALHAS_PREMIUM={'Ninho + Morango Fresco':'🥇','Pistache + Morango Fresco':'🥈','Nozes + Doce de Leite Argentino':'🥉','Ferrero Rocher + Chocolate Belga':'🏅','Pistache + Frutas Vermelhas':'🏅'};
+function buildCombinacoesMap(){
+  const map={};
+  combinacoesCfg.forEach(c=>{
+    if(!map[c.a])map[c.a]=[];
+    if(!map[c.b])map[c.b]=[];
+    map[c.a].push({nome:c.b,destaque:!!c.destaque});
+    map[c.b].push({nome:c.a,destaque:!!c.destaque});
+  });
+  return map;
+}
+function buildMedalhasMap(){
+  const map={};
+  combinacoesCfg.forEach(c=>{ if(c.destaque&&c.medalha){ map[c.a+' + '+c.b]=c.medalha; } });
+  return map;
+}
+let COMBINACOES_RECHEIO=buildCombinacoesMap();
+let MEDALHAS_PREMIUM=buildMedalhasMap();
 function medalhaPara(nomeA,nomeB){const chave1=nomeA+' + '+nomeB;const chave2=nomeB+' + '+nomeA;return MEDALHAS_PREMIUM[chave1]||MEDALHAS_PREMIUM[chave2]||'';}
 function atualizarBotaoSugestao(){const wrap=document.getElementById('sugestao-recheio-btn-wrap');if(!wrap)return;if(pedido.recheios.length===1&&COMBINACOES_RECHEIO[pedido.recheios[0].nome]){wrap.style.display='block';}else{wrap.style.display='none';document.getElementById('sugestao-recheio-box').style.display='none';}}
+
+function renderRecheiosDinamico(){
+  COMBINACOES_RECHEIO=buildCombinacoesMap();
+  MEDALHAS_PREMIUM=buildMedalhasMap();
+  const porTipo={trad:{},prem:{}};
+  recheiosCfg.forEach(r=>{
+    const t=r.tipo||'trad';const c=r.categoria||'Outros';
+    if(!porTipo[t][c])porTipo[t][c]=[];
+    porTipo[t][c].push(r);
+  });
+  function renderTipo(tipoKey){
+    const cats=porTipo[tipoKey];
+    return Object.keys(cats).map(catName=>{
+      const tags=cats[catName].map(r=>{
+        const cls=tipoKey==='prem'?'recheio-tag prem':'recheio-tag';
+        return `<button class="${cls}" onclick="toggleRecheio('${r.nome.replace(/'/g,"\\'")}','${tipoKey}')">${r.nome}</button>`;
+      }).join('');
+      return `<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;margin:14px 0 6px">${catName}</div><div class="recheio-list">${tags}</div>`;
+    }).join('');
+  }
+  const tradEl=document.getElementById('recheios-trad-list');
+  const premEl=document.getElementById('recheios-prem-list');
+  if(tradEl) tradEl.innerHTML=renderTipo('trad');
+  if(premEl) premEl.innerHTML=renderTipo('prem');
+  renderRecheioTags();
+}
 function abrirSugestaoRecheio(){if(pedido.recheios.length===0)return;const base=pedido.recheios[0];const combos=COMBINACOES_RECHEIO[base.nome]||[];const box=document.getElementById('sugestao-recheio-box');const list=document.getElementById('sugestao-recheio-list');if(combos.length===0){list.innerHTML='<span style="font-size:12px;color:var(--text3)">Sem sugestões específicas para este recheio — explore livremente!</span>';}else{list.innerHTML=combos.map(c=>{const medalha=medalhaPara(base.nome,c.nome);const tipoBtn=document.querySelector(`.recheio-tag[onclick*="${c.nome.replace(/'/g,"\\\\'")}"]`);const tipo=tipoBtn&&tipoBtn.classList.contains('prem')?'prem':'trad';return `<button type="button" onclick="selecionarSugestao('${c.nome.replace(/'/g,"\\'")}','${tipo}')" style="padding:9px 14px;border-radius:999px;border:1px solid ${c.destaque?'var(--gold-dark)':'rgba(248,247,244,.22)'};background:${c.destaque?'rgba(212,162,74,.18)':'rgba(7,27,58,.66)'};color:${c.destaque?'var(--gold-dark)':'var(--text)'};font-size:12px;font-weight:${c.destaque?'700':'500'};cursor:pointer;font-family:inherit">${medalha?medalha+' ':''}${c.nome}</button>`;}).join('');}box.style.display='block';}
 function selecionarSugestao(nome,tipo){if(pedido.recheios.length>=2&&!pedido.recheios.some(r=>r.nome===nome)){toast('Máximo 2 recheios — remova um para adicionar este');return;}toggleRecheio(nome,tipo);document.getElementById('sugestao-recheio-box').style.display='none';}
 function renderRecheioTags(){const selecionados=pedido.recheios.map(r=>r.nome);document.querySelectorAll('.recheio-tag').forEach(btn=>{const nome=btn.textContent.trim();const idx=selecionados.indexOf(nome);btn.className=btn.className.replace(/\s*sel-[12]/g,'');if(idx===0)btn.className+=' sel-1';else if(idx===1)btn.className+=' sel-2';});}
