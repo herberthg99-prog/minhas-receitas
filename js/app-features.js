@@ -1273,9 +1273,7 @@ function imprimirPedidoCozinha(id) {
   const num = '#' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2,'0') + String(new Date().getDate()).padStart(2,'0') + '-' + String(Math.floor(Math.random()*999)+1).padStart(3,'0');
   const win = window.open('', '_blank');
   if (!win) { toast('Permita pop-ups para imprimir'); return; }
-  const custo = parseFloat(p.custoEstimado||0) || (parseFloat(p.valorBolo||0)*0.35);
-  const lucro = parseFloat(p.valorTotal||0) - custo;
-  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;max-width:400px}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{height:60px}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right;max-width:60%}.tbox{background:#2C1800;color:#C8A35B;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}@media print{body{padding:0}}';
+  const css = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;max-width:400px}.hdr{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #C8A35B}.hdr img{height:60px}.sec{margin-bottom:14px}.st{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid #eee}.row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:0.5px solid #f5f5f5}.key{color:#666}.val{font-weight:700;text-align:right;max-width:60%}.ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid #eee;font-size:11px;color:#aaa}.receita-box{background:#fafafa;border:1px solid #eee;border-radius:8px;padding:10px 12px;margin-bottom:10px}.receita-nome{font-weight:800;font-size:13px;color:#2C1800;margin-bottom:6px}.receita-ingr{font-size:12px;color:#444;padding:2px 0}.receita-preparo{font-size:11px;color:#555;margin-top:6px;padding-top:6px;border-top:1px dashed #ddd;white-space:pre-wrap;line-height:1.5}@media print{body{padding:0}}';
   let html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido — '+p.cliente+'</title><style>'+css+'</style></head><body>';
   html += '<div class="hdr"><img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"><h1 style="font-size:18px;color:#2C1800;margin-top:6px">Pedido para Cozinha</h1><div style="font-size:11px;color:#888">'+num+' · '+new Date().toLocaleDateString('pt-BR')+'</div></div>';
   html += '<div class="sec"><div class="st">👤 Cliente</div>';
@@ -1291,9 +1289,27 @@ function imprimirPedidoCozinha(id) {
   if(p.cobertura) html += '<div class="row"><span class="key">Cobertura</span><span class="val">'+(p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream')+'</span></div>';
   html += '</div>';
   if(p.tema||p.obsDeco) { html += '<div class="sec"><div class="st">🎨 Decoração</div>'; if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>'; if(p.obsDeco) html += '<div style="padding:8px;background:#fffbe6;border-radius:6px;font-size:12px;font-style:italic;margin-top:6px">'+p.obsDeco+'</div>'; html += '</div>'; }
-  html += '<div class="tbox"><span style="font-size:11px;letter-spacing:1px">TOTAL</span><span style="font-size:19px;font-weight:700">R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'</span></div>';
-  if(p.sinal>0) html += '<div style="text-align:center;margin-top:6px;font-size:12px;color:#555">✅ Sinal: R$ '+parseFloat(p.sinal).toFixed(2)+' · A receber: R$ '+(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)+'</div>';
-  html += '<div style="background:#f9f9f9;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:#555">💸 Custo est: <strong>R$ '+custo.toFixed(2)+'</strong> &nbsp;·&nbsp; 📈 Lucro: <strong style="color:#0F6E56">R$ '+lucro.toFixed(2)+'</strong></div>';
+
+  // ─── RECEITAS: busca pelo nome cadastrado, mostra ingredientes + modo de preparo ───
+  function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function blocoReceita(nomeBusca) {
+    if (!nomeBusca) return '';
+    const rec = recipes.find(function(r){ return (r.name||'').trim().toLowerCase() === nomeBusca.trim().toLowerCase(); });
+    if (!rec) return '<div class="receita-box"><div class="receita-nome">'+escapeHtml(nomeBusca)+'</div><div class="receita-ingr" style="color:#999;font-style:italic">Receita não encontrada no cadastro — confira com a confeiteira.</div></div>';
+    const ingredientesHtml = (rec.ingredients||[]).map(function(ing){
+      return '<div class="receita-ingr">• '+escapeHtml(ing.name||'')+' — '+escapeHtml(ing.qty||'')+' '+escapeHtml(ing.unit||'')+'</div>';
+    }).join('');
+    const preparoHtml = rec.preparo ? '<div class="receita-preparo">'+escapeHtml(rec.preparo)+'</div>' : '';
+    return '<div class="receita-box"><div class="receita-nome">'+escapeHtml(rec.name)+'</div>'+ingredientesHtml+preparoHtml+'</div>';
+  }
+  let receitasHtml = '';
+  if (p.massa) receitasHtml += blocoReceita(p.massa);
+  if (p.recheio1) receitasHtml += blocoReceita(p.recheio1);
+  if (p.recheio2) receitasHtml += blocoReceita(p.recheio2);
+  if (receitasHtml) {
+    html += '<div class="sec"><div class="st">📖 Receitas</div>' + receitasHtml + '</div>';
+  }
+
   html += '<div class="ftr">Sucrée Confeitaria · Vitória – ES<br><strong>✅ CONFIRMADO PARA PRODUÇÃO</strong></div>';
   html += '<scr'+'ipt>window.onload=()=>window.print()<'+'/scr'+'ipt></body></html>';
   win.document.write(html);
