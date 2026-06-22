@@ -2633,9 +2633,9 @@ function getCardapioConfig() {
       {a:'Morango Fresco', b:'Chocolate Branco', destaque:false},
     ],
     coberturas: [
-      {id:'chantininho',    nome:'Chantininho',           icon:'🍦', desc:'Cobertura espatulada suave'},
-      {id:'buttercream',    nome:'Buttercream',           icon:'🧈', desc:'Cobertura firme e elegante (+R$50)'},
-      {id:'ganache',        nome:'Ganache de Chocolate',  icon:'🍫', desc:'Cobertura de chocolate'},
+      {id:'chantininho',    nome:'Chantininho',           icon:'🍦', desc:'Cobertura espatulada suave', preco:0},
+      {id:'buttercream',    nome:'Buttercream',           icon:'🧈', desc:'Cobertura firme e elegante', preco:50},
+      {id:'ganache',        nome:'Ganache de Chocolate',  icon:'🍫', desc:'Cobertura de chocolate', preco:0},
     ],
     tamanhos: [
       {aro:10, fatias:'até 6 fatias'},
@@ -2758,10 +2758,11 @@ function renderCardapioConfig() {
         <button onclick="addItemCardapio('coberturas')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
       </div>
       ${cfg.coberturas.map(function(cb,i) {
+        var precoTxt = cb.preco ? ('+ R$ ' + parseFloat(cb.preco).toFixed(2).replace('.',',')) : 'Incluso';
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px;margin-bottom:6px">'
           + '<span style="font-size:22px">' + cb.icon + '</span>'
           + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + cb.nome + '</div>'
-          + '<div style="font-size:11px;color:var(--text2)">' + (cb.desc||'') + '</div></div>'
+          + '<div style="font-size:11px;color:var(--text2)">' + (cb.desc||'') + ' · <b style="color:var(--gold)">' + precoTxt + '</b></div></div>'
           + '<button onclick="editarItemCardapio(\'coberturas\',' + i + ')" style="background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer"><i class="ti ti-pencil"></i></button>'
           + '<button onclick="removerItemCardapio(\'coberturas\',' + i + ')" style="background:none;border:none;color:#A32D2D;font-size:16px;cursor:pointer"><i class="ti ti-trash"></i></button>'
           + '</div>';
@@ -2816,7 +2817,12 @@ function addItemCardapio(tipo) {
     var icon = prompt('Emoji/ícone:', '🎂');
     var desc = prompt('Descrição breve (opcional):') || '';
     var id = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
-    cfg[tipo].push({ id: id, nome: nome, icon: icon||'🎂', desc: desc });
+    var item = { id: id, nome: nome, icon: icon||'🎂', desc: desc };
+    if (tipo === 'coberturas') {
+      var precoStr = prompt('Valor adicional desta cobertura? (0 se for incluso/sem custo extra)', '0');
+      item.preco = parseFloat((precoStr||'0').replace(',','.')) || 0;
+    }
+    cfg[tipo].push(item);
   }
   saveCardapioConfig(cfg);
   toast('✅ ' + nome + ' adicionado!');
@@ -2853,12 +2859,20 @@ function editarItemCardapio(tipo, idx) {
   var item = cfg[tipo][idx];
   if (!item) return;
   if (tipo === 'recheios') {
+    var nomeAntigo = item.nome;
     var novoNome = prompt('Nome:', item.nome);
     if (!novoNome) return;
     var novoTipo = (prompt('Tipo: "trad" ou "prem"', item.tipo||'trad') || item.tipo).toLowerCase();
     if (novoTipo !== 'prem') novoTipo = 'trad';
     var novaCategoria = prompt('Categoria:', item.categoria||'Outros') || item.categoria;
     cfg.recheios[idx] = { nome: novoNome, tipo: novoTipo, categoria: novaCategoria };
+    // Atualiza em cascata o nome nas combinações existentes, se mudou
+    if (nomeAntigo !== novoNome && cfg.combinacoes) {
+      cfg.combinacoes.forEach(function(c) {
+        if (c.a === nomeAntigo) c.a = novoNome;
+        if (c.b === nomeAntigo) c.b = novoNome;
+      });
+    }
     saveCardapioConfig(cfg);
     renderCardapioConfig();
     return;
@@ -2870,6 +2884,10 @@ function editarItemCardapio(tipo, idx) {
   cfg[tipo][idx].nome = novoNome;
   cfg[tipo][idx].icon = novoIcon || item.icon;
   cfg[tipo][idx].desc = novoDesc;
+  if (tipo === 'coberturas') {
+    var precoStr = prompt('Valor adicional desta cobertura? (0 se incluso)', String(item.preco||0));
+    cfg[tipo][idx].preco = parseFloat((precoStr||'0').replace(',','.')) || 0;
+  }
   saveCardapioConfig(cfg);
   renderCardapioConfig();
 }
@@ -2878,6 +2896,15 @@ function removerItemCardapio(tipo, idx) {
   var cfg = getCardapioConfig();
   var item = cfg[tipo][idx];
   if (!confirm('Remover "' + (item.nome||'Aro '+item.aro) + '" do cardápio?')) return;
+  if (tipo === 'recheios' && cfg.combinacoes) {
+    var antes = cfg.combinacoes.length;
+    cfg.combinacoes = cfg.combinacoes.filter(function(c) {
+      return c.a !== item.nome && c.b !== item.nome;
+    });
+    if (cfg.combinacoes.length < antes) {
+      toast('⚠️ ' + (antes - cfg.combinacoes.length) + ' combinação(ões) com este recheio também foram removidas');
+    }
+  }
   cfg[tipo].splice(idx, 1);
   saveCardapioConfig(cfg);
   renderCardapioConfig();
