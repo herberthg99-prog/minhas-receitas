@@ -671,12 +671,21 @@ function addInspiPhoto(e) {
 }
 
 function calcCustoOperacional(aro) {
+  var d = calcCustoOperacionalDetalhado(aro);
+  return d.total;
+}
+
+function calcCustoOperacionalDetalhado(aro) {
   var c = sucreeConfig.custos || {};
   var emb  = ((c.embalagemAro||{})[aro] !== undefined ? (c.embalagemAro||{})[aro] : c.embalagem ?? 15);
   var tab  = ((c.tabuaAro||{})[aro]     !== undefined ? (c.tabuaAro||{})[aro]     : c.tabua     ?? 3);
-  var fixo = emb + tab + (c.acessorios||2) + (c.energia||8) + (c.gas||5) + (c.limpeza||3);
+  var acessorios = c.acessorios||2;
+  var energia = c.energia||8;
+  var gas = c.gas||5;
+  var limpeza = c.limpeza||3;
   var mdo  = (c.maoDeObra||{})[aro] || 0;
-  return fixo + mdo;
+  var total = emb + tab + acessorios + energia + gas + limpeza + mdo;
+  return { embalagem: emb, tabua: tab, acessorios: acessorios, energia: energia, gas: gas, limpeza: limpeza, maoDeObra: mdo, total: total };
 }
 
 function getCustoMassaAro(nomeMassa, aro) {
@@ -729,6 +738,20 @@ function getCustoCaldaAro(tipocalda, aro) {
 function getCustoChantillyAro(aro) {
   var qtd = (sucreeConfig.custos?.chantillyAro || {})[aro] || 0;
   return qtd * 0.025;
+}
+
+function getCustoButtercreamAro(aro) {
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var receitaNome = vincs.buttercream || 'Buttercream';
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  if (!rec) return 0;
+  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
+  if (!p || !p.cost) return 0;
+  var pesoBase = rec.pesoTotal || rec.yield_qty;
+  if (!pesoBase) return 0;
+  var qtdAro = (sucreeConfig.custos?.coberturaAro || {})[aro] || (sucreeConfig.custos?.chantillyAro||{})[aro] || 0;
+  if (!qtdAro) return 0;
+  return (p.cost / pesoBase) * qtdAro;
 }
 
 function calcPedidoTotal() {
@@ -1033,13 +1056,19 @@ function abrirDetalhamentoCusto(id) {
   const custoRecheio1 = p.recheio1 ? getCustoRecheioAro(p.recheio1, aro) : 0;
   const custoRecheio2 = p.recheio2 ? getCustoRecheioAro(p.recheio2, aro) : 0;
   const custoChantilly = getCustoChantillyAro(aro);
-  const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : 0;
+  const custoButtercream = getCustoButtercreamAro(aro);
+  const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : (p.cobertura === 'buttercream' ? custoButtercream : 0);
+  const nomeCoberturaAuto = p.cobertura === 'chantininho' ? 'Chantininho' : (p.cobertura === 'buttercream' ? 'Buttercream' : p.cobertura);
 
-  const op = typeof calcCustoOperacional === 'function' ? calcCustoOperacional(aro) : 0;
+  const opDetalhado = typeof calcCustoOperacionalDetalhado === 'function' ? calcCustoOperacionalDetalhado(aro) : { total: 0 };
+  const op = opDetalhado.total;
 
   document.getElementById('modal-item-titulo').textContent = 'Detalhamento de custo — ' + (p.cliente||'');
   function linhaAuto(label, valor) {
     return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--text2)">'+label+'</span><span style="font-weight:700;color:var(--text)">R$ '+valor.toFixed(2)+'</span></div>';
+  }
+  function linhaSub(label, valor) {
+    return '<div style="display:flex;justify-content:space-between;padding:5px 0 5px 14px;font-size:12px"><span style="color:var(--text3)">↳ '+label+'</span><span style="color:var(--text3)">R$ '+valor.toFixed(2)+'</span></div>';
   }
   function linhaEditavel(label, id_, valor) {
     return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
@@ -1050,17 +1079,23 @@ function abrirDetalhamentoCusto(id) {
   html += linhaAuto('Massa (' + (p.massa||'—') + ')', custoMassa);
   if (p.recheio1) html += linhaAuto('Recheio 1 (' + p.recheio1 + ')', custoRecheio1);
   if (p.recheio2) html += linhaAuto('Recheio 2 (' + p.recheio2 + ')', custoRecheio2);
-  if (custoCoberturaAuto) html += linhaAuto('Cobertura (Chantininho)', custoCoberturaAuto);
-  html += linhaAuto('Operacional (embalagem, gás, energia, etc.)', op);
+  if (custoCoberturaAuto) html += linhaAuto('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
+  html += linhaAuto('Operacional (total)', op);
+  html += linhaSub('Embalagem', opDetalhado.embalagem);
+  html += linhaSub('Tábua/cakeboard', opDetalhado.tabua);
+  html += linhaSub('Acessórios', opDetalhado.acessorios);
+  html += linhaSub('Energia', opDetalhado.energia);
+  html += linhaSub('Gás', opDetalhado.gas);
+  html += linhaSub('Limpeza', opDetalhado.limpeza);
+  html += linhaSub('Mão de obra (padrão por aro)', opDetalhado.maoDeObra);
 
-  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Informe manualmente</div>';
+  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Informe manualmente (ajustes/extras)</div>';
   html += linhaEditavel('Custo da calda (se usou)', 'dc-calda', p.custoCalda);
-  html += linhaEditavel('Custo da cobertura (se buttercream/outra)', 'dc-cobertura', p.custoCobertura);
-  html += linhaEditavel('Custo do cakeboard / tábua (0 se cliente levou)', 'dc-cakeboard', p.custoCakeboard);
-  html += linhaEditavel('Custo da caixa de papel (0 se cliente não quis)', 'dc-caixa', p.custoCaixa);
+  html += linhaEditavel('Custo do cakeboard / tábua EXTRA (0 se cliente levou o próprio, sem custo)', 'dc-cakeboard', p.custoCakeboard);
+  html += linhaEditavel('Custo da caixa de papel EXTRA (0 se cliente não quis)', 'dc-caixa', p.custoCaixa);
   if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
   if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
-  html += linhaEditavel('Sua mão de obra', 'dc-maoobra', p.custoMaoObra);
+  html += linhaEditavel('Mão de obra extra (além da padrão já calculada acima)', 'dc-maoobra', p.custoMaoObra);
 
   html += '<div id="dc-resultado" style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(212,162,74,.1);border:1px solid var(--gold)"></div>';
 
@@ -1068,7 +1103,7 @@ function abrirDetalhamentoCusto(id) {
 
   function recalcular() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
-    const manualTotal = g('dc-calda') + g('dc-cobertura') + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-maoobra');
+    const manualTotal = g('dc-calda') + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-maoobra');
     const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoCoberturaAuto + op + manualTotal;
     const valorTotal = parseFloat(p.valorTotal||0);
     const lucro = valorTotal - custoTotal;
@@ -1079,7 +1114,7 @@ function abrirDetalhamentoCusto(id) {
       + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Lucro estimado</span><span style="font-weight:800;color:'+(lucro>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucro.toFixed(2)+' ('+margemPct.toFixed(0)+'%)</span></div>';
   }
   setTimeout(function(){
-    ['dc-calda','dc-cobertura','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-maoobra'].forEach(function(idc){
+    ['dc-calda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-maoobra'].forEach(function(idc){
       const el = document.getElementById(idc);
       if (el) el.addEventListener('input', recalcular);
     });
@@ -1090,7 +1125,6 @@ function abrirDetalhamentoCusto(id) {
   document.getElementById('modal-item-btn-confirmar').onclick = function() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
     p.custoCalda = g('dc-calda');
-    p.custoCobertura = g('dc-cobertura');
     p.custoCakeboard = g('dc-cakeboard');
     p.custoCaixa = g('dc-caixa');
     if (p.topo) p.custoRealTopo = g('dc-topo');
@@ -1099,7 +1133,7 @@ function abrirDetalhamentoCusto(id) {
     savePedidos();
     try {
       sb.from('pedidos_confeitaria').update({
-        custo_calda: p.custoCalda, custo_cobertura: p.custoCobertura,
+        custo_calda: p.custoCalda,
         custo_cakeboard: p.custoCakeboard, custo_caixa: p.custoCaixa,
         custo_real_topo: p.custoRealTopo ?? null, custo_real_flores: p.custoRealFlores ?? null,
         custo_mao_obra: p.custoMaoObra
