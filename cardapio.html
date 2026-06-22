@@ -76,7 +76,7 @@ button{font-family:inherit;cursor:pointer}
 .tamanho-btn{
   display:flex;align-items:center;justify-content:space-between;padding:16px 18px;
   border:1px solid rgba(248,247,244,.16);border-radius:18px;background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));
-  cursor:pointer;transition:.25s ease;text-align:left
+  cursor:pointer;transition:.25s ease;text-align:left;color:var(--text)
 }
 .tamanho-btn.sel{border-color:var(--gold-dark);background:linear-gradient(145deg,rgba(212,162,74,.18),rgba(7,27,58,.62));transform:translateY(-1px)}
 .tamanho-btn .tam-info{display:flex;flex-direction:column;gap:3px}
@@ -91,7 +91,7 @@ button{font-family:inherit;cursor:pointer}
   border:1px solid rgba(248,247,244,.16);border-radius:18px;padding:16px 12px;
   background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));
   cursor:pointer;transition:.25s ease;text-align:center;display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-start;height:100%
+  align-items:center;justify-content:flex-start;height:100%;color:var(--text)
 }
 .opcao-btn.sel{border-color:var(--gold-dark);background:linear-gradient(145deg,rgba(212,162,74,.18),rgba(7,27,58,.62));transform:translateY(-1px)}
 .opcao-btn .op-icon{font-size:26px;display:block;margin-bottom:8px}
@@ -127,7 +127,7 @@ button{font-family:inherit;cursor:pointer}
 .deco-opcao{
   display:flex;align-items:center;justify-content:space-between;padding:15px 16px;
   border:1px solid rgba(248,247,244,.16);border-radius:18px;margin-bottom:10px;cursor:pointer;
-  background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));transition:.25s ease
+  background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));transition:.25s ease;color:var(--text)
 }
 .deco-opcao.sel{border-color:var(--gold-dark);background:linear-gradient(145deg,rgba(212,162,74,.18),rgba(7,27,58,.62))}
 .deco-left{display:flex;align-items:center;gap:13px}
@@ -141,7 +141,7 @@ button{font-family:inherit;cursor:pointer}
 .extra-btn{
   display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
   border:1px solid rgba(248,247,244,.16);border-radius:18px;margin-bottom:10px;cursor:pointer;
-  background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));transition:.25s ease
+  background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));transition:.25s ease;color:var(--text)
 }
 .extra-btn.sel{border-color:var(--gold-dark);background:linear-gradient(145deg,rgba(212,162,74,.18),rgba(7,27,58,.62))}
 .extra-left{display:flex;align-items:center;gap:10px}
@@ -177,7 +177,7 @@ button{font-family:inherit;cursor:pointer}
   padding:15px;border:1px solid rgba(248,247,244,.16);border-radius:18px;
   background:linear-gradient(145deg,rgba(10,35,72,.74),rgba(2,11,24,.56));
   font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;
-  align-items:center;gap:5px;transition:.25s ease
+  align-items:center;gap:5px;transition:.25s ease;color:var(--text)
 }
 .retira-btn.sel{border-color:var(--gold-dark);background:linear-gradient(145deg,rgba(212,162,74,.18),rgba(7,27,58,.62));color:var(--gold-dark)}
 
@@ -401,10 +401,6 @@ button{font-family:inherit;cursor:pointer}
       <div class="recheio-list">
         <button class="recheio-tag" onclick="toggleRecheio('Abacaxi','trad')">Abacaxi</button>
         <button class="recheio-tag" onclick="toggleRecheio('Maracujá','trad')">Maracujá</button>
-      </div>
-
-      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;margin:14px 0 6px">Outros</div>
-      <div class="recheio-list">
         <button class="recheio-tag" onclick="toggleRecheio('Coco','trad')">Coco</button>
         <button class="recheio-tag" onclick="toggleRecheio('Ameixa','trad')">Ameixa</button>
       </div>
