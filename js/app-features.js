@@ -677,6 +677,20 @@ function calcCustoOperacional(aro) {
   return fixo + mdo;
 }
 
+function getCustoMassaAro(nomeMassa, aro) {
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var key = (nomeMassa||'').replace(/[^a-zA-Z0-9]/g,'_');
+  var receitaNome = vincs['massa_' + key] || nomeMassa;
+  if (!receitaNome) return 0;
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  if (!rec) return 0;
+  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
+  if (!p || !p.cost || !rec.yield_qty) return 0;
+  var custoPorGrama = p.cost / rec.yield_qty;
+  var gramasNecessarias = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : null) || 900;
+  return custoPorGrama * gramasNecessarias;
+}
+
 function getCustoRecheioAro(nomeRecheio, aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
@@ -922,6 +936,31 @@ function viewPedido(id) {
       ${p.cobertura?`<div class="total-row"><span>Cobertura</span><span>${p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream'}</span></div>`:''}
       ${p.tema?`<div class="total-row"><span>Tema</span><span>${p.tema}</span></div>`:''}
     </div>
+    <div class="st"><i class="ti ti-photo"></i> Fotos do pedido</div>
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Sugerida pela cliente</div>
+          ${p.inspiPhoto
+            ? `<img src="${p.inspiPhoto}" onclick="abrirFotoZoom('${p.inspiPhoto.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
+            : `<div style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:10px;text-align:center;padding:6px">Nenhuma foto enviada</div>`}
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Confirmada com cliente</div>
+          ${p.fotoConfirmada
+            ? `<img src="${p.fotoConfirmada}" onclick="abrirFotoZoom('${p.fotoConfirmada.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
+            : `<label style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold-dark, var(--gold));font-size:10px;text-align:center;cursor:pointer;gap:4px"><i class="ti ti-upload" style="font-size:18px"></i>Adicionar<input type="file" accept="image/*" style="display:none" onchange="uploadFotoPedido('${p.id}','fotoConfirmada',this)"></label>`}
+          ${p.fotoConfirmada ? `<button onclick="uploadFotoPedido('${p.id}','fotoConfirmada',null,true)" style="width:100%;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:3px"><i class="ti ti-trash"></i> Remover</button>` : ''}
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Bolo pronto</div>
+          ${p.fotoPronto
+            ? `<img src="${p.fotoPronto}" onclick="abrirFotoZoom('${p.fotoPronto.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
+            : `<label style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold-dark, var(--gold));font-size:10px;text-align:center;cursor:pointer;gap:4px"><i class="ti ti-upload" style="font-size:18px"></i>Adicionar<input type="file" accept="image/*" style="display:none" onchange="uploadFotoPedido('${p.id}','fotoPronto',this)"></label>`}
+          ${p.fotoPronto ? `<button onclick="uploadFotoPedido('${p.id}','fotoPronto',null,true)" style="width:100%;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:3px"><i class="ti ti-trash"></i> Remover</button>` : ''}
+        </div>
+      </div>
+    </div>
     <div class="st"><i class="ti ti-currency-dollar"></i> Financeiro</div>
     <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
       <div class="total-row grand"><span>TOTAL</span><span>R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</span></div>
@@ -946,6 +985,9 @@ function viewPedido(id) {
     <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
       <i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha
     </button>
+    <button onclick="abrirDetalhamentoCusto('${p.id}')" style="width:100%;padding:12px;background:none;border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
+      <i class="ti ti-chart-bar"></i> 📊 Detalhamento de custo
+    </button>
     <div style="display:flex;gap:8px;margin-top:4px">
       <select onchange="updatePedidoStatus('${p.id}',this.value)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
         <option value="pendente" ${p.status==='pendente'?'selected':''}>⏳ Pendente</option>
@@ -969,6 +1011,127 @@ function atualizarCustoRealPedido(id, campo, valor) {
     const col = campo === 'custoRealTopo' ? 'custo_real_topo' : 'custo_real_flores';
     sb.from('pedidos_confeitaria').update({ [col]: p[campo] }).eq('id', id).then(function(){});
   } catch(e) {}
+}
+
+function abrirDetalhamentoCusto(id) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  const aro = parseInt(p.aro) || 0;
+
+  const custoMassa = getCustoMassaAro(p.massa, aro);
+  const custoRecheio1 = p.recheio1 ? getCustoRecheioAro(p.recheio1, aro) : 0;
+  const custoRecheio2 = p.recheio2 ? getCustoRecheioAro(p.recheio2, aro) : 0;
+  const custoChantilly = getCustoChantillyAro(aro);
+  const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : 0;
+
+  const op = typeof calcCustoOperacional === 'function' ? calcCustoOperacional(aro) : 0;
+
+  document.getElementById('modal-item-titulo').textContent = 'Detalhamento de custo — ' + (p.cliente||'');
+  function linhaAuto(label, valor) {
+    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--text2)">'+label+'</span><span style="font-weight:700;color:var(--text)">R$ '+valor.toFixed(2)+'</span></div>';
+  }
+  function linhaEditavel(label, id_, valor) {
+    return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
+      + '<input type="number" id="'+id_+'" value="'+(valor??'')+'" min="0" step="0.01" placeholder="0,00" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"></div>';
+  }
+
+  let html = '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Calculado automaticamente</div>';
+  html += linhaAuto('Massa (' + (p.massa||'—') + ')', custoMassa);
+  if (p.recheio1) html += linhaAuto('Recheio 1 (' + p.recheio1 + ')', custoRecheio1);
+  if (p.recheio2) html += linhaAuto('Recheio 2 (' + p.recheio2 + ')', custoRecheio2);
+  if (custoCoberturaAuto) html += linhaAuto('Cobertura (Chantininho)', custoCoberturaAuto);
+  html += linhaAuto('Operacional (embalagem, gás, energia, etc.)', op);
+
+  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Informe manualmente</div>';
+  html += linhaEditavel('Custo da calda (se usou)', 'dc-calda', p.custoCalda);
+  html += linhaEditavel('Custo da cobertura (se buttercream/outra)', 'dc-cobertura', p.custoCobertura);
+  html += linhaEditavel('Custo do cakeboard / tábua (0 se cliente levou)', 'dc-cakeboard', p.custoCakeboard);
+  html += linhaEditavel('Custo da caixa de papel (0 se cliente não quis)', 'dc-caixa', p.custoCaixa);
+  if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
+  if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
+  html += linhaEditavel('Sua mão de obra', 'dc-maoobra', p.custoMaoObra);
+
+  html += '<div id="dc-resultado" style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(212,162,74,.1);border:1px solid var(--gold)"></div>';
+
+  document.getElementById('modal-item-campos').innerHTML = html;
+
+  function recalcular() {
+    const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
+    const manualTotal = g('dc-calda') + g('dc-cobertura') + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-maoobra');
+    const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoCoberturaAuto + op + manualTotal;
+    const valorTotal = parseFloat(p.valorTotal||0);
+    const lucro = valorTotal - custoTotal;
+    const margemPct = valorTotal ? (lucro/valorTotal*100) : 0;
+    document.getElementById('dc-resultado').innerHTML =
+      '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Custo total real</span><span style="font-weight:700">R$ '+custoTotal.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Valor cobrado</span><span style="font-weight:700">R$ '+valorTotal.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Lucro estimado</span><span style="font-weight:800;color:'+(lucro>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucro.toFixed(2)+' ('+margemPct.toFixed(0)+'%)</span></div>';
+  }
+  setTimeout(function(){
+    ['dc-calda','dc-cobertura','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-maoobra'].forEach(function(idc){
+      const el = document.getElementById(idc);
+      if (el) el.addEventListener('input', recalcular);
+    });
+    recalcular();
+  }, 0);
+
+  document.getElementById('modal-item-btn-confirmar').textContent = 'Salvar custos';
+  document.getElementById('modal-item-btn-confirmar').onclick = function() {
+    const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
+    p.custoCalda = g('dc-calda');
+    p.custoCobertura = g('dc-cobertura');
+    p.custoCakeboard = g('dc-cakeboard');
+    p.custoCaixa = g('dc-caixa');
+    if (p.topo) p.custoRealTopo = g('dc-topo');
+    if (p.flores) p.custoRealFlores = g('dc-flores');
+    p.custoMaoObra = g('dc-maoobra');
+    savePedidos();
+    try {
+      sb.from('pedidos_confeitaria').update({
+        custo_calda: p.custoCalda, custo_cobertura: p.custoCobertura,
+        custo_cakeboard: p.custoCakeboard, custo_caixa: p.custoCaixa,
+        custo_real_topo: p.custoRealTopo ?? null, custo_real_flores: p.custoRealFlores ?? null,
+        custo_mao_obra: p.custoMaoObra
+      }).eq('id', id).then(function(){});
+    } catch(e) {}
+    toast('✅ Custos salvos!');
+    fecharModalItemCardapio();
+  };
+  document.getElementById('modal-item-cardapio').style.display = 'flex';
+}
+
+function uploadFotoPedido(id, campo, inputEl, remover) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  const colMap = { fotoConfirmada: 'foto_confirmada', fotoPronto: 'foto_pronto' };
+  const col = colMap[campo];
+  if (remover) {
+    if (!confirm('Remover esta foto?')) return;
+    p[campo] = null;
+    savePedidos();
+    try { sb.from('pedidos_confeitaria').update({ [col]: null }).eq('id', id).then(function(){}); } catch(e) {}
+    viewPedido(id);
+    return;
+  }
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    p[campo] = ev.target.result;
+    savePedidos();
+    try { sb.from('pedidos_confeitaria').update({ [col]: ev.target.result }).eq('id', id).then(function(){}); } catch(e) {}
+    toast('✅ Foto adicionada!');
+    viewPedido(id);
+  };
+  reader.readAsDataURL(file);
+}
+
+function abrirFotoZoom(src) {
+  const win = document.createElement('div');
+  win.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  win.onclick = function(){ win.remove(); };
+  win.innerHTML = '<img src="' + src + '" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain">';
+  document.body.appendChild(win);
 }
 
 function updatePedidoStatus(id, status) {
