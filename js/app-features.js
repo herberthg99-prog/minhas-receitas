@@ -685,8 +685,10 @@ function getCustoMassaAro(nomeMassa, aro) {
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
   var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost || !rec.yield_qty) return 0;
-  var custoPorGrama = p.cost / rec.yield_qty;
+  if (!p || !p.cost) return 0;
+  var pesoBase = rec.pesoTotal || rec.yield_qty; // usa peso em gramas se cadastrado, senão cai no rendimento (pode estar em porções)
+  if (!pesoBase) return 0;
+  var custoPorGrama = p.cost / pesoBase;
   var gramasNecessarias = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : null) || 900;
   return custoPorGrama * gramasNecessarias;
 }
@@ -699,8 +701,10 @@ function getCustoRecheioAro(nomeRecheio, aro) {
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
   var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost || !rec.yield_qty) return 0;
-  var custoPorGrama = p.cost / rec.yield_qty;
+  if (!p || !p.cost) return 0;
+  var pesoBase = rec.pesoTotal || rec.yield_qty;
+  if (!pesoBase) return 0;
+  var custoPorGrama = p.cost / pesoBase;
   var qtdAro = (sucreeConfig.custos?.recheioAro || {})[aro] || 0;
   if (!qtdAro) return p.cost;
   return custoPorGrama * qtdAro;
@@ -712,10 +716,12 @@ function getCustoCaldaAro(tipocalda, aro) {
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
   var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost || !rec.yield_qty) return 0;
+  if (!p || !p.cost) return 0;
+  var pesoBase = rec.pesoTotal || rec.yield_qty;
+  if (!pesoBase) return 0;
   var qtdAro = (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
   if (!qtdAro) return 0;
-  return (p.cost / rec.yield_qty) * qtdAro;
+  return (p.cost / pesoBase) * qtdAro;
 }
 
 function getCustoChantillyAro(aro) {
