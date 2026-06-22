@@ -671,20 +671,30 @@ async function loadCardapioConfigFromCloud() {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     });
     const rows = await r.json();
+    console.log('[DIAGNÓSTICO] Resposta do Supabase:', rows);
     if (rows && rows[0] && rows[0].sucree_config) {
       const cloud = JSON.parse(rows[0].sucree_config);
       cardapioCfg = {...cardapioCfg, ...cloud};
       aplicarCardapioCfgNaTela();
     }
     if (rows && rows[0] && rows[0].cardapio_config) {
+      console.log('[DIAGNÓSTICO] cardapio_config bruto (string):', rows[0].cardapio_config);
       const cloudCardapio = JSON.parse(rows[0].cardapio_config);
+      console.log('[DIAGNÓSTICO] cardapio_config parseado:', cloudCardapio);
+      console.log('[DIAGNÓSTICO] recheios encontrados:', cloudCardapio.recheios ? cloudCardapio.recheios.length : 'NENHUM');
+      console.log('[DIAGNÓSTICO] combinações encontradas:', cloudCardapio.combinacoes ? cloudCardapio.combinacoes.length : 'NENHUMA');
       if (cloudCardapio.recheios && cloudCardapio.recheios.length) {
         recheiosCfg = cloudCardapio.recheios;
         combinacoesCfg = cloudCardapio.combinacoes || [];
         renderRecheiosDinamico();
+        console.log('[DIAGNÓSTICO] renderRecheiosDinamico executado com sucesso');
+      } else {
+        console.log('[DIAGNÓSTICO] AVISO: recheios vazio ou ausente — usando fallback local, combinações da nuvem IGNORADAS');
       }
+    } else {
+      console.log('[DIAGNÓSTICO] AVISO: cardapio_config não veio na resposta — usando fallback local completo');
     }
-  } catch(e) { console.log('Config cloud erro (usando padrão):', e); }
+  } catch(e) { console.log('[DIAGNÓSTICO] ERRO ao buscar config:', e); }
 }
 
 function aplicarCardapioCfgNaTela() {
