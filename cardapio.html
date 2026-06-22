@@ -454,7 +454,7 @@ button{font-family:inherit;cursor:pointer}
 <div class="step" id="step-2">
   <div class="card">
     <div class="section-title"><i class="ti ti-sparkles"></i>Cobertura</div>
-    <div class="opcao-grid">
+    <div class="opcao-grid" id="coberturas-container">
       <button class="opcao-btn" onclick="setCobertura('chantininho','Chantininho')" id="cob-chantininho"><span class="op-icon"><img src="cobertura-chantininho.jpg" alt=""></span><span class="op-nome">Chantininho</span><span class="op-desc">Chantilly com leite ninho — suave e delicioso</span><span class="op-preco">Incluso</span></button>
       <button class="opcao-btn" onclick="setCobertura('buttercream','Buttercream')" id="cob-buttercream"><span class="op-icon"><img src="cobertura-buttercream.jpg" alt=""></span><span class="op-nome">Buttercream</span><span class="op-desc">Creme de manteiga suave — acabamento premium</span><span class="op-preco">+ R$ 50,00</span></button>
     </div>
@@ -665,36 +665,97 @@ var combinacoesCfg = [
   {a:'Morango Fresco', b:'Chocolate Branco', destaque:false}
 ];
 
+// Imagens still-life existentes, mapeadas por nome original — usadas como fallback de imagem
+var IMAGENS_MASSA_PADRAO = {
+  'Massa Fofinha':'massa-fofinha.jpg', 'Massa Fofinha Chocolate':'massa-fofinha-chocolate.jpg',
+  'Massa Clássica':'massa-classica.jpg', 'Massa Clássica Chocolate':'massa-classica-chocolate.jpg'
+};
+var IMAGENS_COBERTURA_PADRAO = {
+  'Chantininho':'cobertura-chantininho.jpg', 'Buttercream':'cobertura-buttercream.jpg'
+};
+function imagemMassa(nome,iconFallback){ return IMAGENS_MASSA_PADRAO[nome] || null; }
+function imagemCobertura(nome){ return IMAGENS_COBERTURA_PADRAO[nome] || null; }
+
+var massasCfg = [
+  {id:'fofinha', nome:'Massa Fofinha', desc:'Pão de ló — leve, suave e aerada'},
+  {id:'fofinha-chocolate', nome:'Massa Fofinha Chocolate', desc:'Pão de ló de chocolate — leve e aerada'},
+  {id:'classica', nome:'Massa Clássica', desc:'Amanteigada — macia, úmida e saborosa'},
+  {id:'classica-chocolate', nome:'Massa Clássica Chocolate', desc:'Amanteigada de chocolate — encorpada'}
+];
+var coberturasCfg = [
+  {id:'chantininho', nome:'Chantininho', desc:'Chantilly com leite ninho — suave e delicioso', preco:0},
+  {id:'buttercream', nome:'Buttercream', desc:'Creme de manteiga suave — acabamento premium', preco:50}
+];
+var tamanhosCfg = [
+  {aro:10, fatias:'Até 3 fatias'}, {aro:15, fatias:'Até 10 fatias'}, {aro:20, fatias:'Até 20 fatias'},
+  {aro:25, fatias:'Até 30 fatias'}, {aro:30, fatias:'Até 45 fatias'}
+];
+
+function renderMassasDinamico(){
+  const cont=document.getElementById('massas-container');
+  if(!cont)return;
+  cont.innerHTML=massasCfg.map(m=>{
+    const img=imagemMassa(m.nome);
+    const iconHtml=img?`<img src="${img}" alt="">`:'🎂';
+    return `<button class="opcao-btn" onclick="setMassa('${m.id}','${m.nome.replace(/'/g,"\\'")}')" id="massa-${m.id}"><span class="op-icon">${iconHtml}</span><span class="op-nome">${m.nome}</span><span class="op-desc">${m.desc||''}</span></button>`;
+  }).join('');
+}
+
+function renderCoberturasDinamico(){
+  const cont=document.getElementById('coberturas-container');
+  if(!cont)return;
+  cont.innerHTML=coberturasCfg.map(c=>{
+    const img=imagemCobertura(c.nome);
+    const iconHtml=img?`<img src="${img}" alt="">`:'🍰';
+    const precoTxt=c.preco?('+ R$ '+parseFloat(c.preco).toFixed(2).replace('.',',')):'Incluso';
+    return `<button class="opcao-btn" onclick="setCobertura('${c.id}','${c.nome.replace(/'/g,"\\'")}')" id="cob-${c.id}"><span class="op-icon">${iconHtml}</span><span class="op-nome">${c.nome}</span><span class="op-desc">${c.desc||''}</span><span class="op-preco">${precoTxt}</span></button>`;
+  }).join('');
+}
+
+function renderTamanhosDinamico(){
+  const cont=document.getElementById('tamanho-grid');
+  if(!cont)return;
+  cont.innerHTML=tamanhosCfg.map(t=>{
+    const p=cardapioCfg.precos[t.aro]||{trad:0,prem:0};
+    return `<button class="tamanho-btn" onclick="setTamanho(${t.aro},${p.trad},${p.prem})" id="tam-${t.aro}">
+      <div class="tam-info"><div class="tam-nome">Aro ${t.aro} cm</div><div class="tam-fatias">${t.fatias||''}</div></div>
+      <div class="tam-preco"><div class="tam-p-trad">R$ ${parseFloat(p.trad).toFixed(2).replace('.',',')}</div><div class="tam-p-prem">Premium: R$ ${parseFloat(p.prem).toFixed(2).replace('.',',')}</div></div>
+    </button>`;
+  }).join('');
+}
+
 async function loadCardapioConfigFromCloud() {
   try {
     const r = await fetch(SUPABASE_URL + '/rest/v1/config?user_id=eq.herberth_admin&select=sucree_config,cardapio_config', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     });
     const rows = await r.json();
-    console.log('[DIAGNÓSTICO] Resposta do Supabase:', rows);
     if (rows && rows[0] && rows[0].sucree_config) {
       const cloud = JSON.parse(rows[0].sucree_config);
       cardapioCfg = {...cardapioCfg, ...cloud};
       aplicarCardapioCfgNaTela();
     }
     if (rows && rows[0] && rows[0].cardapio_config) {
-      console.log('[DIAGNÓSTICO] cardapio_config bruto (string):', rows[0].cardapio_config);
       const cloudCardapio = JSON.parse(rows[0].cardapio_config);
-      console.log('[DIAGNÓSTICO] cardapio_config parseado:', cloudCardapio);
-      console.log('[DIAGNÓSTICO] recheios encontrados:', cloudCardapio.recheios ? cloudCardapio.recheios.length : 'NENHUM');
-      console.log('[DIAGNÓSTICO] combinações encontradas:', cloudCardapio.combinacoes ? cloudCardapio.combinacoes.length : 'NENHUMA');
       if (cloudCardapio.recheios && cloudCardapio.recheios.length) {
         recheiosCfg = cloudCardapio.recheios;
         combinacoesCfg = cloudCardapio.combinacoes || [];
         renderRecheiosDinamico();
-        console.log('[DIAGNÓSTICO] renderRecheiosDinamico executado com sucesso');
-      } else {
-        console.log('[DIAGNÓSTICO] AVISO: recheios vazio ou ausente — usando fallback local, combinações da nuvem IGNORADAS');
       }
-    } else {
-      console.log('[DIAGNÓSTICO] AVISO: cardapio_config não veio na resposta — usando fallback local completo');
+      if (cloudCardapio.massas && cloudCardapio.massas.length) {
+        massasCfg = cloudCardapio.massas;
+        renderMassasDinamico();
+      }
+      if (cloudCardapio.coberturas && cloudCardapio.coberturas.length) {
+        coberturasCfg = cloudCardapio.coberturas;
+        renderCoberturasDinamico();
+      }
+      if (cloudCardapio.tamanhos && cloudCardapio.tamanhos.length) {
+        tamanhosCfg = cloudCardapio.tamanhos;
+        renderTamanhosDinamico();
+      }
     }
-  } catch(e) { console.log('[DIAGNÓSTICO] ERRO ao buscar config:', e); }
+  } catch(e) { console.log('Config cloud erro (usando padrão):', e); }
 }
 
 function aplicarCardapioCfgNaTela() {
