@@ -2808,10 +2808,11 @@ function abrirModalItemCardapio(tipo, idx) {
   document.getElementById('modal-item-titulo').textContent = titulo;
 
   var campos = '';
-  function field(label, id, value, placeholder) {
+  function field(label, id, value, placeholder, maxlen) {
+    var maxAttr = maxlen ? (' maxlength="' + maxlen + '"') : '';
     return '<div style="margin-bottom:12px">'
       + '<label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">' + label + '</label>'
-      + '<input id="' + id + '" type="text" value="' + (value||'').toString().replace(/"/g,'&quot;') + '" placeholder="' + (placeholder||'') + '" '
+      + '<input id="' + id + '" type="text" value="' + (value||'').toString().replace(/"/g,'&quot;') + '" placeholder="' + (placeholder||'') + '"' + maxAttr + ' '
       + 'style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
       + '</div>';
   }
@@ -2834,7 +2835,7 @@ function abrirModalItemCardapio(tipo, idx) {
     campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
   } else {
     campos += field('Nome', 'mi-nome', item.nome, 'ex: Massa Fofinha');
-    campos += field('Emoji (usado se não houver foto)', 'mi-icon', item.icon || '🎂');
+    campos += field('Emoji (usado se não houver foto)', 'mi-icon', item.icon || '🎂', '', 4);
     campos += field('Descrição breve', 'mi-desc', item.desc, 'opcional');
     if (tipo === 'massas' || tipo === 'coberturas') {
       campos += field('Nome do arquivo de foto', 'mi-img', item.img, 'ex: massa-fofinha.jpg — deixe em branco para usar emoji');
@@ -2844,6 +2845,19 @@ function abrirModalItemCardapio(tipo, idx) {
     }
   }
   document.getElementById('modal-item-campos').innerHTML = campos;
+  var elIcon = document.getElementById('mi-icon');
+  if (elIcon) {
+    elIcon.addEventListener('input', function() {
+      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(elIcon.value.trim())) {
+        var elImg = document.getElementById('mi-img');
+        if (elImg && !elImg.value.trim()) {
+          elImg.value = elIcon.value.trim();
+          elIcon.value = '🎂';
+          toast('⚠️ Movido para o campo de foto automaticamente');
+        }
+      }
+    });
+  }
   document.getElementById('modal-item-cardapio').style.display = 'flex';
 }
 
