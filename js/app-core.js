@@ -2762,7 +2762,10 @@ function renderCardapioConfig() {
                 + '</div>';
             }).join('');
             return '<div style="background:var(--bg);border-radius:10px;padding:12px">'
-              + '<div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;letter-spacing:.04em">' + base + '</div>'
+              + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+              + '<div style="font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.04em">' + base + '</div>'
+              + '<button onclick="addCombinacaoCardapio(\'' + base.replace(/'/g,"\\'") + '\')" style="background:none;border:1px solid rgba(212,162,74,.4);border-radius:6px;color:var(--gold);font-size:13px;cursor:pointer;padding:2px 7px;line-height:1.4"><i class="ti ti-plus"></i></button>'
+              + '</div>'
               + itens
               + '</div>';
           }).join('') +
@@ -2965,13 +2968,18 @@ function abrirModalConfirmacao(mensagem, callback) {
   document.getElementById('modal-item-cardapio').style.display = 'flex';
 }
 
-function addCombinacaoCardapio() {
+function addCombinacaoCardapio(baseFixa) {
   var cfg = getCardapioConfig();
   var opts = cfg.recheios.map(function(r){ return '<option value="' + r.nome.replace(/"/g,'&quot;') + '">' + r.nome + '</option>'; }).join('');
-  document.getElementById('modal-item-titulo').textContent = 'Adicionar combinação';
+  document.getElementById('modal-item-titulo').textContent = baseFixa ? ('Adicionar combinação para ' + baseFixa) : 'Adicionar combinação';
+  var campoBase = baseFixa
+    ? ('<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio base</label>'
+       + '<input type="text" value="' + baseFixa.replace(/"/g,'&quot;') + '" disabled style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#1a1208;color:#F5EDD8;font-family:inherit;font-size:14px">'
+       + '<select id="mc-a" style="display:none"><option value="' + baseFixa.replace(/"/g,'&quot;') + '" selected>' + baseFixa + '</option></select></div>')
+    : ('<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio base (quem o cliente escolhe primeiro)</label>'
+       + '<select id="mc-a" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"><option value="">Selecione...</option>' + opts + '</select></div>');
   document.getElementById('modal-item-campos').innerHTML =
-    '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio base (quem o cliente escolhe primeiro)</label>'
-    + '<select id="mc-a" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"><option value="">Selecione...</option>' + opts + '</select></div>'
+    campoBase
     + '<div style="margin-bottom:12px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio sugerido (combina com o base)</label>'
     + '<select id="mc-b" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"><option value="">Selecione...</option>' + opts + '</select></div>'
     + '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">'
