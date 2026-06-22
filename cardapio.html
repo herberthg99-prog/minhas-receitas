@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Cardápio — Sucrée Confeitaria</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <style>
@@ -211,6 +214,29 @@ button{font-family:inherit;cursor:pointer}
 </style>
 </head>
 <body>
+<script>
+// Verificação automática de versão — evita cliente ficar com versão antiga em cache
+(function(){
+  var VERSAO_LOCAL = 1;
+  try {
+    fetch('https://raw.githubusercontent.com/herberthg99-prog/minhas-receitas/main/version-cardapio.json?t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data && data.v && data.v !== VERSAO_LOCAL) {
+          if (!sessionStorage.getItem('sucree_reload_feito')) {
+            sessionStorage.setItem('sucree_reload_feito', '1');
+            if ('caches' in window) {
+              caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){ return caches.delete(k); })); }).then(function(){ location.reload(true); });
+            } else {
+              location.reload(true);
+            }
+          }
+        }
+      })
+      .catch(function(){});
+  } catch(e) {}
+})();
+</script>
 
 <!-- BOAS-VINDAS OVERLAY -->
 <div id="popup-ajuda-recheio" style="display:none;position:fixed;inset:0;background:rgba(2,11,24,.7);z-index:998;align-items:center;justify-content:center;padding:20px">
