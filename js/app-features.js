@@ -565,6 +565,8 @@ function renderPedidoCard(p) {
     <div style="font-size:12px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap">
       ${p.aro ? `<span>Aro ${p.aro}</span>` : ''}
       ${p.recheio1 ? `<span>🎂 ${p.recheio1}</span>` : ''}
+      ${p.recheio2 ? `<span>+ ${p.recheio2}</span>` : ''}
+      ${p.cobertura ? `<span>${p.cobertura==='chantininho'?'🍦 Chantininho':p.cobertura==='buttercream'?'🧁 Buttercream':'✨ '+p.cobertura}</span>` : ''}
       ${p.tema ? `<span>🎨 ${p.tema}</span>` : ''}
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
