@@ -1,6 +1,4 @@
-// Service Worker v32 — autodestruição do cache antigo
-const CACHE = 'receitas-v32';
-
+// Service Worker v33 — sem cache, sem auto-navegação (evita travamentos)
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', e => {
@@ -8,12 +6,6 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(keys.map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
-     .then(() => {
-       // Forçar reload em todos os clientes
-       return self.clients.matchAll({type:'window'});
-     }).then(clients => {
-       clients.forEach(c => c.navigate(c.url));
-     })
   );
 });
 
