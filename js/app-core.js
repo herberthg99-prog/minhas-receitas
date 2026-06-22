@@ -2796,45 +2796,116 @@ function renderCardapioConfig() {
   `;
 }
 
-function addItemCardapio(tipo) {
+var _modalItemState = null; // { tipo, idx (null=novo), item }
+
+function abrirModalItemCardapio(tipo, idx) {
   var cfg = getCardapioConfig();
+  var item = (idx != null) ? cfg[tipo][idx] : {};
+  _modalItemState = { tipo: tipo, idx: idx, item: item };
+
+  var titulo = (idx != null ? 'Editar ' : 'Adicionar ') +
+    (tipo === 'massas' ? 'massa' : tipo === 'coberturas' ? 'cobertura' : tipo === 'recheios' ? 'recheio' : 'tamanho');
+  document.getElementById('modal-item-titulo').textContent = titulo;
+
+  var campos = '';
+  function field(label, id, value, placeholder) {
+    return '<div style="margin-bottom:12px">'
+      + '<label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">' + label + '</label>'
+      + '<input id="' + id + '" type="text" value="' + (value||'').toString().replace(/"/g,'&quot;') + '" placeholder="' + (placeholder||'') + '" '
+      + 'style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+      + '</div>';
+  }
+  function selectField(label, id, options, selected) {
+    var opts = options.map(function(o){
+      return '<option value="' + o.value + '"' + (o.value === selected ? ' selected' : '') + '>' + o.label + '</option>';
+    }).join('');
+    return '<div style="margin-bottom:12px">'
+      + '<label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">' + label + '</label>'
+      + '<select id="' + id + '" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">' + opts + '</select>'
+      + '</div>';
+  }
+
   if (tipo === 'tamanhos') {
-    var aro = prompt('Qual aro? (ex: 18)');
-    if (!aro) return;
-    var fatias = prompt('Quantas fatias? (ex: até 15 fatias)', 'até 15 fatias');
-    cfg.tamanhos.push({ aro: parseInt(aro), fatias: fatias||'—' });
-    cfg.tamanhos.sort(function(a,b){ return a.aro - b.aro; });
+    campos += field('Aro (cm)', 'mi-aro', item.aro, 'ex: 18');
+    campos += field('Descrição de fatias', 'mi-fatias', item.fatias, 'ex: até 15 fatias');
   } else if (tipo === 'recheios') {
-    var nome = prompt('Nome do recheio:');
-    if (!nome) return;
-    var tipoRecheio = (prompt('Tipo: digite "trad" para Tradicional ou "prem" para Premium', 'trad') || 'trad').toLowerCase();
-    if (tipoRecheio !== 'prem') tipoRecheio = 'trad';
-    var categoria = prompt('Categoria (ex: Chocolates, Leites, Frutas, Oleaginosas...):', 'Outros') || 'Outros';
-    cfg.recheios.push({ nome: nome, tipo: tipoRecheio, categoria: categoria });
-    saveCardapioConfig(cfg);
-    toast('✅ ' + nome + ' adicionado!');
-    renderCardapioConfig();
-    return;
+    campos += field('Nome do recheio', 'mi-nome', item.nome, 'ex: Pistache');
+    campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
+    campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
   } else {
-    var nome = prompt('Nome do item:');
-    if (!nome) return;
-    var icon = prompt('Emoji/ícone (usado se não houver foto):', '🎂');
-    var desc = prompt('Descrição breve (opcional):') || '';
-    var id = nome.toLowerCase().replace(/[^a-z0-9]/g,'');
-    var item = { id: id, nome: nome, icon: icon||'🎂', desc: desc };
-    if (tipo === 'coberturas' || tipo === 'massas') {
-      var img = prompt('Nome do arquivo de foto (ex: massa-fofinha.jpg)\nDeixe em branco para usar apenas o emoji.\nLembre-se de fazer upload dessa imagem no GitHub (raiz do repositório).', '');
-      if (img) item.img = img.trim();
+    campos += field('Nome', 'mi-nome', item.nome, 'ex: Massa Fofinha');
+    campos += field('Emoji (usado se não houver foto)', 'mi-icon', item.icon || '🎂');
+    campos += field('Descrição breve', 'mi-desc', item.desc, 'opcional');
+    if (tipo === 'massas' || tipo === 'coberturas') {
+      campos += field('Nome do arquivo de foto', 'mi-img', item.img, 'ex: massa-fofinha.jpg — deixe em branco para usar emoji');
     }
     if (tipo === 'coberturas') {
-      var precoStr = prompt('Valor adicional desta cobertura? (0 se for incluso/sem custo extra)', '0');
-      item.preco = parseFloat((precoStr||'0').replace(',','.')) || 0;
+      campos += field('Valor adicional (R$)', 'mi-preco', item.preco || 0, '0 se incluso');
     }
-    cfg[tipo].push(item);
   }
+  document.getElementById('modal-item-campos').innerHTML = campos;
+  document.getElementById('modal-item-cardapio').style.display = 'flex';
+}
+
+function fecharModalItemCardapio() {
+  document.getElementById('modal-item-cardapio').style.display = 'none';
+  _modalItemState = null;
+}
+
+function salvarModalItemCardapio() {
+  if (!_modalItemState) return;
+  var tipo = _modalItemState.tipo, idx = _modalItemState.idx, itemAntigo = _modalItemState.item;
+  var cfg = getCardapioConfig();
+  var g = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
+
+  if (tipo === 'tamanhos') {
+    var aro = parseInt(g('mi-aro'));
+    if (!aro) { toast('⚠️ Informe um aro válido'); return; }
+    var novoTamanho = { aro: aro, fatias: g('mi-fatias') || '—' };
+    if (idx != null) cfg.tamanhos[idx] = novoTamanho; else cfg.tamanhos.push(novoTamanho);
+    cfg.tamanhos.sort(function(a,b){ return a.aro - b.aro; });
+  } else if (tipo === 'recheios') {
+    var nome = g('mi-nome').trim() || itemAntigo.nome;
+    if (!nome) { toast('⚠️ Informe o nome do recheio'); return; }
+    var nomeAntigo = itemAntigo.nome;
+    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros' };
+    if (idx != null) {
+      cfg.recheios[idx] = novoRecheio;
+      if (nomeAntigo && nomeAntigo !== nome && cfg.combinacoes) {
+        cfg.combinacoes.forEach(function(c) {
+          if (c.a === nomeAntigo) c.a = nome;
+          if (c.b === nomeAntigo) c.b = nome;
+        });
+      }
+    } else {
+      cfg.recheios.push(novoRecheio);
+    }
+  } else {
+    var nome = g('mi-nome').trim() || itemAntigo.nome;
+    if (!nome) { toast('⚠️ Informe o nome'); return; }
+    var id = itemAntigo.id || nome.toLowerCase().replace(/[^a-z0-9]/g,'');
+    var novoItem = { id: id, nome: nome, icon: g('mi-icon')||'🎂', desc: g('mi-desc')||'' };
+    if (tipo === 'massas' || tipo === 'coberturas') {
+      novoItem.img = (g('mi-img')||'').trim();
+    }
+    if (tipo === 'coberturas') {
+      novoItem.preco = parseFloat((g('mi-preco')||'0').replace(',','.')) || 0;
+    }
+    if (idx != null) cfg[tipo][idx] = novoItem; else cfg[tipo].push(novoItem);
+  }
+
   saveCardapioConfig(cfg);
-  toast('✅ ' + nome + ' adicionado!');
+  toast('✅ Salvo com sucesso!');
+  fecharModalItemCardapio();
   renderCardapioConfig();
+}
+
+function addItemCardapio(tipo) {
+  abrirModalItemCardapio(tipo, null);
+}
+
+function editarItemCardapio(tipo, idx) {
+  abrirModalItemCardapio(tipo, idx);
 }
 
 function addCombinacaoCardapio() {
@@ -2858,52 +2929,6 @@ function removerCombinacaoCardapio(idx) {
   var cfg = getCardapioConfig();
   if (!confirm('Remover esta combinação?')) return;
   cfg.combinacoes.splice(idx, 1);
-  saveCardapioConfig(cfg);
-  renderCardapioConfig();
-}
-
-function editarItemCardapio(tipo, idx) {
-  var cfg = getCardapioConfig();
-  var item = cfg[tipo][idx];
-  if (!item) return;
-  if (tipo === 'recheios') {
-    var nomeAntigo = item.nome;
-    var novoNome = prompt('Nome:', item.nome);
-    if (novoNome === null) return;
-    if (!novoNome.trim()) novoNome = item.nome;
-    var novoTipo = (prompt('Tipo: "trad" ou "prem"', item.tipo||'trad') || item.tipo).toLowerCase();
-    if (novoTipo !== 'prem') novoTipo = 'trad';
-    var novaCategoria = prompt('Categoria:', item.categoria||'Outros') || item.categoria;
-    cfg.recheios[idx] = { nome: novoNome, tipo: novoTipo, categoria: novaCategoria };
-    // Atualiza em cascata o nome nas combinações existentes, se mudou
-    if (nomeAntigo !== novoNome && cfg.combinacoes) {
-      cfg.combinacoes.forEach(function(c) {
-        if (c.a === nomeAntigo) c.a = novoNome;
-        if (c.b === nomeAntigo) c.b = novoNome;
-      });
-    }
-    saveCardapioConfig(cfg);
-    renderCardapioConfig();
-    return;
-  }
-  var novoNome = prompt('Nome:', item.nome);
-  if (novoNome === null) return; // só cancela se clicar "Cancelar" de fato
-  if (!novoNome.trim()) novoNome = item.nome; // campo vazio mantém o nome atual
-  var novoIcon = prompt('Emoji (usado se não houver foto):', item.icon || '🎂');
-  if (novoIcon === null) novoIcon = item.icon;
-  var novoDesc = prompt('Descrição:', item.desc||'');
-  if (novoDesc === null) novoDesc = item.desc||'';
-  cfg[tipo][idx].nome = novoNome;
-  cfg[tipo][idx].icon = novoIcon || item.icon;
-  cfg[tipo][idx].desc = novoDesc;
-  if (tipo === 'coberturas' || tipo === 'massas') {
-    var novaImg = prompt('Nome do arquivo de foto (ex: massa-fofinha.jpg)\nDeixe em branco para usar apenas o emoji.', item.img || '');
-    cfg[tipo][idx].img = (novaImg||'').trim();
-  }
-  if (tipo === 'coberturas') {
-    var precoStr = prompt('Valor adicional desta cobertura? (0 se incluso)', String(item.preco||0));
-    cfg[tipo][idx].preco = parseFloat((precoStr||'0').replace(',','.')) || 0;
-  }
   saveCardapioConfig(cfg);
   renderCardapioConfig();
 }
