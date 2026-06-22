@@ -1308,7 +1308,9 @@ async function loadPedidosFromCloud() {
       endereco:p.endereco,aro:p.aro,massa:p.massa,recheio1:p.recheio1,recheio2:p.recheio2,
       cobertura:p.cobertura,deco:p.deco,tema:p.tema,topo:p.topo,flores:p.flores,
       custoRealTopo:p.custo_real_topo ?? null, custoRealFlores:p.custo_real_flores ?? null,
-      obsDeco:p.obs_deco,inspiPhoto:p.inspi_photo,valorBolo:p.valor_bolo,valorTotal:p.valor_total,
+      obsDeco:p.obs_deco,inspiPhoto:p.inspi_photo,fotoConfirmada:p.foto_confirmada,fotoPronto:p.foto_pronto,
+      custoCalda:p.custo_calda,custoCobertura:p.custo_cobertura,custoCakeboard:p.custo_cakeboard,custoCaixa:p.custo_caixa,custoMaoObra:p.custo_mao_obra,
+      valorBolo:p.valor_bolo,valorTotal:p.valor_total,
       sinal:p.sinal,pagamento:p.pagamento,status:p.status||'pendente',origem:p.origem,
       createdAt:new Date(p.created_at).getTime()
     }));
