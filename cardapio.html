@@ -217,7 +217,7 @@ button{font-family:inherit;cursor:pointer}
 <script>
 // Verificação automática de versão — evita cliente ficar com versão antiga em cache
 (function(){
-  var VERSAO_LOCAL = 1;
+  var VERSAO_LOCAL = 2;
   try {
     fetch('https://raw.githubusercontent.com/herberthg99-prog/minhas-receitas/main/version-cardapio.json?t=' + Date.now())
       .then(function(r){ return r.json(); })
@@ -237,6 +237,17 @@ button{font-family:inherit;cursor:pointer}
   } catch(e) {}
 })();
 </script>
+
+<div id="sucree-splash" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#071B3A 0%,#020B18 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease">
+  <div style="position:relative;width:140px;height:140px;display:flex;align-items:center;justify-content:center">
+    <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(212,162,74,.35),transparent 70%);animation:sucree-pulse 1.8s ease-in-out infinite"></div>
+    <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée" style="width:110px;height:auto;position:relative;z-index:1;filter:drop-shadow(0 0 18px rgba(212,162,74,.5))">
+  </div>
+  <div style="margin-top:22px;font-family:Georgia,serif;font-style:italic;color:#D9D9D9;font-size:13px;letter-spacing:.08em">Preparando algo doce para você...</div>
+</div>
+<style>
+@keyframes sucree-pulse{0%,100%{transform:scale(.85);opacity:.5}50%{transform:scale(1.15);opacity:1}}
+</style>
 
 <!-- BOAS-VINDAS OVERLAY -->
 <div id="popup-ajuda-recheio" style="display:none;position:fixed;inset:0;background:rgba(2,11,24,.7);z-index:998;align-items:center;justify-content:center;padding:20px">
@@ -947,6 +958,25 @@ if(pedido.recheios&&pedido.recheios.length>0){renderRecheioTags();renderRecheioS
 
 // Carrega config dinâmica (PIX, preços, dias mínimos, sinal) do painel admin
 loadCardapioConfigFromCloud();
+
+// Esconde a tela de splash suavemente, com tempo mínimo de exibição para a animação ser percebida
+(function(){
+  var inicio = Date.now();
+  var tempoMinimo = 1100;
+  function esconderSplash(){
+    var splash = document.getElementById('sucree-splash');
+    if (!splash) return;
+    var decorrido = Date.now() - inicio;
+    var espera = Math.max(0, tempoMinimo - decorrido);
+    setTimeout(function(){
+      splash.style.opacity = '0';
+      setTimeout(function(){ splash.style.display = 'none'; }, 500);
+    }, espera);
+  }
+  if (document.readyState === 'complete') esconderSplash();
+  else window.addEventListener('load', esconderSplash);
+  setTimeout(esconderSplash, 3000); // segurança: nunca trava além de 3s
+})();
 
 function notificarWhatsApp(p){try{const dataFmt=p.data?new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR'):'—';const msg=encodeURIComponent('🎂 *NOVO PEDIDO — Sucrée Confeitaria*\n\n'+'👤 *Cliente:* '+(p.cliente||'—')+'\n'+'📱 *WhatsApp:* '+(p.telefone||'—')+'\n'+'📅 *Entrega:* '+dataFmt+' às '+(p.hora||'—')+'\n'+'🚗 *Retirada:* '+(p.retira?'Sim, cliente retira':'Não — entrego no endereço')+'\n'+(p.endereco?'📍 *Endereço:* '+p.endereco+'\n':'')+'\n🎂 *Bolo:*\n'+'• Tamanho: Aro '+(p.aro||'—')+'\n'+'• Massa: '+(p.massa||'—')+'\n'+'• Recheio 1: '+(p.recheio1||'—')+'\n'+'• Recheio 2: '+(p.recheio2||'—')+'\n'+'• Cobertura: '+(p.cobertura||'—')+'\n'+(p.tema?'• Tema: '+p.tema+'\n':'')+'\n💰 *Total:* R$ '+parseFloat(p.valorTotal||0).toFixed(2)+'\n💰 *Sinal ('+cardapioCfg.sinalPct+'%):* R$ '+parseFloat(p.sinal||0).toFixed(2)+'\n\n🆔 Pedido: '+p.id);window.open('https://wa.me/'+WHATSAPP_SUCREE+'?text='+msg,'_blank');}catch(e){console.log('WhatsApp erro:',e);}try{fetch('https://ntfy.sh/'+NTFY_CANAL,{method:'POST',headers:{'Title':'Novo Pedido - Sucree','Priority':'high','Tags':'cake,moneybag','Content-Type':'text/plain; charset=utf-8'},body:(p.cliente||'Cliente')+' - Aro '+(p.aro||'?')+' - R$ '+parseFloat(p.valorTotal||0).toFixed(2)}).then(r=>console.log('Ntfy:',r.status)).catch(e=>console.log('Ntfy erro:',e));}catch(e2){console.log('Ntfy erro:',e2);}}
 
