@@ -471,10 +471,6 @@ async function savePedidoToCloud(pedido) {
   } catch(e) { console.log('Save pedido cloud error:', e.message); }
 }
 
-async function deletePedidoFromCloud(id) {
-  try { await sb.from('pedidos_confeitaria').delete().eq('id', id); } catch(e) {}
-}
-
 async function updatePedidoStatusCloud(id, status) {
   try { await sb.from('pedidos_confeitaria').update({status}).eq('id', id); } catch(e) {}
 }
@@ -945,11 +941,36 @@ function savePedido() {
   setTimeout(() => notificarWhatsApp(pedido), 1500);
 }
 
+function getDeletedPedidoIds() {
+  if (!window._deletedPedidoIds) {
+    var saved = [];
+    try { saved = JSON.parse(localStorage.getItem('mr_deleted_pedido_ids') || '[]'); } catch(e) {}
+    window._deletedPedidoIds = new Set(saved);
+  }
+  return window._deletedPedidoIds;
+}
+
+function persistDeletedPedidoIds() {
+  try { localStorage.setItem('mr_deleted_pedido_ids', JSON.stringify(Array.from(getDeletedPedidoIds()))); } catch(e) {}
+}
+
 async function delPedido(id) {
   if(!confirm('Excluir este pedido?')) return;
-  if (!window._deletedPedidoIds) window._deletedPedidoIds = new Set();
-  window._deletedPedidoIds.add(id);
-  try { await sb.from('pedidos_confeitaria').delete().eq('id', id); } catch(e) {}
+
+  var res;
+  try {
+    res = await sb.from('pedidos_confeitaria').delete().eq('id', id);
+  } catch(e) {
+    toast('❌ Falha ao excluir: ' + (e.message || 'erro de rede') + '. Tente novamente.');
+    return;
+  }
+  if (res && res.error) {
+    toast('❌ Falha ao excluir: ' + res.error.message + '. Tente novamente.');
+    return;
+  }
+
+  getDeletedPedidoIds().add(id);
+  persistDeletedPedidoIds();
   pedidos = pedidos.filter(p=>p.id!==id);
   savePedidos();
   renderConfeitaria();
