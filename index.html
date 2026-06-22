@@ -549,6 +549,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <div class="fg"><label>Tempo (min)</label><input type="number" id="ftm" value="60" min="1"></div>
       </div>
       <div class="fg"><label>Unidade de venda</label><select id="funit"><option value="porção">Porção</option><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="ml">ml</option><option value="unidade">Unidade</option><option value="fatia">Fatia</option><option value="dúzia">Dúzia</option></select></div>
+      <div class="fg"><label>Peso total da receita (g) — opcional, para massas/recheios</label><input type="number" id="fpesoTotal" placeholder="Ex: 900" min="0"></div>
 
       <div class="fg" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <input type="checkbox" id="fpanela" onchange="togglePanelaMexedora()" style="width:18px;height:18px;accent-color:var(--gold)">
@@ -816,8 +817,8 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=29"></script>
-<script src="js/app-features.js?v=22"></script>
+<script src="js/app-core.js?v=30"></script>
+<script src="js/app-features.js?v=23"></script>
 <script src="js/version.js?v=19"></script>
 
 </body>
