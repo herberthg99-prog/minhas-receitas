@@ -758,8 +758,8 @@ function showIngrSugestoes(i, val) {
   const conhecidos = getNomesIngredientesConhecidos();
   const filtrados = conhecidos.filter(n => n.toLowerCase().includes(termo) && n.toLowerCase() !== termo).slice(0, 6);
   if (!filtrados.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
-  box.innerHTML = filtrados.map(n =>
-    `<span class="ingr-sug-chip" onmousedown="event.preventDefault();selectIngrSugestao(${i},${JSON.stringify(n)})">${n}</span>`
+  box.innerHTML = filtrados.map((n, idx) =>
+    `<span class="ingr-sug-chip" data-nome="${n.replace(/"/g,'&quot;')}" onmousedown="event.preventDefault();selectIngrSugestao(${i},this.getAttribute('data-nome'))">${n}</span>`
   ).join('');
   box.style.display = 'flex';
 }
