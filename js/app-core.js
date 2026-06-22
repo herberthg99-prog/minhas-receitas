@@ -305,16 +305,16 @@ function renderHome() {
       <button class="btns" style="justify-content:center;font-size:13px" onclick="goPage('agenda')">
         <i class="ti ti-calendar"></i> Agenda
       </button>
-      <button class="btns" style="justify-content:center;font-size:13px" onclick="goPage('ficha')">
-        <i class="ti ti-list-check"></i> Ficha semanal
+      <button class="btnp" style="justify-content:center;font-size:13px" onclick="compartilharCardapioRapido()">
+        <i class="ti ti-share"></i> Compartilhar cardápio
       </button>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('compras')">
         <i class="ti ti-shopping-cart"></i> Lista de compras
       </button>
-      <button class="btnp" style="flex:1;justify-content:center;font-size:12px" onclick="compartilharCardapioRapido()">
-        <i class="ti ti-share"></i> Compartilhar cardápio
+      <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('ficha')">
+        <i class="ti ti-list-check"></i> Ficha semanal
       </button>
       <button class="btns" style="flex:1;justify-content:center;font-size:12px" onclick="goPage('portfolio')">
         <i class="ti ti-photo"></i> Portfólio
@@ -2031,7 +2031,7 @@ function converterEmReceita(idx) {
 // ═══ COMPARTILHAMENTO RÁPIDO DO CARDÁPIO ═══
 function compartilharCardapioRapido() {
   // Get saved link config
-  var horas = 24; // default
+  var horas = 12; // default
   var agora = Date.now();
   var expira = agora + (horas * 60 * 60 * 1000);
   var token = btoa(String(expira)).replace(/[^a-zA-Z0-9]/g,'').substring(0, 16);
