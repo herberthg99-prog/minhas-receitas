@@ -213,6 +213,18 @@ button{font-family:inherit;cursor:pointer}
 <body>
 
 <!-- BOAS-VINDAS OVERLAY -->
+<div id="popup-ajuda-recheio" style="display:none;position:fixed;inset:0;background:rgba(2,11,24,.7);z-index:998;align-items:center;justify-content:center;padding:20px">
+  <div style="background:linear-gradient(145deg,rgba(10,35,72,.95),rgba(2,11,24,.97));border:1px solid rgba(230,192,109,.5);border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <i class="ti ti-bulb" style="font-size:32px;color:var(--gold-dark);display:block;margin-bottom:12px"></i>
+    <p style="color:var(--text);font-size:15px;font-weight:600;margin-bottom:6px">Gostaria de ajuda para combinar esse recheio?</p>
+    <p id="popup-ajuda-recheio-nome" style="color:var(--gold-dark);font-size:13px;font-weight:700;margin-bottom:20px"></p>
+    <div style="display:flex;gap:10px">
+      <button onclick="responderAjudaRecheio(false)" style="flex:1;padding:13px;border-radius:999px;border:1px solid rgba(248,247,244,.25);background:none;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer">Não, obrigado</button>
+      <button onclick="responderAjudaRecheio(true)" style="flex:1;padding:13px;border-radius:999px;border:none;background:linear-gradient(135deg,#A87528,var(--gold) 55%,var(--gold));color:#2C1B05;font-weight:700;font-family:inherit;font-size:14px;cursor:pointer">Sim, ajude-me</button>
+    </div>
+  </div>
+</div>
+
 <div id="boas-vindas" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:999;overflow:hidden">
 
   <!-- FOTO DE FUNDO OCUPANDO TELA TODA -->
@@ -367,11 +379,6 @@ button{font-family:inherit;cursor:pointer}
     <div class="section-title"><i class="ti ti-cherry"></i>Escolha até 2 recheios</div>
     <div class="recheio-info"><i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i> Toque para selecionar. Na combinação de 1 tradicional + 1 premium, aplica-se o valor premium.</div>
     <div id="recheio-selecionados" class="recheio-selecionados"><div class="rs-label">SELECIONADOS:</div><div class="rs-items" id="rs-items-list"></div></div>
-    <div id="sugestao-recheio-btn-wrap" style="display:none;margin-bottom:16px">
-      <button type="button" onclick="abrirSugestaoRecheio()" style="width:100%;padding:13px;border:1px dashed rgba(230,192,109,.6);border-radius:999px;background:rgba(212,162,74,.1);color:var(--gold-dark);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
-        <i class="ti ti-bulb"></i> Ver sugestões de combinação
-      </button>
-    </div>
     <div id="sugestao-recheio-box" style="display:none;margin-bottom:18px;background:rgba(212,162,74,.1);border:1px solid rgba(230,192,109,.46);border-radius:var(--radius-sm);padding:15px 16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <span style="font-size:11px;font-weight:800;color:var(--gold-dark);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px"><i class="ti ti-sparkles"></i> Combina bem com</span>
@@ -821,7 +828,7 @@ function setTamanho(aro,trad,prem){pedido.aro=aro;pedido.precoTrad=trad;pedido.p
 function setMassa(id,nome){pedido.massa=id;pedido.massaNome=nome;document.querySelectorAll('.opcao-btn').forEach(b=>b.classList.remove('sel'));var el=document.getElementById('massa-'+id);if(el)el.classList.add('sel');checkStep0();}
 function checkStep0(){savePedidoLocal();document.getElementById('btn-next-0').disabled=!(pedido.aro&&pedido.massa);}
 
-function toggleRecheio(nome,tipo){const idx=pedido.recheios.findIndex(r=>r.nome===nome);if(idx>=0){pedido.recheios.splice(idx,1);}else{if(pedido.recheios.length>=2){toast('Máximo 2 recheios');return;}pedido.recheios.push({nome,tipo});}renderRecheioTags();renderRecheioSelecionados();document.getElementById('btn-next-1').disabled=pedido.recheios.length===0;const temPrem=pedido.recheios.some(r=>r.tipo==='prem');const alertaPrem=document.getElementById('alerta-recheio-prem');if(alertaPrem)alertaPrem.style.display=temPrem?'flex':'none';atualizarBotaoSugestao();}
+function toggleRecheio(nome,tipo){const idx=pedido.recheios.findIndex(r=>r.nome===nome);if(idx>=0){pedido.recheios.splice(idx,1);}else{if(pedido.recheios.length>=2){toast('Máximo 2 recheios');return;}pedido.recheios.push({nome,tipo});}renderRecheioTags();renderRecheioSelecionados();document.getElementById('btn-next-1').disabled=pedido.recheios.length===0;const temPrem=pedido.recheios.some(r=>r.tipo==='prem');const alertaPrem=document.getElementById('alerta-recheio-prem');if(alertaPrem)alertaPrem.style.display=temPrem?'flex':'none';verificarPopupAjudaRecheio();}
 
 function buildCombinacoesMap(){
   const map={};
@@ -841,7 +848,17 @@ function buildMedalhasMap(){
 let COMBINACOES_RECHEIO=buildCombinacoesMap();
 let MEDALHAS_PREMIUM=buildMedalhasMap();
 function medalhaPara(nomeA,nomeB){const chave1=nomeA+' + '+nomeB;const chave2=nomeB+' + '+nomeA;return MEDALHAS_PREMIUM[chave1]||MEDALHAS_PREMIUM[chave2]||'';}
-function atualizarBotaoSugestao(){const wrap=document.getElementById('sugestao-recheio-btn-wrap');if(!wrap)return;if(pedido.recheios.length===1&&COMBINACOES_RECHEIO[pedido.recheios[0].nome]){wrap.style.display='block';}else{wrap.style.display='none';document.getElementById('sugestao-recheio-box').style.display='none';}}
+function verificarPopupAjudaRecheio(){
+  document.getElementById('sugestao-recheio-box').style.display='none';
+  if(pedido.recheios.length===1 && COMBINACOES_RECHEIO[pedido.recheios[0].nome]){
+    document.getElementById('popup-ajuda-recheio-nome').textContent=pedido.recheios[0].nome;
+    document.getElementById('popup-ajuda-recheio').style.display='flex';
+  }
+}
+function responderAjudaRecheio(sim){
+  document.getElementById('popup-ajuda-recheio').style.display='none';
+  if(sim) abrirSugestaoRecheio();
+}
 
 function renderRecheiosDinamico(){
   COMBINACOES_RECHEIO=buildCombinacoesMap();
