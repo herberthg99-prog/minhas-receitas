@@ -567,6 +567,12 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         </div>
       </div>
 
+      <div class="fg" style="margin-bottom:8px">
+        <label style="margin-bottom:4px">Aplica-se automaticamente a estes recheios (opcional)</label>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">Toda vez que o pedido tiver um dos recheios marcados (Recheio 1 ou 2), este item entra automaticamente no custo e na Ficha Técnica de produção. Use para itens como "Chocolate Nobre picado" que acompanham um recheio específico.</div>
+        <div id="recheios-vinculados-checklist" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--surface)"></div>
+      </div>
+
       <div class="fg" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <input type="checkbox" id="fpanela" onchange="togglePanelaMexedora()" style="width:18px;height:18px;accent-color:var(--gold)">
         <label for="fpanela" style="margin-bottom:0;cursor:pointer">🥘 Usa panela mexedora</label>
@@ -833,8 +839,8 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=37"></script>
-<script src="js/app-features.js?v=35"></script>
+<script src="js/app-core.js?v=38"></script>
+<script src="js/app-features.js?v=36"></script>
 <script src="js/version.js?v=19"></script>
 
 </body>
