@@ -248,6 +248,9 @@ button{font-family:inherit;cursor:pointer}
   align-items:center;justify-content:flex-end;
   padding:0 12px 20px;overflow-y:auto;
 }
+@media(min-width:700px){
+  .login-overlay{ align-items:flex-end; padding:0 64px 56px; background-position:left center; }
+}
 @keyframes loginCardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .login-box{
   background:rgba(4,18,43,.82);border-radius:24px;
@@ -479,7 +482,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <div id="login-overlay" class="login-overlay">
 
   <!-- Gradiente esquerda: escurece lado esq e cobre logo da foto -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(4,18,43,.88) 0%,rgba(4,18,43,.62) 25%,rgba(4,18,43,.22) 50%,rgba(4,18,43,0) 70%);z-index:0;pointer-events:none"></div>
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(4,18,43,.88) 0%,rgba(4,18,43,.5) 25%,rgba(4,18,43,.08) 45%,rgba(4,18,43,0) 60%,rgba(4,18,43,.55) 82%,rgba(4,18,43,.85) 100%);z-index:0;pointer-events:none"></div>
   <!-- Gradiente rodapé: fundo escuro para o card -->
   <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(4,18,43,.98) 0%,rgba(4,18,43,.75) 28%,rgba(4,18,43,0) 55%);z-index:0;pointer-events:none"></div>
   <!-- Glow azul atrás do rosto + dourado discreto na lateral -->
@@ -1079,7 +1082,7 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=45"></script>
+<script src="js/app-core.js?v=46"></script>
 <script src="js/app-features.js?v=37"></script>
 <script src="js/version.js?v=19"></script>
 
