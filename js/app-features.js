@@ -703,6 +703,68 @@ function calcCustoOperacionalDetalhado(aro) {
 // daquela receita específica) — a mesma fórmula usada no card "Custo & Precificação" da
 // tela de visualização da receita. Usado no Detalhamento de Custo do pedido para Massa,
 // Recheio e Calda, em vez de considerar só o custo de ingredientes.
+// Monta o HTML de uma receita "expandida" para um multiplicador específico (ex: 0,818 do
+// aro 20), mostrando cada ingrediente já escalado (qtd × multiplicador) com seu custo
+// individual, e o fechamento com indireto + mão de obra, batendo com getCustoTotalReceita.
+function gerarHtmlReceitaExpandida(rec, mult, camadas) {
+  camadas = camadas || 1;
+  if (!rec) return '<div style="font-size:12px;color:var(--text3)">Receita não encontrada.</div>';
+  var cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  var valorHora = cfg.valorHora || 25;
+  var indiretoPct = cfg.indiretoPct || 15;
+  var horas = (rec.time || 60) / 60;
+  var ingrs = rec.ingredients || [];
+  var custoIngrTotalBase = 0;
+  var linhas = ingrs.map(function(ig){
+    var qtyBase = parseFloat(ig.qty || 0);
+    var qtyEscalada = qtyBase * mult;
+    var custoUnit = parseFloat(ig.price || 0);
+    var custoBase = qtyBase * custoUnit;
+    var custoEscalado = qtyEscalada * custoUnit * camadas;
+    custoIngrTotalBase += custoBase;
+    var sufixoCamadas = camadas > 1 ? ' × ' + camadas + ' camadas' : '';
+    return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">'
+      + '<span style="color:var(--text2)">' + (ig.isBase?'⭐ ':'') + ig.name + '</span>'
+      + '<span style="text-align:right;color:var(--text3)">' + qtyBase.toFixed(0) + (ig.unit||'g') + ' × ' + mult.toFixed(3) + sufixoCamadas + ' = <b style="color:var(--text)">' + (qtyEscalada*camadas).toFixed(1) + (ig.unit||'g')+'</b> · R$ ' + custoEscalado.toFixed(2) + '</span>'
+      + '</div>';
+  }).join('');
+  var custoIndiretoBase = custoIngrTotalBase * indiretoPct / 100;
+  var custoMdoBase = horas * valorHora;
+  var custoTotalBase = custoIngrTotalBase + custoIndiretoBase + custoMdoBase;
+  var custoIngrEscalado = custoIngrTotalBase * mult * camadas;
+  var custoIndiretoEscalado = custoIndiretoBase * mult * camadas;
+  var custoMdoEscalado = custoMdoBase * mult * camadas;
+  var custoTotalEscalado = custoTotalBase * mult * camadas;
+  var pesoBase = rec.pesoTotal || rec.yield_qty || 0;
+  var pesoEscalado = pesoBase * mult * camadas;
+  var tituloCamadas = camadas > 1 ? ' (' + camadas + ' camadas)' : '';
+  return '<div style="background:var(--bg);border-radius:8px;padding:12px;margin-top:6px">'
+    + '<div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">' + rec.name + ' — multiplicador ' + mult.toFixed(3) + 'x' + tituloCamadas + '</div>'
+    + linhas
+    + '<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:6px;border-top:1px solid var(--border);font-size:12px;color:var(--text2)">'
+      + '<span>Ingredientes</span><span>R$ ' + custoIngrEscalado.toFixed(2) + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;color:var(--text2)">'
+      + '<span>Indireto (' + indiretoPct + '%)</span><span>R$ ' + custoIndiretoEscalado.toFixed(2) + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;color:var(--text2)">'
+      + '<span>Mão de obra (' + horas.toFixed(2) + 'h × R$' + valorHora + (camadas>1?' × '+camadas:'') + ')</span><span>R$ ' + custoMdoEscalado.toFixed(2) + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:4px;border-top:1px solid var(--border);font-size:13px;font-weight:800;color:var(--gold)">'
+      + '<span>Total (peso ' + pesoEscalado.toFixed(0) + 'g)</span><span>R$ ' + custoTotalEscalado.toFixed(2) + '</span></div>'
+    + '</div>';
+}
+
+// Abre/fecha o painel expandido de uma receita dentro do Detalhamento de Custo.
+function toggleReceitaExpandida(idElemento, nomeReceita, mult, camadas) {
+  var el = document.getElementById(idElemento);
+  if (!el) return;
+  if (el.style.display === 'none' || !el.innerHTML) {
+    var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeReceita; });
+    el.innerHTML = gerarHtmlReceitaExpandida(rec, mult, camadas);
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 function getCustoTotalReceita(rec) {
   if (!rec) return 0;
   var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
@@ -1148,6 +1210,19 @@ function abrirDetalhamentoCusto(id) {
   const aro = parseInt(p.aro) || 0;
 
   const custoMassa = getCustoMassaAro(p.massa, aro);
+  // Resolve o nome real da receita + multiplicador para o botão "ver detalhamento" (lupa).
+  function resolverReceitaEMult(nomeCardapio, prefixoVinculo) {
+    if (!nomeCardapio) return { nome: null, mult: null };
+    var vincs = sucreeConfig.receitasCardapio || {};
+    var key = nomeCardapio.replace(/[^a-zA-Z0-9]/g,'_');
+    var nomeReal = vincs[prefixoVinculo + '_' + key] || nomeCardapio;
+    var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeReal; });
+    var mult = (rec && rec.multiplicadorAro) ? rec.multiplicadorAro[aro] : null;
+    return { nome: nomeReal, mult: mult };
+  }
+  const massaResolvida = resolverReceitaEMult(p.massa, 'massa');
+  const recheio1Resolvido = resolverReceitaEMult(p.recheio1, 'recheio');
+  const recheio2Resolvido = resolverReceitaEMult(p.recheio2, 'recheio');
   // 3 camadas de recheio no total: recheio1, recheio2, e um deles repetido (escolha manual sua, não do cliente).
   const recheioRepetido = p.recheioRepetido || 'recheio1';
   const camadasRecheio1 = p.recheio1 ? (recheioRepetido === 'recheio1' ? 2 : 1) : 0;
@@ -1172,6 +1247,19 @@ function abrirDetalhamentoCusto(id) {
   function linhaAuto(label, valor) {
     return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--text2)">'+label+'</span><span style="font-weight:700;color:var(--text)">R$ '+valor.toFixed(2)+'</span></div>';
   }
+  function linhaAutoExpandivel(label, valor, nomeReceita, mult, idExpand, camadas) {
+    if (!nomeReceita || !mult) return linhaAuto(label, valor);
+    camadas = camadas || 1;
+    return '<div style="border-bottom:1px solid rgba(255,255,255,.06);padding:8px 0">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">'
+      + '<span style="color:var(--text2)">'+label+'</span>'
+      + '<span style="display:flex;align-items:center;gap:8px">'
+      + '<button onclick="toggleReceitaExpandida(\''+idExpand+'\', \''+nomeReceita.replace(/'/g,"\\'")+'\', '+mult+', '+camadas+')" title="Ver detalhamento" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;padding:2px"><i class="ti ti-search"></i></button>'
+      + '<span style="font-weight:700;color:var(--text)">R$ '+valor.toFixed(2)+'</span>'
+      + '</span></div>'
+      + '<div id="'+idExpand+'" style="display:none"></div>'
+      + '</div>';
+  }
   function linhaSub(label, valor) {
     return '<div style="display:flex;justify-content:space-between;padding:5px 0 5px 14px;font-size:12px"><span style="color:var(--text3)">↳ '+label+'</span><span style="color:var(--text3)">R$ '+valor.toFixed(2)+'</span></div>';
   }
@@ -1181,7 +1269,7 @@ function abrirDetalhamentoCusto(id) {
   }
 
   let html = '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Calculado automaticamente</div>';
-  html += linhaAuto('Massa (' + (p.massa||'—') + ')', custoMassa);
+  html += linhaAutoExpandivel('Massa (' + (p.massa||'—') + ')', custoMassa, massaResolvida.nome, massaResolvida.mult, 'expand-massa-'+id);
   if (p.recheio1 && p.recheio2) {
     html += '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Qual sabor repete (3 camadas no total)?</label>'
       + '<select id="dc-recheio-repetido" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
@@ -1189,8 +1277,8 @@ function abrirDetalhamentoCusto(id) {
       + '<option value="recheio2"' + (recheioRepetido==='recheio2'?' selected':'') + '>' + p.recheio2 + ' (2x)</option>'
       + '</select></div>';
   }
-  if (p.recheio1) html += linhaAuto('Recheio 1 (' + p.recheio1 + ', ' + camadasRecheio1 + 'x)', custoRecheio1);
-  if (p.recheio2) html += linhaAuto('Recheio 2 (' + p.recheio2 + ', ' + camadasRecheio2 + 'x)', custoRecheio2);
+  if (p.recheio1) html += linhaAutoExpandivel('Recheio 1 (' + p.recheio1 + ', ' + camadasRecheio1 + 'x)', custoRecheio1, recheio1Resolvido.nome, recheio1Resolvido.mult, 'expand-recheio1-'+id, camadasRecheio1);
+  if (p.recheio2) html += linhaAutoExpandivel('Recheio 2 (' + p.recheio2 + ', ' + camadasRecheio2 + 'x)', custoRecheio2, recheio2Resolvido.nome, recheio2Resolvido.mult, 'expand-recheio2-'+id, camadasRecheio2);
   itensVinculados.forEach(function(v){
     if (v.custo > 0) html += linhaAuto(v.nomeReceita + ' (' + v.camadas + 'x)', v.custo * v.camadas);
   });
