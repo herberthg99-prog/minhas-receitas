@@ -63,6 +63,22 @@ function fmtQtd(q, unit) {
   return semZeroDecimal(q, 3) + ' ' + (unit||'');
 }
 
+// ═══════ STORAGE (FOTOS) ═══════
+// Faz upload de um arquivo de foto para o bucket "receitas-fotos" do Supabase Storage e
+// retorna a URL pública (curta, ex: https://...supabase.co/storage/v1/object/public/receitas-fotos/foto_123.jpg).
+// Usa nome único por timestamp+random para nunca colidir entre receitas diferentes.
+// Substitui o uso de base64 embutido no array `photos`, que causava timeout nas queries.
+async function uploadFotoParaStorage(file) {
+  const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop().toLowerCase() : 'jpg';
+  const nomeArquivo = 'foto_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+  const { data, error } = await sb.storage
+    .from('receitas-fotos')
+    .upload(nomeArquivo, file, { cacheControl: '3600', upsert: false });
+  if (error) throw error;
+  const { data: urlData } = sb.storage.from('receitas-fotos').getPublicUrl(nomeArquivo);
+  return urlData.publicUrl;
+}
+
 // ═══════ CLOUD ═══════
 async function loadFromCloud() {
   setSyncStatus('syncing', 'carregando...');
@@ -870,8 +886,9 @@ function multiplicadorAro_porPeso(aro, valorPeso) {
 // Abre uma receita (pelo ID) já no modo de duplicação — usado pelo botão "Duplicar" do
 // card na lista de Receitas, sem precisar passar pela tela de edição primeiro.
 // Abre o seletor de arquivo direto do card de Receitas, sem precisar abrir o formulário de
-// edição completo. Adiciona a foto escolhida à lista de fotos da receita (a primeira foto
-// vira capa automaticamente) e salva direto no Supabase.
+// edição completo. Faz upload da foto escolhida para o Supabase Storage (em vez de
+// converter para base64) e adiciona a URL pública à lista de fotos da receita — a primeira
+// foto vira capa automaticamente. Salva direto no Supabase ao final do upload.
 function abrirSeletorFotoCard(id) {
   const input = document.createElement('input');
   input.type = 'file';
@@ -880,13 +897,13 @@ function abrirSeletorFotoCard(id) {
   input.onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
-      const r = recipes.find(function(x){ return x.id === id; });
-      if (!r) return;
+    const r = recipes.find(function(x){ return x.id === id; });
+    if (!r) return;
+
+    toast('Enviando foto...');
+    uploadFotoParaStorage(file).then(async function(url) {
       if (!r.photos) r.photos = [];
-      r.photos.push(ev.target.result);
-      toast('Salvando foto...');
+      r.photos.push(url);
       const resultado = await saveToCloud(r);
       if (resultado.ok) {
         renderRecipes();
@@ -894,8 +911,9 @@ function abrirSeletorFotoCard(id) {
       } else {
         toast('⚠️ Erro ao salvar foto: ' + (resultado.error?.message || 'sem conexão'));
       }
-    };
-    reader.readAsDataURL(file);
+    }).catch(function(err) {
+      toast('⚠️ Erro ao enviar foto: ' + (err.message || 'sem conexão'), 4000);
+    });
   };
   input.click();
 }
@@ -1142,11 +1160,22 @@ async function pedirComentario() {
   finally { bar.style.display='none'; }
 }
 
+// Faz upload da foto escolhida para o Supabase Storage (bucket receitas-fotos) e adiciona
+// a URL pública retornada à lista de fotos em memória da receita sendo editada. Substitui
+// o uso de FileReader/base64, que deixava o array `photos` pesado o suficiente para causar
+// timeout nas queries de listagem de receitas.
 function addRecipePhoto(e) {
   const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { curPhotos.push(ev.target.result); renderRecipePhotosGrid(); };
-  reader.readAsDataURL(file); e.target.value='';
+  e.target.value = ''; // libera o input já, antes do upload terminar
+
+  toast('Enviando foto...');
+  uploadFotoParaStorage(file).then(function(url) {
+    curPhotos.push(url);
+    renderRecipePhotosGrid();
+    toast('✅ Foto enviada!');
+  }).catch(function(err) {
+    toast('⚠️ Erro ao enviar foto: ' + (err.message || 'sem conexão'), 4000);
+  });
 }
 function remRecipePhoto(i) { curPhotos.splice(i,1); renderRecipePhotosGrid(); }
 function renderRecipePhotosGrid() {
