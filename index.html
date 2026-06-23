@@ -731,14 +731,14 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:8px">Adicionais</label>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
-            <div><div style="font-size:14px;font-weight:700">💐 Flores</div><div style="font-size:12px;color:var(--text2)">R$ 50,00</div></div>
+            <div><div style="font-size:14px;font-weight:700">💐 Flores</div><div style="font-size:12px;color:var(--text2)" id="txt-flores-valor">R$ 50,00</div></div>
             <div style="display:flex;gap:8px">
               <button id="btn-flores-sim" onclick="setFlores(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
               <button id="btn-flores-nao" onclick="setFlores(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
             </div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
-            <div><div style="font-size:14px;font-weight:700">🎨 Papelaria</div><div style="font-size:12px;color:var(--text2)">R$ 35,00</div></div>
+            <div><div style="font-size:14px;font-weight:700">🎨 Papelaria</div><div style="font-size:12px;color:var(--text2)" id="txt-papelaria-valor">R$ 35,00</div></div>
             <div style="display:flex;gap:8px">
               <button id="btn-papel-sim" onclick="setPapelaria(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
               <button id="btn-papel-nao" onclick="setPapelaria(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
