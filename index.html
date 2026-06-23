@@ -362,8 +362,9 @@ button{font-family:inherit;cursor:pointer}
   grid-template-columns: 1fr;
   gap: 16px;
 }
-@media (min-width: 700px)  { .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); } }
-@media (min-width: 1400px) { .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
+@media (min-width: 700px)  { .recipes-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .recipes-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1500px) { .recipes-grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* ── CARD DE RECEITA PREMIUM ── */
 .rc-card-premium {
@@ -1101,7 +1102,7 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=49"></script>
+<script src="js/app-core.js?v=50"></script>
 <script src="js/app-features.js?v=38"></script>
 <script src="js/version.js?v=19"></script>
 
