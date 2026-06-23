@@ -1197,6 +1197,12 @@ function abrirDetalhamentoCusto(id) {
   if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
   if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
   if (p.papelaria) html += linhaEditavel('Custo real da papelaria (cobrado R$ ' + (sucreeConfig.papelariaValor||35).toFixed(2) + ')', 'dc-papelaria', p.custoRealPapelaria);
+  html += '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio adicional manual (caso especial, além das 3 camadas padrão)</label>'
+    + '<input type="text" id="dc-recheio-extra-nome" value="' + (p.recheioExtraNome||'').replace(/"/g,'&quot;') + '" placeholder="Nome do recheio (deixe em branco se não houver)" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px;margin-bottom:6px">'
+    + '<div style="display:flex;gap:6px">'
+    + '<input type="number" id="dc-recheio-extra-qtd" value="' + (p.recheioExtraQtd??'') + '" min="0" placeholder="Qtd (g)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+    + '<input type="number" id="dc-recheio-extra-custo" value="' + (p.recheioExtraCusto??'') + '" min="0" step="0.01" placeholder="Custo (R$)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+    + '</div></div>';
   html += linhaEditavel('Mão de obra extra (além da padrão já calculada acima)', 'dc-maoobra', p.custoMaoObra);
 
   html += '<div id="dc-resultado" style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(212,162,74,.1);border:1px solid var(--gold)"></div>';
@@ -1207,7 +1213,7 @@ function abrirDetalhamentoCusto(id) {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
     const tipoCaldaSel = document.getElementById('dc-tipocalda')?.value || '';
     const custoCalda = tipoCaldaSel ? getCustoCaldaAro(tipoCaldaSel, aro, p.massa) : 0;
-    const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-maoobra');
+    const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-recheio-extra-custo') + g('dc-maoobra');
     const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoChocNobre + custoCoberturaAuto + op + manualTotal;
     const valorTotal = parseFloat(p.valorTotal||0);
     const lucro = valorTotal - custoTotal;
@@ -1219,7 +1225,7 @@ function abrirDetalhamentoCusto(id) {
       + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Lucro estimado</span><span style="font-weight:800;color:'+(lucro>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucro.toFixed(2)+' ('+margemPct.toFixed(0)+'%)</span></div>';
   }
   setTimeout(function(){
-    ['dc-tipocalda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-papelaria','dc-maoobra'].forEach(function(idc){
+    ['dc-tipocalda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-papelaria','dc-recheio-extra-qtd','dc-recheio-extra-custo','dc-maoobra'].forEach(function(idc){
       const el = document.getElementById(idc);
       if (el) el.addEventListener('input', recalcular);
       if (el) el.addEventListener('change', recalcular);
@@ -1242,6 +1248,9 @@ function abrirDetalhamentoCusto(id) {
     if (p.topo) p.custoRealTopo = g('dc-topo');
     if (p.flores) p.custoRealFlores = g('dc-flores');
     if (p.papelaria) p.custoRealPapelaria = g('dc-papelaria');
+    p.recheioExtraNome = (document.getElementById('dc-recheio-extra-nome')?.value || '').trim() || null;
+    p.recheioExtraQtd = g('dc-recheio-extra-qtd') || null;
+    p.recheioExtraCusto = g('dc-recheio-extra-custo') || null;
     p.custoMaoObra = g('dc-maoobra');
     savePedidos();
     try {
@@ -1251,6 +1260,7 @@ function abrirDetalhamentoCusto(id) {
         custo_cakeboard: p.custoCakeboard, custo_caixa: p.custoCaixa,
         custo_real_topo: p.custoRealTopo ?? null, custo_real_flores: p.custoRealFlores ?? null,
         custo_real_papelaria: p.custoRealPapelaria ?? null,
+        recheio_extra_nome: p.recheioExtraNome, recheio_extra_qtd: p.recheioExtraQtd, recheio_extra_custo: p.recheioExtraCusto,
         custo_mao_obra: p.custoMaoObra
       }).eq('id', id).then(function(){});
     } catch(e) {}
@@ -1371,8 +1381,6 @@ let sucreeConfig = {
     caldaAroChiffon: { 10:60, 15:240, 20:360, 25:600, 30:840   },
     coberturaAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
     chantillyAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
-    vezesReceitaAmanteigada: { 10:0.5, 15:1, 20:1.5, 25:2.5, 30:3.5 },
-    vezesReceitaChiffon: {},
     margemLucro:30, valorHora:25, indiretoPct:15, margemNegocio:30
   }
 };
@@ -1529,28 +1537,6 @@ function renderConfigPage() {
     </div>
 
     <div class="card" style="margin-bottom:12px">
-      <div class="st"><i class="ti ti-repeat"></i> Quantas vezes fazer a receita de massa, por aro</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Usado na Ficha Técnica de produção para a cozinha. Ex: aro 20 = 1,5 → fazer a receita de massa 1 vez e meia.</div>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:var(--bg)">
-            <th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Aro</th>
-            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Amanteigada</th>
-            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Chiffon / Pão de Ló</th>
-          </tr></thead>
-          <tbody>
-            ${[10,15,20,25,30].map(aro => `
-            <tr>
-              <td style="padding:6px;border-bottom:1px solid var(--border);font-weight:700">${aro} cm</td>
-              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.vezesReceitaAmanteigada||{})[aro]??''}" min="0" step="0.5" id="qtd-vezes-amant-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="x"></td>
-              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.vezesReceitaChiffon||{})[aro]??''}" min="0" step="0.5" id="qtd-vezes-chiffon-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="x"></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-cash"></i> Valores de adicionais</div>
       <div class="fg"><label>💐 Flores (R$)</label><input type="number" id="cfg-flores-valor" value="${sucreeConfig.floresValor||50}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.floresValor=parseFloat(this.value)||50"></div>
       <div class="fg"><label>🎨 Papelaria (R$)</label><input type="number" id="cfg-papelaria-valor" value="${sucreeConfig.papelariaValor||35}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.papelariaValor=parseFloat(this.value)||35"></div>
@@ -1601,21 +1587,15 @@ function salvarConfig() {
   if (!sucreeConfig.custos.caldaAro) sucreeConfig.custos.caldaAro = {};
   if (!sucreeConfig.custos.caldaAroChiffon) sucreeConfig.custos.caldaAroChiffon = {};
   if (!sucreeConfig.custos.coberturaAro) sucreeConfig.custos.coberturaAro = {};
-  if (!sucreeConfig.custos.vezesReceitaAmanteigada) sucreeConfig.custos.vezesReceitaAmanteigada = {};
-  if (!sucreeConfig.custos.vezesReceitaChiffon) sucreeConfig.custos.vezesReceitaChiffon = {};
   [10,15,20,25,30].forEach(function(aro){
     var elMassa = document.getElementById('qtd-massa-'+aro);
     var elCalda = document.getElementById('qtd-calda-'+aro);
     var elCaldaChiffon = document.getElementById('qtd-calda-chiffon-'+aro);
     var elCobertura = document.getElementById('qtd-cobertura-'+aro);
-    var elVezesAmant = document.getElementById('qtd-vezes-amant-'+aro);
-    var elVezesChiffon = document.getElementById('qtd-vezes-chiffon-'+aro);
     if (elMassa && elMassa.value) { if (typeof ARO_MASSA_G !== 'undefined') ARO_MASSA_G[aro] = parseFloat(elMassa.value)||0; }
     if (elCalda) sucreeConfig.custos.caldaAro[aro] = parseFloat(elCalda.value)||0;
     if (elCaldaChiffon) sucreeConfig.custos.caldaAroChiffon[aro] = parseFloat(elCaldaChiffon.value)||0;
     if (elCobertura) sucreeConfig.custos.coberturaAro[aro] = parseFloat(elCobertura.value)||0;
-    if (elVezesAmant && elVezesAmant.value !== '') sucreeConfig.custos.vezesReceitaAmanteigada[aro] = parseFloat(elVezesAmant.value)||0;
-    if (elVezesChiffon && elVezesChiffon.value !== '') sucreeConfig.custos.vezesReceitaChiffon[aro] = parseFloat(elVezesChiffon.value)||0;
   });
   saveConfig();
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
@@ -1694,13 +1674,13 @@ function gerarFichaTecnicaProducaoHtml(p) {
   const massaTotal = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : 0) || 0;
   const massaNome = (p.massa || '').toLowerCase();
   const ehChiffon = massaNome.indexOf('chiffon') >= 0 || massaNome.indexOf('pão de ló') >= 0 || massaNome.indexOf('fofinha') >= 0;
-  const tabelaVezes = ehChiffon ? (sucreeConfig.custos?.vezesReceitaChiffon || {}) : (sucreeConfig.custos?.vezesReceitaAmanteigada || {});
-  const vezesReceita = tabelaVezes[aro];
+  const recMassa = p.massa ? (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return (r.name||'').trim().toLowerCase() === p.massa.trim().toLowerCase(); }) : null;
+  const vezesReceita = (recMassa && recMassa.multiplicadorAro) ? recMassa.multiplicadorAro[aro] : null;
   html += row('Massa total necessária', massaTotal ? (massaTotal + 'g') : '—');
   if (vezesReceita) {
     html += row('Vezes a receita', vezesReceita + 'x' + (ehChiffon ? ' (Chiffon/Pão de Ló)' : ' (Amanteigada)'));
   } else {
-    html += '<div style="padding:6px 0;font-size:11px;color:#c0392b;font-style:italic">⚠️ Quantidade de vezes da receita não configurada para este tipo de massa/aro — confira manualmente.</div>';
+    html += '<div style="padding:6px 0;font-size:11px;color:#c0392b;font-style:italic">⚠️ Multiplicador por aro não configurado nesta receita de massa — confira em Receitas → ' + escapeHtml(p.massa||'') + '.</div>';
   }
   if (massaTotal) html += row('Por forma (2 formas)', Math.ceil(massaTotal/2) + 'g cada');
   html += row('Discos após assar', '4 discos (corte cada forma ao meio)');
@@ -1728,6 +1708,10 @@ function gerarFichaTecnicaProducaoHtml(p) {
         html += row(nomeChoc + ' (' + item.camadas + 'x)', (choc.qtd*item.camadas) + 'g (' + choc.qtd + 'g/camada)');
       }
     });
+  }
+
+  if (p.recheioExtraNome) {
+    html += row('Recheio adicional (caso especial)', p.recheioExtraNome + (p.recheioExtraQtd ? ' — ' + p.recheioExtraQtd + 'g' : ''));
   }
 
   // 3) Calda total (por disco × 4 discos)
