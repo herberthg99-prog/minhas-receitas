@@ -318,18 +318,35 @@ function applyEstoqueToRecipes() {
   return updated;
 }
 
+const PRAZO_VALIDADE_PRECO_DIAS = 45;
+
+function precoVencido(ig) {
+  if (!ig.updatedAt) return true; // nunca atualizado conta como vencido também
+  const dias = (Date.now() - new Date(ig.updatedAt).getTime()) / (1000*60*60*24);
+  return dias > PRAZO_VALIDADE_PRECO_DIAS;
+}
+
+function setEstoqueFiltro(f) {
+  window._estoqueFiltro = f;
+  renderEstoque();
+}
+
 function renderEstoque() {
   syncEstoqueFromRecipes();
   const el = document.getElementById('page-estoque');
-  const keys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
-  const total = keys.length;
-  const semPreco = keys.filter(k => !estoque[k].price || estoque[k].price === 0).length;
+  const allKeys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
+  const total = allKeys.length;
+  const semPreco = allKeys.filter(k => !estoque[k].price || estoque[k].price === 0);
+  const vencidos = allKeys.filter(k => (estoque[k].price && estoque[k].price > 0) && precoVencido(estoque[k]));
+
+  const filtro = window._estoqueFiltro || 'todos';
+  const keys = filtro === 'sem_preco' ? semPreco : (filtro === 'vencido' ? vencidos : allKeys);
 
   el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
       <div>
         <div style="font-size:16px;font-weight:700">${total} ingrediente(s)</div>
-        <div style="font-size:12px;color:var(--text2)">${semPreco} sem preço · <span id="sel-count">0</span> selecionado(s)</div>
+        <div style="font-size:12px;color:var(--text2)">${semPreco.length} sem preço · ${vencidos.length} com preço vencido (45+ dias) · <span id="sel-count">0</span> selecionado(s)</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btng" id="btn-upd-estoque" onclick="atualizarEstoqueIASelecionados()" style="font-size:12px;padding:8px 12px">
@@ -340,13 +357,17 @@ function renderEstoque() {
         </button>
       </div>
     </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <button class="rb ${filtro==='todos'?'rb-active':''}" onclick="setEstoqueFiltro('todos')" style="font-size:12px">Todos (${total})</button>
+      <button class="rb ${filtro==='sem_preco'?'rb-active':''}" onclick="setEstoqueFiltro('sem_preco')" style="font-size:12px;${semPreco.length?'color:#c0392b':''}"><i class="ti ti-alert-circle"></i> Sem preço (${semPreco.length})</button>
+      <button class="rb ${filtro==='vencido'?'rb-active':''}" onclick="setEstoqueFiltro('vencido')" style="font-size:12px;${vencidos.length?'color:#c0392b':''}"><i class="ti ti-clock-exclamation"></i> Vencidos 45+ dias (${vencidos.length})</button>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <button class="rb" onclick="toggleSelectAll(true)" style="font-size:12px"><i class="ti ti-checkbox"></i> Selecionar todos</button>
+      <button class="rb" onclick="toggleSelectAll(true)" style="font-size:12px"><i class="ti ti-checkbox"></i> Selecionar todos (filtro atual)</button>
       <button class="rb" onclick="toggleSelectAll(false)" style="font-size:12px"><i class="ti ti-square"></i> Desmarcar todos</button>
-      <button class="rb" onclick="selectSemPreco()" style="font-size:12px"><i class="ti ti-alert-circle"></i> Sem preço</button>
     </div>
     <div id="ai-estoque-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span id="ai-estoque-msg">Buscando preços no ES...</span></div>
-    ${!keys.length ? '<div class="est"><i class="ti ti-package"></i><p>Nenhum ingrediente ainda.</p></div>' :
+    ${!keys.length ? '<div class="est"><i class="ti ti-package"></i><p>' + (filtro==='todos' ? 'Nenhum ingrediente ainda.' : 'Nenhum item neste filtro. 🎉') + '</p></div>' :
       keys.map(k => renderEstoqueItem(k)).join('')
     }`;
 }
@@ -355,6 +376,7 @@ function renderEstoqueItem(key) {
   const ig = estoque[key];
   const priceKg = ig.price ? (ig.price * 1000).toFixed(2) : '';
   const updStr = ig.updatedAt ? new Date(ig.updatedAt).toLocaleDateString('pt-BR') : null;
+  const vencido = (ig.price && ig.price > 0) && precoVencido(ig);
   let estoqueSelected = window._estoqueSelected || new Set();
   window._estoqueSelected = estoqueSelected;
   const isChecked = estoqueSelected.has(key);
@@ -368,6 +390,7 @@ function renderEstoqueItem(key) {
           <div class="estoque-item-meta">
             <span>${ig.unit || 'g'}</span>
             ${updStr ? `<span><i class="ti ti-clock" style="font-size:10px"></i> ${updStr}</span>` : '<span class="estoque-badge-new">Sem atualização</span>'}
+            ${vencido ? `<span class="estoque-badge" style="background:rgba(192,57,43,.15);color:#c0392b;border-color:rgba(192,57,43,.4)"><i class="ti ti-clock-exclamation" style="font-size:10px"></i> Vencido (45+ dias)</span>` : ''}
             ${ig.usedIn && ig.usedIn.length ? `<span class="estoque-badge">${ig.usedIn.length} receita(s)</span>` : ''}
           </div>
           ${ig.usedIn && ig.usedIn.length ? `<div class="estoque-item-recipes"><i class="ti ti-book" style="font-size:10px"></i> ${ig.usedIn.slice(0,3).join(', ')}${ig.usedIn.length > 3 ? '...' : ''}</div>` : ''}
@@ -676,12 +699,28 @@ function calcCustoOperacionalDetalhado(aro) {
   var emb  = ((c.embalagemAro||{})[aro] !== undefined ? (c.embalagemAro||{})[aro] : c.embalagem ?? 15);
   var tab  = ((c.tabuaAro||{})[aro]     !== undefined ? (c.tabuaAro||{})[aro]     : c.tabua     ?? 3);
   var acessorios = c.acessorios||2;
-  var energia = c.energia||8;
-  var gas = c.gas||5;
   var limpeza = c.limpeza||3;
   var mdo  = (c.maoDeObra||{})[aro] || 0;
-  var total = emb + tab + acessorios + energia + gas + limpeza + mdo;
-  return { embalagem: emb, tabua: tab, acessorios: acessorios, energia: energia, gas: gas, limpeza: limpeza, maoDeObra: mdo, total: total };
+  var total = emb + tab + acessorios + limpeza + mdo;
+  return { embalagem: emb, tabua: tab, acessorios: acessorios, limpeza: limpeza, maoDeObra: mdo, total: total };
+}
+
+// Custo TOTAL de uma receita (ingredientes + indireto + mão de obra do tempo de preparo
+// daquela receita específica) — a mesma fórmula usada no card "Custo & Precificação" da
+// tela de visualização da receita. Usado no Detalhamento de Custo do pedido para Massa,
+// Recheio e Calda, em vez de considerar só o custo de ingredientes.
+function getCustoTotalReceita(rec) {
+  if (!rec) return 0;
+  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
+  if (!p) return 0;
+  var cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  var valorHora = cfg.valorHora || 25;
+  var indiretoPct = cfg.indiretoPct || 15;
+  var horas = (rec.time || 60) / 60;
+  var custoIngr = p.cost;
+  var custoIndireto = custoIngr * indiretoPct / 100;
+  var custoMdo = horas * valorHora;
+  return custoIngr + custoIndireto + custoMdo;
 }
 
 function getCustoMassaAro(nomeMassa, aro) {
@@ -691,11 +730,11 @@ function getCustoMassaAro(nomeMassa, aro) {
   if (!receitaNome) return 0;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
-  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost) return 0;
+  var custoTotalReceita = getCustoTotalReceita(rec);
+  if (!custoTotalReceita) return 0;
   var pesoBase = rec.pesoTotal || rec.yield_qty; // usa peso em gramas se cadastrado, senão cai no rendimento (pode estar em porções)
   if (!pesoBase) return 0;
-  var custoPorGrama = p.cost / pesoBase;
+  var custoPorGrama = custoTotalReceita / pesoBase;
   var gramasNecessarias = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : null) || 900;
   return custoPorGrama * gramasNecessarias;
 }
@@ -720,11 +759,11 @@ function getCustoChocNobreAro(nomeRecheio, aro) {
   var receitaNome = tipo === 'branco' ? (vincs.chocNobreBranco || 'Chocolate Nobre Branco') : (vincs.chocNobreMeioAmargo || 'Chocolate Nobre Meio Amargo');
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
-  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  var custoTotalReceita = getCustoTotalReceita(rec);
+  if (!custoTotalReceita) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   if (!pesoBase) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
-  return { custo: (p.cost / pesoBase) * qtd, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  return { custo: (custoTotalReceita / pesoBase) * qtd, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
 }
 
 function getCustoRecheioAro(nomeRecheio, aro) {
@@ -734,11 +773,11 @@ function getCustoRecheioAro(nomeRecheio, aro) {
   if (!receitaNome) return 0;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
-  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost) return 0;
+  var custoTotalReceita = getCustoTotalReceita(rec);
+  if (!custoTotalReceita) return 0;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   if (!pesoBase) return 0;
-  var custoPorGrama = p.cost / pesoBase;
+  var custoPorGrama = custoTotalReceita / pesoBase;
   // Busca a quantidade específica cadastrada para ESTE recheio (qtdAro), com fallback pro valor genérico antigo
   var qtdAro = 0;
   try {
@@ -747,7 +786,7 @@ function getCustoRecheioAro(nomeRecheio, aro) {
     if (recheioCfg && recheioCfg.qtdAro && recheioCfg.qtdAro[aro]) qtdAro = recheioCfg.qtdAro[aro];
   } catch(e) {}
   if (!qtdAro) qtdAro = (sucreeConfig.custos?.recheioAro || {})[aro] || 0;
-  if (!qtdAro) return p.cost;
+  if (!qtdAro) return custoTotalReceita;
   return custoPorGrama * qtdAro;
 }
 
@@ -756,8 +795,8 @@ function getCustoCaldaAro(tipocalda, aro, tipoMassa) {
   var receitaNome = tipocalda === 'chocolate' ? (vincs.caldaChoco || 'Calda de Chocolate') : (vincs.caldaBranca || 'Calda Branca de Ninho');
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
-  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost) return 0;
+  var custoTotalReceita = getCustoTotalReceita(rec);
+  if (!custoTotalReceita) return 0;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   if (!pesoBase) return 0;
   // Detecta se é massa tipo Chiffon (Pão de ló) para usar quantidade de calda diferente
@@ -765,7 +804,7 @@ function getCustoCaldaAro(tipocalda, aro, tipoMassa) {
   var grupoCalda = ehChiffon ? 'caldaAroChiffon' : 'caldaAro';
   var qtdAro = (sucreeConfig.custos?.[grupoCalda] || {})[aro] || (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
   if (!qtdAro) return 0;
-  return (p.cost / pesoBase) * qtdAro;
+  return (custoTotalReceita / pesoBase) * qtdAro;
 }
 
 function getCustoChantillyAro(aro) {
@@ -778,13 +817,13 @@ function getCustoButtercreamAro(aro) {
   var receitaNome = vincs.buttercream || 'Buttercream';
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
-  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
-  if (!p || !p.cost) return 0;
+  var custoTotalReceita = getCustoTotalReceita(rec);
+  if (!custoTotalReceita) return 0;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   if (!pesoBase) return 0;
   var qtdAro = (sucreeConfig.custos?.coberturaAro || {})[aro] || (sucreeConfig.custos?.chantillyAro||{})[aro] || 0;
   if (!qtdAro) return 0;
-  return (p.cost / pesoBase) * qtdAro;
+  return (custoTotalReceita / pesoBase) * qtdAro;
 }
 
 function calcPedidoTotal() {
@@ -1175,10 +1214,8 @@ function abrirDetalhamentoCusto(id) {
   html += linhaSub('Embalagem', opDetalhado.embalagem);
   html += linhaSub('Tábua/cakeboard', opDetalhado.tabua);
   html += linhaSub('Acessórios', opDetalhado.acessorios);
-  html += linhaSub('Energia', opDetalhado.energia);
-  html += linhaSub('Gás', opDetalhado.gas);
-  html += linhaSub('Limpeza', opDetalhado.limpeza);
-  html += linhaSub('Mão de obra (padrão por aro)', opDetalhado.maoDeObra);
+  html += linhaSub('Limpeza (água/material)', opDetalhado.limpeza);
+  html += linhaSub('Mão de obra de finalização (montagem/decoração)', opDetalhado.maoDeObra);
 
   function selectCalda(label, id_, valorAtual) {
     return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
@@ -1537,6 +1574,27 @@ function renderConfigPage() {
     </div>
 
     <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-hand-finger"></i> Mão de obra de finalização, por aro</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Representa só o trabalho de MONTAR/DECORAR o bolo pronto (não inclui fazer massa, recheio ou calda — isso já está embutido no custo de cada receita).</div>
+      <div style="font-size:11px;color:#c0392b;margin-bottom:10px;line-height:1.4">⚠️ Os valores abaixo ainda podem estar com o padrão antigo (R$40 a R$130), que representava o trabalho completo. Revise e diminua para refletir só a finalização.</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--bg)">
+            <th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Aro</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Mão de obra (R$)</th>
+          </tr></thead>
+          <tbody>
+            ${[10,15,20,25,30].map(aro => `
+            <tr>
+              <td style="padding:6px;border-bottom:1px solid var(--border);font-weight:700">${aro} cm</td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.maoDeObra||{})[aro]??''}" min="0" step="0.01" id="qtd-maoobra-${aro}" style="width:72px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="R$"></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-cash"></i> Valores de adicionais</div>
       <div class="fg"><label>💐 Flores (R$)</label><input type="number" id="cfg-flores-valor" value="${sucreeConfig.floresValor||50}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.floresValor=parseFloat(this.value)||50"></div>
       <div class="fg"><label>🎨 Papelaria (R$)</label><input type="number" id="cfg-papelaria-valor" value="${sucreeConfig.papelariaValor||35}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.papelariaValor=parseFloat(this.value)||35"></div>
@@ -1587,15 +1645,18 @@ function salvarConfig() {
   if (!sucreeConfig.custos.caldaAro) sucreeConfig.custos.caldaAro = {};
   if (!sucreeConfig.custos.caldaAroChiffon) sucreeConfig.custos.caldaAroChiffon = {};
   if (!sucreeConfig.custos.coberturaAro) sucreeConfig.custos.coberturaAro = {};
+  if (!sucreeConfig.custos.maoDeObra) sucreeConfig.custos.maoDeObra = {};
   [10,15,20,25,30].forEach(function(aro){
     var elMassa = document.getElementById('qtd-massa-'+aro);
     var elCalda = document.getElementById('qtd-calda-'+aro);
     var elCaldaChiffon = document.getElementById('qtd-calda-chiffon-'+aro);
     var elCobertura = document.getElementById('qtd-cobertura-'+aro);
+    var elMaoObra = document.getElementById('qtd-maoobra-'+aro);
     if (elMassa && elMassa.value) { if (typeof ARO_MASSA_G !== 'undefined') ARO_MASSA_G[aro] = parseFloat(elMassa.value)||0; }
     if (elCalda) sucreeConfig.custos.caldaAro[aro] = parseFloat(elCalda.value)||0;
     if (elCaldaChiffon) sucreeConfig.custos.caldaAroChiffon[aro] = parseFloat(elCaldaChiffon.value)||0;
     if (elCobertura) sucreeConfig.custos.coberturaAro[aro] = parseFloat(elCobertura.value)||0;
+    if (elMaoObra) sucreeConfig.custos.maoDeObra[aro] = parseFloat(elMaoObra.value)||0;
   });
   saveConfig();
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
@@ -1698,6 +1759,17 @@ function gerarFichaTecnicaProducaoHtml(p) {
     const qtdUnico = recheioRepetido === 'recheio2' ? qtdRecheio1 : qtdRecheio2;
     if (nomeRepetido) html += row('Recheio (2 camadas)', nomeRepetido + (qtdRepetido ? ' — ' + qtdRepetido + 'g por camada (' + (qtdRepetido*2) + 'g total)' : ''));
     if (nomeUnico) html += row('Recheio (1 camada)', nomeUnico + (qtdUnico ? ' — ' + qtdUnico + 'g' : ''));
+
+    // Quantas vezes fazer a receita de cada recheio (peso total necessário ÷ pesoTotal da receita)
+    [{nome: nomeRepetido, qtdCamada: qtdRepetido, camadas: 2}, {nome: nomeUnico, qtdCamada: qtdUnico, camadas: 1}].forEach(function(item){
+      if (!item.nome || !item.qtdCamada) return;
+      const recR = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === item.nome; });
+      const pesoBaseR = recR ? (recR.pesoTotal || recR.yield_qty) : 0;
+      if (!pesoBaseR) return;
+      const totalNecessario = item.qtdCamada * item.camadas;
+      const vezes = totalNecessario / pesoBaseR;
+      html += row('Vezes a receita — ' + item.nome, Number(vezes.toFixed(2)) + 'x (' + totalNecessario + 'g necessários)');
+    });
 
     // Chocolate nobre companheiro de cada camada
     [{nome: p.recheio1, camadas: recheioRepetido==='recheio1'?2:1}, {nome: p.recheio2, camadas: recheioRepetido==='recheio2'?2:1}].forEach(function(item){
@@ -1971,7 +2043,11 @@ function updateSelCount() {
 }
 
 function toggleSelectAll(val) {
-  const keys = Object.keys(estoque);
+  const allKeys = Object.keys(estoque);
+  const filtro = window._estoqueFiltro || 'todos';
+  const keys = filtro === 'sem_preco' ? allKeys.filter(k => !estoque[k].price || estoque[k].price === 0)
+    : (filtro === 'vencido' ? allKeys.filter(k => (estoque[k].price && estoque[k].price > 0) && precoVencido(estoque[k]))
+    : allKeys);
   window._estoqueSelected = val ? new Set(keys) : new Set();
   renderEstoque();
 }
