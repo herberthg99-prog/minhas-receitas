@@ -11,6 +11,7 @@ localStorage.setItem('mr_user_id', USER_ID);
 let recipes = [];
 let shareConfig = { pwd: '', sharedIds: [] };
 let editId = null, curIngr = [], curPhotos = [], curFormas = [], formasEnabled = false;
+let curMultiplicadorAro = {};
 let newMode = null, fotoB64 = null, viewState = {}, rmap = {};
 let syncPending = false;
 window._currentSubGrp = ''; // active sub-aba group filter
@@ -134,6 +135,7 @@ function localToDb(r) {
     name: r.name, cat: r.cat, recipe_group: r.group || null,
     unit: r.unit, yield_qty: r.yield_qty || r.yield || 6,
     peso_total: r.pesoTotal || null,
+    multiplicador_aro: r.multiplicadorAro ? JSON.stringify(r.multiplicadorAro) : null,
     time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
     preparo: r.preparo || '', comment: r.comment || '',
     usa_panela_mexedora: r.usaPanelaMexedora || false,
@@ -152,6 +154,7 @@ function dbToLocal(row) {
     id: row.id, name: row.name, cat: row.cat, group: row.recipe_group || '',
     unit: row.unit || 'porção', yield_qty: row.yield_qty || 6, yield: row.yield_qty || 6,
     pesoTotal: row.peso_total || null,
+    multiplicadorAro: (function(){ try { return row.multiplicador_aro ? JSON.parse(row.multiplicador_aro) : null; } catch(e) { return null; } })(),
     time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
     preparo: row.preparo || '', comment: row.comment || '',
     usaPanelaMexedora: row.usa_panela_mexedora || false,
@@ -652,6 +655,30 @@ function togglePanelaMexedora() {
   document.getElementById('panela-mexedora-box').style.display = checked ? 'block' : 'none';
 }
 
+// Renderiza a tabela de "Multiplicador por aro" dentro do formulário de receita,
+// calculando peso (pesoTotal × multiplicador) e custo (custo da receita × multiplicador)
+// em tempo real, a partir dos valores já digitados em curMultiplicadorAro.
+function atualizarMultiplicadorAroPreview() {
+  const tbody = document.getElementById('multiplicador-aro-tbody');
+  if (!tbody) return;
+  const pesoTotal = parseFloat(document.getElementById('fpesoTotal')?.value) || 0;
+  const custoReceita = typeof totIC === 'function' ? totIC(curIngr) : 0;
+  tbody.innerHTML = [10,15,20,25,30].map(function(aro){
+    const mult = curMultiplicadorAro[aro];
+    const peso = (mult && pesoTotal) ? (pesoTotal * mult) : null;
+    const custo = (mult && custoReceita) ? (custoReceita * mult) : null;
+    return '<tr>'
+      + '<td style="padding:5px;border-bottom:1px solid var(--border);font-weight:700">'+aro+' cm</td>'
+      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:center">'
+        + '<input type="number" value="'+(mult??'')+'" min="0" step="0.1" placeholder="x" id="fmult-'+aro+'" '
+        + 'style="width:56px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)" '
+        + 'oninput="curMultiplicadorAro['+aro+']=parseFloat(this.value)||null;atualizarMultiplicadorAroPreview()"></td>'
+      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--text2)">'+(peso!=null?Math.ceil(peso)+'g':'—')+'</td>'
+      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--gold)">'+(custo!=null?'R$ '+custo.toFixed(2):'—')+'</td>'
+      + '</tr>';
+  }).join('');
+}
+
 function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   editId = null; curIngr = pre?.ingredients || []; curPhotos = []; curFormas = []; formasEnabled = false;
   document.getElementById('edit-title').textContent = 'Nova receita';
@@ -670,7 +697,9 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   document.getElementById('fpanela-vel').value = '';
   document.getElementById('panela-mexedora-box').style.display = 'none';
   document.getElementById('recipe-photos-grid').innerHTML = '';
+  curMultiplicadorAro = pre?.multiplicadorAro ? {...pre.multiplicadorAro} : {};
   renderIngrTable(); renderFormas(); updateFormaToggle(); checkFormaTab(); st2(0);
+  atualizarMultiplicadorAroPreview();
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   document.getElementById('modal-edit').style.display = 'flex';
 }
@@ -697,7 +726,9 @@ function openEdit(id) {
   document.getElementById('fpanela-tempo').value = r.panelaTempo || '';
   document.getElementById('fpanela-vel').value = r.panelaVelocidade || '';
   document.getElementById('panela-mexedora-box').style.display = r.usaPanelaMexedora ? 'block' : 'none';
+  curMultiplicadorAro = r.multiplicadorAro ? {...r.multiplicadorAro} : {};
   renderIngrTable(); renderFormas(); renderRecipePhotosGrid(); updateFormaToggle(); checkFormaTab(); st2(0);
+  atualizarMultiplicadorAroPreview();
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   document.getElementById('modal-edit').style.display = 'flex';
 }
@@ -713,8 +744,8 @@ function st2(n) {
   if(n===3) updCosts();
 }
 
-function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', price: 0, isBase: false }); renderIngrTable(); }
-function remIngr(i) { curIngr.splice(i, 1); renderIngrTable(); }
+function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', price: 0, isBase: false }); renderIngrTable(); atualizarMultiplicadorAroPreview(); }
+function remIngr(i) { curIngr.splice(i, 1); renderIngrTable(); atualizarMultiplicadorAroPreview(); }
 function setBase(i) { curIngr.forEach((ig, j) => ig.isBase = (j === i)); renderIngrTable(); }
 
 function renderIngrTable() {
@@ -749,6 +780,7 @@ function updateIngrSubtotal(i) {
   const sub = (parseFloat(ig.qty||0) * parseFloat(ig.price||0)).toFixed(2);
   const el = document.getElementById('ingr-sub-' + i);
   if (el) el.textContent = fR(sub);
+  atualizarMultiplicadorAroPreview();
 }
 
 // Lista de nomes de ingredientes já usados em todas as receitas, para autocomplete
@@ -985,6 +1017,7 @@ async function saveRecipeFinal() {
     yield_qty: parseFloat(document.getElementById('fyld').value)||6,
     yield: parseFloat(document.getElementById('fyld').value)||6,
     pesoTotal: parseFloat(document.getElementById('fpesoTotal').value)||null,
+    multiplicadorAro: Object.keys(curMultiplicadorAro).length ? {...curMultiplicadorAro} : null,
     time: parseFloat(document.getElementById('ftm').value)||60,
     margin: parseFloat(document.getElementById('fmrg').value)||100,
     extra: parseFloat(document.getElementById('fext').value)||0,
@@ -1394,6 +1427,7 @@ async function loadPedidosFromCloud() {
       cobertura:p.cobertura,deco:p.deco,tema:p.tema,topo:p.topo,flores:p.flores,
       custoRealTopo:p.custo_real_topo ?? null, custoRealFlores:p.custo_real_flores ?? null,
       custoRealPapelaria:p.custo_real_papelaria ?? null, recheioRepetido:p.recheio_repetido || null,
+      recheioExtraNome:p.recheio_extra_nome ?? null, recheioExtraQtd:p.recheio_extra_qtd ?? null, recheioExtraCusto:p.recheio_extra_custo ?? null,
       obsDeco:p.obs_deco,inspiPhoto:p.inspi_photo,fotoConfirmada:p.foto_confirmada,fotoPronto:p.foto_pronto,
       tipoCalda:p.tipo_calda,custoCakeboard:p.custo_cakeboard,custoCaixa:p.custo_caixa,custoMaoObra:p.custo_mao_obra,
       valorBolo:p.valor_bolo,valorTotal:p.valor_total,
