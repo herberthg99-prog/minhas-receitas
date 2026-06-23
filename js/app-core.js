@@ -760,9 +760,25 @@ function multiplicadorAro_porPeso(aro, valorPeso) {
   atualizarCustoCelulaAro(aro);
 }
 
+// Transforma a receita que está sendo editada em uma NOVA receita (cópia), preservando
+// tudo que já está preenchido na tela (incluindo ajustes ainda não salvos). Usuário só
+// precisa trocar o nome (já sugerido com "(cópia)") e clicar em Salvar.
+function duplicarReceitaAtual() {
+  if (!editId) return;
+  editId = null; // próximo "Salvar" cria uma receita nova, em vez de sobrescrever a original
+  const elNome = document.getElementById('fn');
+  if (elNome) elNome.value = (elNome.value || 'Receita') + ' (cópia)';
+  document.getElementById('edit-title').textContent = 'Nova receita (duplicada)';
+  const btnDup = document.getElementById('btn-duplicar-receita');
+  if (btnDup) btnDup.style.display = 'none';
+  toast('Receita duplicada — ajuste o que precisar e clique em Salvar.', 4000);
+}
+
 function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   editId = null; curIngr = pre?.ingredients || []; curPhotos = []; curFormas = []; formasEnabled = false;
   document.getElementById('edit-title').textContent = 'Nova receita';
+  const btnDup = document.getElementById('btn-duplicar-receita');
+  if (btnDup) btnDup.style.display = 'none';
   document.getElementById('fn').value = pre?.name || '';
   document.getElementById('fcat').value = cat;
   document.getElementById('fgrp').value = grp || '';
@@ -793,6 +809,8 @@ function openEdit(id) {
   curFormas = r.formas ? JSON.parse(JSON.stringify(r.formas)) : [];
   formasEnabled = r.formasEnabled || false;
   document.getElementById('edit-title').textContent = 'Editar receita';
+  const btnDup = document.getElementById('btn-duplicar-receita');
+  if (btnDup) btnDup.style.display = '';
   document.getElementById('fn').value = r.name || '';
   document.getElementById('fcat').value = r.cat || 'salgada';
   document.getElementById('fgrp').value = r.group || '';
@@ -1123,10 +1141,10 @@ async function saveRecipeFinal() {
   renderRecipes(); renderHome();
   const resultado = await saveToCloud(data);
   if (resultado.ok) {
-    cm('modal-edit');
-    toast('Receita salva na nuvem!');
+    editId = data.id; // garante que próximos cliques em Salvar continuem editando esta mesma receita
+    toast('Receita salva na nuvem! ✅');
   } else {
-    toast('⚠️ Salvo só localmente (erro: ' + (resultado.error?.message || 'sem conexão') + '). A tela ficou aberta — tente Salvar de novo.', 6000);
+    toast('⚠️ Salvo só localmente (erro: ' + (resultado.error?.message || 'sem conexão') + '). Tente Salvar de novo.', 6000);
   }
 }
 
