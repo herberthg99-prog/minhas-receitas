@@ -22,6 +22,12 @@
   --bg:#020B18;--surface:rgba(13,45,90,0.55);--border:rgba(212,162,74,0.3);
   --text:#F8F7F4;--text2:rgba(217,217,217,0.85);--text3:rgba(138,155,184,0.7);
   --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.3);
+  /* ── Paleta do redesign premium (sidebar + cards de Receitas) ── */
+  --nav-bg:#061A38;--nav-bg-dark:#04122B;
+  --card-bg:#0A2348;--card-bg-hover:#102C58;
+  --gold-light:#E8C87A;--gold-dark:#A87528;
+  --white:#F5F5F5;--text-secondary:#AEB8C7;
+  --success:#00D68F;--danger:#FF4D4F;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(160deg,#071B3A 0%,#020B18 60%);color:var(--text);font-size:15px;min-height:100vh}
@@ -50,6 +56,53 @@ button{font-family:inherit;cursor:pointer}
 .bni i{font-size:21px}.bni.act{color:#D4A24A}
 @media(min-width:0px){
   .app{padding-left:84px}
+}
+
+/* ── SIDEBAR PREMIUM (desktop/tablet ≥ 900px) ── */
+.sidebar-premium-only{display:none}
+@media(min-width:900px){
+  .sidebar-mobile-only{display:none}
+  .sidebar-premium-only{display:flex;flex-direction:column;height:100%;width:100%}
+  .sidebar{
+    width:260px;align-items:stretch;padding:0;
+    background:var(--nav-bg);border-right:1px solid rgba(212,162,74,.15);
+  }
+  .app{padding-left:260px}
+  .sidebar-logo-block{padding:28px 20px 18px;text-align:center;border-bottom:1px solid rgba(212,162,74,.12)}
+  .sidebar-logo-block img{height:64px;width:auto;margin:0 auto 6px;display:block;filter:brightness(1.7) drop-shadow(0 2px 14px rgba(212,162,74,.55))}
+  .sidebar-logo-block .tagline{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-secondary)}
+  .sidebar-user-block{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid rgba(212,162,74,.12);cursor:pointer;transition:background .2s}
+  .sidebar-user-block:hover{background:rgba(212,162,74,.06)}
+  .sidebar-user-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(212,162,74,.5);flex-shrink:0}
+  .sidebar-user-name{font-size:13px;font-weight:700;color:var(--white)}
+  .sidebar-user-plan{font-size:11px;color:var(--gold);display:flex;align-items:center;gap:3px}
+  .sidebar-user-block .ti-chevron-down{margin-left:auto;color:var(--text-secondary);font-size:14px}
+  .sidebar-groups{flex:1;overflow-y:auto;padding:14px 12px}
+  .sidebar-eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary);padding:14px 10px 6px;opacity:.65}
+  .sidebar-groups .sidebar-eyebrow:first-child{padding-top:4px}
+  .bni-premium{
+    width:100%;display:flex;align-items:center;gap:11px;padding:10px 12px;margin-bottom:2px;
+    border:none;border-left:4px solid transparent;background:none;border-radius:8px;
+    font-size:13px;font-weight:600;color:var(--text-secondary);font-family:inherit;cursor:pointer;
+    text-align:left;transition:transform .25s ease,background .25s ease;
+  }
+  .bni-premium i{font-size:18px;flex-shrink:0}
+  .bni-premium:hover{background:rgba(212,162,74,.12);transform:translateX(4px)}
+  .bni-premium.act{
+    background:linear-gradient(90deg,var(--gold),var(--gold-light));
+    color:var(--nav-bg);font-weight:700;border-left-color:#F7D88A;
+    box-shadow:0 0 25px rgba(212,162,74,.35);
+  }
+  .sidebar-premium-card{
+    margin:12px;padding:14px;border-radius:12px;
+    background:linear-gradient(160deg,rgba(212,162,74,.12),rgba(212,162,74,.04));
+    border:1px solid rgba(212,162,74,.25);backdrop-filter:blur(6px);
+  }
+  .sidebar-premium-card .plan-title{font-size:12px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:5px;margin-bottom:10px}
+  .sidebar-premium-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;text-align:center}
+  .sidebar-premium-stats .num{font-size:15px;font-weight:800;color:var(--white)}
+  .sidebar-premium-stats .lbl{font-size:9px;color:var(--text-secondary)}
+  .sidebar-premium-btn{width:100%;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--nav-bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}
 }
 .card{background:rgba(13,45,90,.45);border:1px solid rgba(212,162,74,.3);border-radius:var(--radius);padding:14px;margin-bottom:12px;backdrop-filter:blur(6px)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -256,33 +309,103 @@ button{font-family:inherit;cursor:pointer}
 
 .recipes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
-@media (min-width: 600px) { .recipes-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 900px) { .recipes-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 700px)  { .recipes-grid { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); } }
 
-.rc-card {
-  background: #0A2348;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
+/* ── CARD DE RECEITA PREMIUM ── */
+.rc-card-premium {
+  background: var(--card-bg);
   border: 1px solid rgba(212,162,74,.18);
-  transition: transform .15s;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: default;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
 }
-.rc-card:active { transform: scale(.97); }
-.rc-card-thumb { width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#0D2D5A; }
-.rc-card-no-photo { width:100%;aspect-ratio:1/1;background:linear-gradient(135deg,#0D2D5A,#020B18);display:flex;align-items:center;justify-content:center;font-size:40px; }
-.rc-card-body { padding: 8px 10px 6px; }
-.rc-card-name { font-size:13px;font-weight:700;color:#F8F7F4;font-family:Georgia,serif;line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
-.rc-card-meta { display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:6px; }
-.rc-card-actions { display:flex;justify-content:space-around;padding:5px 0;border-top:1px solid rgba(212,162,74,.12); }
-.rc-card-btn { background:none;border:none;color:var(--text2);font-size:17px;padding:4px 6px;border-radius:6px;cursor:pointer; }
-.rc-card-btn.azul{color:var(--blue)}.rc-card-btn.verde{color:var(--teal)}.rc-card-btn.ouro{color:var(--gold)}.rc-card-btn.vermelho{color:#A32D2D}.rc-card-btn.shared-on{color:var(--blue)}
-.rc-shared-badge { position:absolute;top:6px;right:6px;background:var(--blue);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px; }
-.rc-lucro-badge { position:absolute;top:6px;left:6px; }
+.rc-card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,.35);
+  background: var(--card-bg-hover);
+}
+.rcp-media { position: relative; width: 100%; aspect-ratio: 16/10; background: #0D2D5A; flex-shrink: 0; }
+.rcp-media-img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+.rcp-media-empty { width: 100%; height: 100%; background: linear-gradient(135deg,#0D2D5A,#020B18); display: flex; align-items: center; justify-content: center; font-size: 52px; cursor: pointer; }
+.rcp-badge-pct { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; }
+.rcp-badge-pct.pos { background: var(--success); color: #04122B; }
+.rcp-badge-pct.neg { background: var(--danger); color: #fff; }
+.rcp-badge-share { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(2,11,24,.6); color: var(--white); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: background .2s; }
+.rcp-badge-share:hover { background: rgba(212,162,74,.4); }
+.rcp-badge-share.on { color: var(--blue); background: rgba(255,255,255,.85); }
+
+.rcp-info { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+.rcp-tag-row { margin-bottom: 8px; }
+.rcp-tag-main { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--gold); background: rgba(212,162,74,.12); border: 1px solid rgba(212,162,74,.3); border-radius: 20px; padding: 3px 11px; }
+.rcp-name { font-family: Georgia, 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--white); line-height: 1.3; margin-bottom: 6px; cursor: pointer; }
+.rcp-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 10px; }
+.rcp-chips { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.rcp-chip { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px; background: rgba(93,202,165,.15); color: var(--teal); text-transform: capitalize; }
+.rcp-chip-blue { background: var(--blue-light); color: var(--blue); }
+.rcp-chip-time { font-size: 10.5px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 3px; }
+
+.rcp-metrics { display: flex; gap: 10px; margin-bottom: 14px; }
+.rcp-metric { flex: 1; display: flex; align-items: center; gap: 8px; padding: 9px 11px; background: var(--bg); border: 1px solid rgba(212,162,74,.12); border-radius: 10px; }
+.rcp-metric i { color: var(--gold); font-size: 16px; flex-shrink: 0; }
+.rcp-metric-lbl { font-size: 9.5px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+.rcp-metric-val { font-size: 13px; font-weight: 800; color: var(--white); }
+
+.rcp-btn-main {
+  width: 100%; height: 50px; border: none; border-radius: 12px; margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: #061A38; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity .15s;
+}
+.rcp-btn-main:active { opacity: .85; }
+.rcp-actions { display: flex; gap: 6px; margin-top: auto; }
+.rcp-action-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px; border-radius: 9px; border: 1px solid rgba(212,162,74,.15);
+  background: rgba(255,255,255,.02); color: var(--text-secondary);
+  font-size: 9.5px; font-family: inherit; cursor: pointer; transition: background .2s, color .2s;
+}
+.rcp-action-btn i { font-size: 16px; }
+.rcp-action-btn:hover { background: rgba(212,162,74,.12); color: var(--gold); }
+.rcp-action-btn.danger:hover { background: rgba(255,77,79,.12); color: var(--danger); }
+
 .alpha-divider { grid-column:1/-1;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;padding:6px 2px 4px;border-bottom:1px solid rgba(212,162,74,.2); }
+
+/* ── Cabeçalho premium da página ── */
+.rcp-page-header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px; }
+.rcp-page-header-left { display:flex;align-items:center;gap:12px; }
+.rcp-page-title { font-family:Georgia,'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text); }
+.rcp-page-subtitle { font-size:12.5px;color:var(--text-secondary); }
+.rcp-page-header-right { display:flex;align-items:center;gap:10px; }
+.rcp-sync-badge { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary); }
+
+/* ── Filtros de categoria premium ── */
+.rcp-cat-btn {
+  flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);
+  background:var(--bg);color:var(--text-secondary);font-size:14px;font-weight:700;
+  font-family:inherit;cursor:pointer;transition:all .2s;
+}
+.rcp-cat-btn.act {
+  border-color:var(--gold);
+  background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  color:#061A38;
+}
+
+/* ── Barra de busca premium ── */
+.rcp-search-row { position:relative;margin-bottom:12px; }
+.rcp-search-row i { position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:17px; }
+.rcp-search-row input {
+  width:100%;height:56px;padding:0 16px 0 44px;border:1.5px solid rgba(212,162,74,.3);
+  border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;
+}
+.rcp-search-row input:focus { outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,162,74,.15); }
 
 @media (min-width: 700px) {
   .overlay { align-items: center; justify-content: center; }
@@ -385,19 +508,74 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 </div>
 
 <div class="sidebar" id="bottomnav">
-  <button class="bni" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
-  <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
-  <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
-    <i class="ti ti-circle-plus" style="font-size:24px;color:var(--gold)"></i>
-    <span style="color:var(--gold);font-weight:700">Nova</span>
-  </button>
-  <button class="bni act" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
-  <button class="bni" onclick="goPage('estoque')" id="nav-estoque" title="Estoque e preços"><i class="ti ti-package"></i><span>Estoque</span></button>
-  <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
-  <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
-  <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
-  <button class="bni" onclick="goPage('rascunho')" id="nav-rascunho" title="Rascunhos"><i class="ti ti-pencil"></i><span>Rascunho</span></button>
-  <button class="bni" onclick="goPage('deco')" id="nav-deco" title="Gerador de Decoração"><i class="ti ti-sparkles"></i><span>Deco IA</span></button>
+  <!-- ── MOBILE: layout compacto original (ícone + texto vertical) ── -->
+  <div class="sidebar-mobile-only">
+    <button class="bni" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
+    <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
+    <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
+      <i class="ti ti-circle-plus" style="font-size:24px;color:var(--gold)"></i>
+      <span style="color:var(--gold);font-weight:700">Nova</span>
+    </button>
+    <button class="bni act" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+    <button class="bni" onclick="goPage('estoque')" id="nav-estoque" title="Estoque e preços"><i class="ti ti-package"></i><span>Estoque</span></button>
+    <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
+    <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
+    <button class="bni" onclick="goPage('calc')" id="nav-calc" title="Calculadora de massa"><i class="ti ti-calculator"></i><span>Massa</span></button>
+    <button class="bni" onclick="goPage('rascunho')" id="nav-rascunho" title="Rascunhos"><i class="ti ti-pencil"></i><span>Rascunho</span></button>
+    <button class="bni" onclick="goPage('deco')" id="nav-deco" title="Gerador de Decoração"><i class="ti ti-sparkles"></i><span>Deco IA</span></button>
+  </div>
+
+  <!-- ── DESKTOP/TABLET: sidebar premium agrupada ── -->
+  <div class="sidebar-premium-only">
+    <div class="sidebar-logo-block">
+      <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée">
+      <div class="tagline">Confeitaria Premium</div>
+    </div>
+
+    <div class="sidebar-user-block" onclick="goPage('config')">
+      <img class="sidebar-user-avatar" src="https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg" alt="Chef Herberth" onerror="this.style.display='none'">
+      <div>
+        <div class="sidebar-user-name">Chef Herberth</div>
+        <div class="sidebar-user-plan">👑 Plano Premium</div>
+      </div>
+      <i class="ti ti-chevron-down"></i>
+    </div>
+
+    <div class="sidebar-groups">
+      <div class="sidebar-eyebrow">Produção</div>
+      <button class="bni-premium" onclick="goPage('receitas')" id="navp-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
+      <button class="bni-premium" onclick="goPageReceitasGrupo('Bolos','navp-bolos')" id="navp-bolos"><i class="ti ti-cake"></i><span>Bolos</span></button>
+      <button class="bni-premium" onclick="goPageReceitasGrupo('Recheios','navp-recheios')" id="navp-recheios"><i class="ti ti-stack-2"></i><span>Recheios</span></button>
+      <button class="bni-premium" onclick="goPageReceitasGrupo('Bolos','navp-massas')" id="navp-massas"><i class="ti ti-bread"></i><span>Massas</span></button>
+      <button class="bni-premium" onclick="goPage('deco')" id="navp-decoracoes"><i class="ti ti-palette"></i><span>Decorações</span></button>
+
+      <div class="sidebar-eyebrow">Gestão</div>
+      <button class="bni-premium" onclick="goPage('estoque')" id="navp-estoque"><i class="ti ti-package"></i><span>Estoque</span></button>
+      <button class="bni-premium" onclick="goPageConfigCustos()" id="nav-custos"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
+      <button class="bni-premium" onclick="goPage('metas')" id="navp-metas"><i class="ti ti-target"></i><span>Metas</span></button>
+      <button class="bni-premium" onclick="goPage('metas')" id="navp-relatorios"><i class="ti ti-chart-bar"></i><span>Relatórios</span></button>
+
+      <div class="sidebar-eyebrow">IA &amp; Criação</div>
+      <button class="bni-premium" onclick="goPage('deco')" id="navp-decoria"><i class="ti ti-sparkles"></i><span>Decor IA</span></button>
+      <button class="bni-premium" onclick="openNewChoice()" id="navp-criarreceita"><i class="ti ti-circle-plus"></i><span>Criar Receita</span></button>
+      <button class="bni-premium" onclick="goPage('cardapio-cfg')" id="navp-gerarcardapio"><i class="ti ti-clipboard-list"></i><span>Gerar Cardápio</span></button>
+
+      <div class="sidebar-eyebrow">Sistema</div>
+      <button class="bni-premium" onclick="goPage('config')" id="navp-config"><i class="ti ti-settings"></i><span>Configurações</span></button>
+      <button class="bni-premium" onclick="goPage('config')" id="navp-perfil"><i class="ti ti-user"></i><span>Perfil</span></button>
+      <button class="bni-premium" onclick="doLogout()" id="navp-sair"><i class="ti ti-logout"></i><span>Sair</span></button>
+    </div>
+
+    <div class="sidebar-premium-card">
+      <div class="plan-title">👑 Plano Premium</div>
+      <div class="sidebar-premium-stats">
+        <div><div class="num" id="sidebar-stat-receitas">—</div><div class="lbl">Receitas</div></div>
+        <div><div class="num" id="sidebar-stat-bolos">—</div><div class="lbl">Bolos</div></div>
+        <div><div class="num" id="sidebar-stat-recheios">—</div><div class="lbl">Recheios</div></div>
+      </div>
+      <button class="sidebar-premium-btn" onclick="goPage('config')">Gerenciar Plano</button>
+    </div>
+  </div>
 </div>
 
 <div class="app" id="app">
@@ -416,14 +594,24 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <div class="content">
   <div class="page" id="page-home"></div>
   <div class="page" id="page-receitas">
+    <div class="rcp-page-header">
+      <div class="rcp-page-header-left">
+        <i class="ti ti-book" style="font-size:24px;color:var(--gold)"></i>
+        <div>
+          <div class="rcp-page-title">Receitas</div>
+          <div class="rcp-page-subtitle">Gerencie todas as suas receitas em um só lugar</div>
+        </div>
+      </div>
+    </div>
     <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:10px">
-      <button id="cat-doce" onclick="setCatFilter('doce')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Doces</button>
-      <button id="cat-salgada" onclick="setCatFilter('salgada')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🥩 Salgadas</button>
-      <button id="cat-all" onclick="setCatFilter('')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--gold);background:var(--gold);color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍽 Todas</button>
+      <button id="cat-doce" onclick="setCatFilter('doce')" class="rcp-cat-btn">🍰 Doces</button>
+      <button id="cat-salgada" onclick="setCatFilter('salgada')" class="rcp-cat-btn">🥩 Salgadas</button>
+      <button id="cat-all" onclick="setCatFilter('')" class="rcp-cat-btn act">🍽 Todas</button>
     </div>
     <div id="sub-abas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap"></div>
-    <div style="margin-bottom:12px">
-      <input type="text" placeholder="🔍 Buscar..." id="si" oninput="renderRecipes()" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit">
+    <div class="rcp-search-row">
+      <i class="ti ti-search"></i>
+      <input type="text" placeholder="Buscar receitas..." id="si" oninput="renderRecipes()">
       <input type="hidden" id="fg2" value="">
     </div>
     <input type="hidden" id="fc" value="">
@@ -840,7 +1028,7 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=41"></script>
+<script src="js/app-core.js?v=43"></script>
 <script src="js/app-features.js?v=36"></script>
 <script src="js/version.js?v=19"></script>
 
