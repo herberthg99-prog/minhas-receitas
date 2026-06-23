@@ -898,7 +898,83 @@ function renderFormas() {
 }
 
 // ═══════ SAVE RECIPE ═══════
+function getIngredientesNovosSemPreco() {
+  // Ingredientes da receita atual que não existem no Estoque (por nome normalizado)
+  if (typeof estoque === 'undefined') return [];
+  const vistos = new Set();
+  const novos = [];
+  curIngr.forEach(ig => {
+    if (!ig.name || !ig.name.trim()) return;
+    const key = ig.name.trim().toLowerCase();
+    if (vistos.has(key)) return;
+    vistos.add(key);
+    if (!estoque[key]) novos.push({ key: key, nome: ig.name.trim(), unit: ig.unit || 'g' });
+  });
+  return novos;
+}
+
 async function saveRecipe() {
+  const name = document.getElementById('fn').value.trim();
+  if(!name){toast('Informe o nome da receita');st2(0);return;}
+  const novos = getIngredientesNovosSemPreco();
+  if (novos.length) {
+    abrirModalIngredientesNovos(novos);
+    return;
+  }
+  await saveRecipeFinal();
+}
+
+function abrirModalIngredientesNovos(novos) {
+  document.getElementById('modal-item-titulo').textContent = 'Ingrediente(s) novo(s) no Estoque';
+  let html = '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5">'
+    + (novos.length===1 ? 'Este ingrediente ainda não está no Estoque.' : 'Estes ' + novos.length + ' ingredientes ainda não estão no Estoque.')
+    + ' Informe o preço por kg/L se souber — os que ficarem em branco serão estimados automaticamente por IA.</div>';
+  novos.forEach(function(n, i){
+    html += '<div style="margin-bottom:12px">'
+      + '<label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">' + n.nome + ' <span style="color:var(--text3)">(R$ por kg/L)</span></label>'
+      + '<input type="number" id="ni-preco-' + i + '" min="0" step="0.01" placeholder="Deixe em branco para usar IA" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+      + '</div>';
+  });
+  document.getElementById('modal-item-campos').innerHTML = html;
+  document.getElementById('modal-item-btn-confirmar').textContent = 'Salvar receita';
+  document.getElementById('modal-item-btn-confirmar').onclick = async function() {
+    await confirmarIngredientesNovos(novos);
+  };
+  document.getElementById('modal-item-cardapio').style.display = 'flex';
+}
+
+async function confirmarIngredientesNovos(novos) {
+  if (typeof estoque === 'undefined') window.estoque = {};
+  const semPreco = [];
+  novos.forEach(function(n, i){
+    const el = document.getElementById('ni-preco-' + i);
+    const precoKg = el ? parseFloat(el.value) : NaN;
+    // Cria a entrada no Estoque (mesmo sem preço ainda, igual ao comportamento já existente do app)
+    estoque[n.key] = estoque[n.key] || { name: n.nome, price: 0, unit: n.unit || 'g', updatedAt: null, usedIn: [] };
+    if (!isNaN(precoKg) && precoKg > 0) {
+      const precoUnit = precoKg / 1000; // mesma convenção usada em atualizarEstoqueIASelecionados (preço por g/ml)
+      estoque[n.key].price = precoUnit;
+      estoque[n.key].updatedAt = new Date().toISOString();
+      curIngr.forEach(ig => { if (ig.name && ig.name.trim().toLowerCase() === n.key) ig.price = precoUnit; });
+    } else {
+      semPreco.push(n);
+    }
+  });
+  if (typeof saveEstoque === 'function') saveEstoque();
+  fecharModalItemCardapio();
+
+  await saveRecipeFinal();
+  toast('Receita salva!');
+
+  if (semPreco.length && typeof buscarPrecosIAIngredientes === 'function') {
+    toast('Buscando preços por IA para ' + semPreco.length + ' ingrediente(s)...');
+    await buscarPrecosIAIngredientes(semPreco.map(function(n){ return n.key; }));
+    // A IA atualiza curIngr em memória — persiste de novo para refletir os preços encontrados
+    await saveRecipeFinal();
+  }
+}
+
+async function saveRecipeFinal() {
   const name = document.getElementById('fn').value.trim();
   if(!name){toast('Informe o nome da receita');st2(0);return;}
   const data = {
@@ -1317,6 +1393,7 @@ async function loadPedidosFromCloud() {
       endereco:p.endereco,aro:p.aro,massa:p.massa,recheio1:p.recheio1,recheio2:p.recheio2,
       cobertura:p.cobertura,deco:p.deco,tema:p.tema,topo:p.topo,flores:p.flores,
       custoRealTopo:p.custo_real_topo ?? null, custoRealFlores:p.custo_real_flores ?? null,
+      custoRealPapelaria:p.custo_real_papelaria ?? null, recheioRepetido:p.recheio_repetido || null,
       obsDeco:p.obs_deco,inspiPhoto:p.inspi_photo,fotoConfirmada:p.foto_confirmada,fotoPronto:p.foto_pronto,
       tipoCalda:p.tipo_calda,custoCakeboard:p.custo_cakeboard,custoCaixa:p.custo_caixa,custoMaoObra:p.custo_mao_obra,
       valorBolo:p.valor_bolo,valorTotal:p.valor_total,
@@ -2833,6 +2910,28 @@ function renderCardapioConfig() {
 
 var _modalItemState = null; // { tipo, idx (null=novo), item }
 
+// Quando o usuário preenche um aro de referência, calcula proporcionalmente os demais
+// aros vazios com base no peso de massa por aro (arredondado pra cima). Aros que já têm
+// valor preenchido manualmente NÃO são sobrescritos.
+function proporcaoPorAro_atualizarOutros(prefixoId, inputOrigem, aroOrigem) {
+  inputOrigem.dataset.autoFilled = '0'; // o aro de referência sempre conta como "manual"
+  var valorOrigem = parseFloat(inputOrigem.value);
+  if (!valorOrigem || valorOrigem <= 0) return;
+  var massaOrigem = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aroOrigem] : null);
+  if (!massaOrigem) return;
+  [10,15,20,25,30].forEach(function(aro){
+    if (aro === aroOrigem) return;
+    var el = document.getElementById(prefixoId + '-' + aro);
+    if (!el) return;
+    if (el.value !== '' && el.dataset.autoFilled !== '1') return; // não sobrescreve valor digitado manualmente
+    var massaAro = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : null);
+    if (!massaAro) return;
+    var calculado = Math.ceil(valorOrigem * (massaAro / massaOrigem));
+    el.value = calculado;
+    el.dataset.autoFilled = '1';
+  });
+}
+
 function abrirModalItemCardapio(tipo, idx) {
   var cfg = getCardapioConfig();
   var item = (idx != null) ? cfg[tipo][idx] : {};
@@ -2873,13 +2972,30 @@ function abrirModalItemCardapio(tipo, idx) {
     campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
     campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
     var qtdPorAro = item.qtdAro || {};
-    campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Quantidade usada por aro (g)</div>';
-    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px">';
+    campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Quantidade usada por aro (g) por camada</div>';
+    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">';
     [10,15,20,25,30].forEach(function(aro){
       campos += '<div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-align:center">Aro '+aro+'</label>'
-        + '<input type="number" id="mi-qtd-'+aro+'" value="'+(qtdPorAro[aro]||'')+'" min="0" placeholder="g" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:12px;text-align:center"></div>';
+        + '<input type="number" id="mi-qtd-'+aro+'" value="'+(qtdPorAro[aro]||'')+'" min="0" placeholder="g" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:12px;text-align:center" oninput="proporcaoPorAro_atualizarOutros(&quot;mi-qtd&quot;, this, ' + aro + ')"></div>';
     });
     campos += '</div>';
+    campos += '<div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.4">💡 Preencha apenas o aro 20 (referência) e os demais calculam automaticamente pela proporção de massa, arredondados pra cima. Edite qualquer aro individualmente se quiser ajustar.</div>';
+
+    var chocAtual = item.chocNobre || { tipo: '', qtdAro: {} };
+    campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Chocolate nobre picado que acompanha (opcional)</div>';
+    campos += selectField('Tipo de chocolate nobre', 'mi-choc-tipo', [
+      {value:'', label:'Nenhum'},
+      {value:'meio_amargo', label:'Chocolate Nobre Meio Amargo'},
+      {value:'branco', label:'Chocolate Nobre Branco'}
+    ], chocAtual.tipo||'');
+    var qtdChocPorAro = chocAtual.qtdAro || {};
+    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px">';
+    [10,15,20,25,30].forEach(function(aro){
+      campos += '<div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-align:center">Aro '+aro+'</label>'
+        + '<input type="number" id="mi-choc-qtd-'+aro+'" value="'+(qtdChocPorAro[aro]||'')+'" min="0" placeholder="g" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:12px;text-align:center" oninput="proporcaoPorAro_atualizarOutros(&quot;mi-choc-qtd&quot;, this, ' + aro + ')"></div>';
+    });
+    campos += '</div>';
+    campos += '<div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.4">💡 Quantidade de chocolate nobre picado por camada que usa este recheio (ex: 40g no aro 20). Mesma lógica de proporção automática.</div>';
   } else {
     campos += field('Nome', 'mi-nome', item.nome, 'ex: Massa Fofinha');
     campos += field('Emoji (usado se não houver foto)', 'mi-icon', item.icon || '🎂', '', 4);
@@ -2934,7 +3050,13 @@ function salvarModalItemCardapio() {
       var v = parseFloat(g('mi-qtd-'+aro));
       if (v) qtdAro[aro] = v;
     });
-    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros', qtdAro: qtdAro };
+    var chocTipo = g('mi-choc-tipo') || '';
+    var chocQtdAro = {};
+    [10,15,20,25,30].forEach(function(aro){
+      var v = parseFloat(g('mi-choc-qtd-'+aro));
+      if (v) chocQtdAro[aro] = v;
+    });
+    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros', qtdAro: qtdAro, chocNobre: { tipo: chocTipo, qtdAro: chocQtdAro } };
     if (idx != null) {
       cfg.recheios[idx] = novoRecheio;
       if (nomeAntigo && nomeAntigo !== nome && cfg.combinacoes) {
