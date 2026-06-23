@@ -1997,7 +1997,7 @@ async function buscarPrecosIAIngredientes(keys) {
       })
     });
     if (!r.ok) {
-      toast('⚠️ Busca de preço por IA não disponível agora. Preencha o preço manualmente em Estoque ou na receita.');
+      toast('⚠️ Busca de preço por IA não disponível agora. Preencha o preço manualmente em Estoque ou na receita.', 5000);
       return 0;
     }
     const d = await r.json();
@@ -2024,7 +2024,7 @@ async function buscarPrecosIAIngredientes(keys) {
     toast(n + ' de ' + keys.length + ' preços estimados por IA!');
     return n;
   } catch(err) {
-    toast('⚠️ Busca de preço por IA não disponível agora. Preencha o preço manualmente em Estoque ou na receita.');
+    toast('⚠️ Busca de preço por IA não disponível agora. Preencha o preço manualmente em Estoque ou na receita.', 5000);
     return 0;
 
   }
