@@ -960,11 +960,11 @@ function abrirModalIngredientesNovos(novos) {
   document.getElementById('modal-item-titulo').textContent = 'Ingrediente(s) novo(s) no Estoque';
   let html = '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5">'
     + (novos.length===1 ? 'Este ingrediente ainda não está no Estoque.' : 'Estes ' + novos.length + ' ingredientes ainda não estão no Estoque.')
-    + ' Informe o preço por kg/L se souber — os que ficarem em branco serão estimados automaticamente por IA.</div>';
+    + ' Informe o preço por kg/L. Os que ficarem em branco tentam ser estimados por IA — se não houver IA disponível, você pode preenchê-los depois em Estoque.</div>';
   novos.forEach(function(n, i){
     html += '<div style="margin-bottom:12px">'
       + '<label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">' + n.nome + ' <span style="color:var(--text3)">(R$ por kg/L)</span></label>'
-      + '<input type="number" id="ni-preco-' + i + '" min="0" step="0.01" placeholder="Deixe em branco para usar IA" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+      + '<input type="number" id="ni-preco-' + i + '" min="0" step="0.01" placeholder="Ex: 12.50" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
       + '</div>';
   });
   document.getElementById('modal-item-campos').innerHTML = html;
