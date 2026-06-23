@@ -1996,8 +1996,11 @@ async function buscarPrecosIAIngredientes(keys) {
         maxTokens: 800, useWebSearch: true
       })
     });
+    if (!r.ok) {
+      toast('⚠️ Busca de preço por IA não disponível agora. Preencha o preço manualmente em Estoque ou na receita.');
+      return 0;
+    }
     const d = await r.json();
-    if (!r.ok) throw new Error(d.erro || 'Erro ao buscar preços');
     const txt = d.resultado || '';
     let map; try { map = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Formato inválido'); }
     let n = 0;
@@ -2021,8 +2024,9 @@ async function buscarPrecosIAIngredientes(keys) {
     toast(n + ' de ' + keys.length + ' preços estimados por IA!');
     return n;
   } catch(err) {
-    toast('⚠️ Não foi possível estimar preços por IA: ' + err.message);
+    toast('⚠️ Busca de preço por IA não disponível agora. Preencha o preço manualmente em Estoque ou na receita.');
     return 0;
+
   }
 }
 
