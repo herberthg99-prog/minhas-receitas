@@ -105,10 +105,11 @@ async function saveToCloud(recipe) {
     if (error) throw error;
     setSyncStatus('ok', 'sincronizado');
     localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
+    return { ok: true };
   } catch (err) {
     setSyncStatus('err', 'erro ao salvar');
     localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
-    toast('Salvo localmente (sem conexão)');
+    return { ok: false, error: err };
   }
 }
 
@@ -1119,9 +1120,14 @@ async function saveRecipeFinal() {
   if(editId){const idx=recipes.findIndex(r=>r.id===editId);recipes[idx]=data;}
   else recipes.unshift(data);
   rmap[data.id]=data;
-  cm('modal-edit'); renderRecipes(); renderHome();
-  await saveToCloud(data);
-  toast('Receita salva na nuvem!');
+  renderRecipes(); renderHome();
+  const resultado = await saveToCloud(data);
+  if (resultado.ok) {
+    cm('modal-edit');
+    toast('Receita salva na nuvem!');
+  } else {
+    toast('⚠️ Salvo só localmente (erro: ' + (resultado.error?.message || 'sem conexão') + '). A tela ficou aberta — tente Salvar de novo.', 6000);
+  }
 }
 
 async function delRecipe(id) {
