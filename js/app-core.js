@@ -672,11 +672,38 @@ function atualizarMultiplicadorAroPreview() {
       + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:center">'
         + '<input type="number" value="'+(mult??'')+'" min="0" step="0.1" placeholder="x" id="fmult-'+aro+'" '
         + 'style="width:56px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)" '
-        + 'oninput="curMultiplicadorAro['+aro+']=parseFloat(this.value)||null;atualizarMultiplicadorAroPreview()"></td>'
-      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--text2)">'+(peso!=null?Math.ceil(peso)+'g':'—')+'</td>'
+        + 'oninput="multiplicadorAro_porMultiplicador('+aro+', this.value)"></td>'
+      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:center">'
+        + '<input type="number" value="'+(peso!=null?Math.ceil(peso):'')+'" min="0" step="1" placeholder="g" id="fpeso-aro-'+aro+'" '
+        + 'style="width:66px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)" '
+        + 'oninput="multiplicadorAro_porPeso('+aro+', this.value)"></td>'
       + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--gold)">'+(custo!=null?'R$ '+custo.toFixed(2):'—')+'</td>'
       + '</tr>';
   }).join('');
+}
+
+// Usuário digitou o multiplicador diretamente — recalcula só o preview (peso/custo).
+function multiplicadorAro_porMultiplicador(aro, valor) {
+  curMultiplicadorAro[aro] = parseFloat(valor) || null;
+  atualizarMultiplicadorAroPreview();
+}
+
+// Usuário digitou o peso (g) desejado para aquele aro — calcula o multiplicador
+// automaticamente (peso ÷ pesoTotal da receita) e atualiza o preview inteiro.
+function multiplicadorAro_porPeso(aro, valorPeso) {
+  const peso = parseFloat(valorPeso);
+  const pesoTotal = parseFloat(document.getElementById('fpesoTotal')?.value) || 0;
+  if (!peso || !pesoTotal) {
+    curMultiplicadorAro[aro] = null;
+    atualizarMultiplicadorAroPreview();
+    return;
+  }
+  curMultiplicadorAro[aro] = peso / pesoTotal;
+  atualizarMultiplicadorAroPreview();
+  // Mantém o foco no campo de peso, já que o usuário está digitando nele
+  // (atualizarMultiplicadorAroPreview reconstrói o HTML, então o input perde o foco — refoca aqui).
+  const elPeso = document.getElementById('fpeso-aro-' + aro);
+  if (elPeso) { elPeso.focus(); elPeso.value = Math.ceil(peso); }
 }
 
 function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
@@ -2949,6 +2976,26 @@ var _modalItemState = null; // { tipo, idx (null=novo), item }
 // Quando o usuário preenche um aro de referência, calcula proporcionalmente os demais
 // aros vazios com base no peso de massa por aro (arredondado pra cima). Aros que já têm
 // valor preenchido manualmente NÃO são sobrescritos.
+// Recalcula o campo de multiplicador (mi-mult-N) quando a quantidade em gramas (mi-qtd-N) é editada.
+function recheioQtd_atualizarMultiplicador(aro, pesoBaseRecheio) {
+  if (!pesoBaseRecheio) return;
+  const elQtd = document.getElementById('mi-qtd-' + aro);
+  const elMult = document.getElementById('mi-mult-' + aro);
+  if (!elQtd || !elMult) return;
+  const qtd = parseFloat(elQtd.value);
+  elMult.value = qtd ? Number((qtd / pesoBaseRecheio).toFixed(3)) : '';
+}
+
+// Recalcula o campo de quantidade em gramas (mi-qtd-N) quando o multiplicador (mi-mult-N) é editado.
+function recheioMultiplicador_atualizarQtd(aro, pesoBaseRecheio, valorMult) {
+  if (!pesoBaseRecheio) return;
+  const mult = parseFloat(valorMult);
+  const elQtd = document.getElementById('mi-qtd-' + aro);
+  if (!elQtd) return;
+  if (!mult) { elQtd.value = ''; return; }
+  elQtd.value = Math.ceil(mult * pesoBaseRecheio);
+}
+
 function proporcaoPorAro_atualizarOutros(prefixoId, inputOrigem, aroOrigem) {
   inputOrigem.dataset.autoFilled = '0'; // o aro de referência sempre conta como "manual"
   var valorOrigem = parseFloat(inputOrigem.value);
@@ -2965,6 +3012,13 @@ function proporcaoPorAro_atualizarOutros(prefixoId, inputOrigem, aroOrigem) {
     var calculado = Math.ceil(valorOrigem * (massaAro / massaOrigem));
     el.value = calculado;
     el.dataset.autoFilled = '1';
+    // Se existir um campo de multiplicador irmão (mi-mult-N), mantém ele sincronizado também.
+    if (prefixoId === 'mi-qtd') {
+      var elMult = document.getElementById('mi-mult-' + aro);
+      if (elMult && elMult.dataset.pesoBase) {
+        elMult.value = Number((calculado / parseFloat(elMult.dataset.pesoBase)).toFixed(3));
+      }
+    }
   });
 }
 
@@ -3008,14 +3062,24 @@ function abrirModalItemCardapio(tipo, idx) {
     campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
     campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
     var qtdPorAro = item.qtdAro || {};
-    campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Quantidade usada por aro (g) por camada</div>';
-    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">';
+    var recRecheio = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === item.nome; });
+    var pesoBaseRecheio = recRecheio ? (recRecheio.pesoTotal || recRecheio.yield_qty || 0) : 0;
+    campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Quantidade por aro (g por camada) — preencha o peso ou o multiplicador, o outro calcula sozinho</div>';
+    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px">';
     [10,15,20,25,30].forEach(function(aro){
-      campos += '<div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-align:center">Aro '+aro+'</label>'
-        + '<input type="number" id="mi-qtd-'+aro+'" value="'+(qtdPorAro[aro]||'')+'" min="0" placeholder="g" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:12px;text-align:center" oninput="proporcaoPorAro_atualizarOutros(&quot;mi-qtd&quot;, this, ' + aro + ')"></div>';
+      campos += '<div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-align:center">Aro '+aro+' (g)</label>'
+        + '<input type="number" id="mi-qtd-'+aro+'" value="'+(qtdPorAro[aro]||'')+'" min="0" placeholder="g" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:12px;text-align:center" oninput="proporcaoPorAro_atualizarOutros(&quot;mi-qtd&quot;, this, ' + aro + ');recheioQtd_atualizarMultiplicador(' + aro + ',' + pesoBaseRecheio + ')"></div>';
     });
     campos += '</div>';
-    campos += '<div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.4">💡 Preencha apenas o aro 20 (referência) e os demais calculam automaticamente pela proporção de massa, arredondados pra cima. Edite qualquer aro individualmente se quiser ajustar.</div>';
+    campos += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">';
+    [10,15,20,25,30].forEach(function(aro){
+      var multCalc = (pesoBaseRecheio && qtdPorAro[aro]) ? (qtdPorAro[aro] / pesoBaseRecheio) : '';
+      campos += '<div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:3px;text-align:center">Aro '+aro+' (×)</label>'
+        + '<input type="number" id="mi-mult-'+aro+'" data-peso-base="'+pesoBaseRecheio+'" value="'+(multCalc!==''?Number(multCalc.toFixed(3)):'')+'" min="0" step="0.1" placeholder="x" style="width:100%;padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:12px;text-align:center" oninput="recheioMultiplicador_atualizarQtd(' + aro + ',' + pesoBaseRecheio + ', this.value)"></div>';
+    });
+    campos += '</div>';
+    campos += '<div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.4">💡 Preencha apenas o aro 20 (referência) — os demais calculam pela proporção de massa, arredondados pra cima. Edite qualquer aro individualmente se quiser ajustar. O multiplicador (×) mostra quantas vezes fazer a receita deste recheio e vai para a Ficha Técnica de produção'
+      + (pesoBaseRecheio ? '' : ' <span style="color:#c0392b">— cadastre o "Peso total da receita (g)" em Receitas → ' + (item.nome||'este recheio') + ' para o multiplicador funcionar.</span>') + '.</div>';
 
     var chocAtual = item.chocNobre || { tipo: '', qtdAro: {} };
     campos += '<div style="margin-bottom:6px;font-size:12px;color:var(--text2)">Chocolate nobre picado que acompanha (opcional)</div>';
