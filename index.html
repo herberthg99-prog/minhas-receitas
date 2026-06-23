@@ -549,7 +549,22 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <div class="fg"><label>Tempo (min)</label><input type="number" id="ftm" value="60" min="1"></div>
       </div>
       <div class="fg"><label>Unidade de venda</label><select id="funit"><option value="porção">Porção</option><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="ml">ml</option><option value="unidade">Unidade</option><option value="fatia">Fatia</option><option value="dúzia">Dúzia</option></select></div>
-      <div class="fg"><label>Peso total da receita (g) — opcional, para massas/recheios</label><input type="number" id="fpesoTotal" placeholder="Ex: 900" min="0"></div>
+      <div class="fg"><label>Peso total da receita (g) — opcional, para massas/recheios</label><input type="number" id="fpesoTotal" placeholder="Ex: 900" min="0" oninput="atualizarMultiplicadorAroPreview()"></div>
+
+      <div class="fg" style="margin-bottom:6px"><label style="margin-bottom:4px">Multiplicador por aro (opcional — para massas)</label>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">Quantas vezes fazer esta receita em cada aro. Ex: 1,5 no aro 20 = fazer a receita 1 vez e meia. Deixe em branco se não usar esta receita por aro (ex: recheios, coberturas).</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:var(--bg)">
+              <th style="padding:5px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Aro</th>
+              <th style="padding:5px;text-align:center;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Multiplicador</th>
+              <th style="padding:5px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Peso (g)</th>
+              <th style="padding:5px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Custo (R$)</th>
+            </tr></thead>
+            <tbody id="multiplicador-aro-tbody"></tbody>
+          </table>
+        </div>
+      </div>
 
       <div class="fg" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <input type="checkbox" id="fpanela" onchange="togglePanelaMexedora()" style="width:18px;height:18px;accent-color:var(--gold)">
@@ -817,8 +832,8 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=34"></script>
-<script src="js/app-features.js?v=31"></script>
+<script src="js/app-core.js?v=35"></script>
+<script src="js/app-features.js?v=32"></script>
 <script src="js/version.js?v=19"></script>
 
 </body>
