@@ -996,13 +996,15 @@ async function confirmarIngredientesNovos(novos) {
   fecharModalItemCardapio();
 
   await saveRecipeFinal();
-  toast('Receita salva!');
 
   if (semPreco.length && typeof buscarPrecosIAIngredientes === 'function') {
-    toast('Buscando preços por IA para ' + semPreco.length + ' ingrediente(s)...');
-    await buscarPrecosIAIngredientes(semPreco.map(function(n){ return n.key; }));
-    // A IA atualiza curIngr em memória — persiste de novo para refletir os preços encontrados
-    await saveRecipeFinal();
+    const nEncontrados = await buscarPrecosIAIngredientes(semPreco.map(function(n){ return n.key; }));
+    if (nEncontrados > 0) {
+      // A IA atualizou curIngr em memória — persiste de novo para refletir os preços encontrados
+      await saveRecipeFinal();
+    }
+    // Se nEncontrados === 0, o toast de erro de buscarPrecosIAIngredientes já ficou visível
+    // e não deve ser sobrescrito por um novo "Receita salva na nuvem!".
   }
 }
 
