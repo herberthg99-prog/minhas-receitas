@@ -97,6 +97,20 @@ async function loadFromCloud() {
   }
 }
 
+// Salva o cache local de receitas SEM as fotos (que já estão seguras no Supabase) — evita
+// exceder a quota do localStorage conforme o número de receitas com imagem cresce. As fotos
+// continuam carregando normalmente do Supabase ao abrir o app.
+function salvarCacheLocalReceitas() {
+  try {
+    const recipesLeves = recipes.map(function(r){
+      const copia = {...r};
+      if (copia.photos && copia.photos.length) copia.photos = [];
+      return copia;
+    });
+    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipesLeves));
+  } catch(quotaErr) { /* mesmo sem fotos, se ainda exceder a quota, ignora — Supabase é a fonte de verdade */ }
+}
+
 async function saveToCloud(recipe) {
   setSyncStatus('syncing', 'salvando...');
   const row = localToDb(recipe);
@@ -104,11 +118,11 @@ async function saveToCloud(recipe) {
     const { error } = await sb.from('receitas').upsert(row, { onConflict: 'id' });
     if (error) throw error;
     setSyncStatus('ok', 'sincronizado');
-    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
+    salvarCacheLocalReceitas();
     return { ok: true };
   } catch (err) {
     setSyncStatus('err', 'erro ao salvar');
-    localStorage.setItem('mr_v4_recipes', JSON.stringify(recipes));
+    salvarCacheLocalReceitas();
     return { ok: false, error: err };
   }
 }
@@ -778,8 +792,33 @@ function atualizarMultiplicadorAroPreview() {
         + 'style="width:66px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)" '
         + 'oninput="multiplicadorAro_porPeso('+aro+', this.value)"></td>'
       + '<td id="fcusto-aro-'+aro+'" style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--gold)">'+(custo!=null?'R$ '+custo.toFixed(2):'—')+'</td>'
-      + '</tr>';
+      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:center">'
+        + (mult ? '<button onclick="toggleReceitaExpandidaForm('+aro+')" title="Ver detalhamento" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;padding:2px"><i class="ti ti-search"></i></button>' : '')
+      + '</td>'
+      + '</tr><tr id="fexpand-aro-'+aro+'" style="display:none"><td colspan="5" style="padding:0;border-bottom:1px solid var(--border)"></td></tr>';
   }).join('');
+}
+
+// Expande o detalhamento de ingredientes para um aro específico, usando os dados em
+// memória da receita sendo editada (curIngr, peso, tempo) — funciona mesmo antes de salvar.
+function toggleReceitaExpandidaForm(aro) {
+  const row = document.getElementById('fexpand-aro-' + aro);
+  if (!row) return;
+  const cell = row.querySelector('td');
+  if (row.style.display === 'none' || !cell.innerHTML) {
+    const recVirtual = {
+      name: document.getElementById('fn')?.value || 'Receita',
+      ingredients: curIngr,
+      pesoTotal: parseFloat(document.getElementById('fpesoTotal')?.value) || null,
+      yield_qty: parseFloat(document.getElementById('fyld')?.value) || null,
+      time: parseFloat(document.getElementById('ftm')?.value) || 60
+    };
+    const mult = curMultiplicadorAro[aro];
+    cell.innerHTML = (typeof gerarHtmlReceitaExpandida === 'function') ? gerarHtmlReceitaExpandida(recVirtual, mult, 1) : '<div style="font-size:12px;color:var(--text3);padding:8px">Função de detalhamento não disponível.</div>';
+    row.style.display = 'table-row';
+  } else {
+    row.style.display = 'none';
+  }
 }
 
 // Usuário digitou o multiplicador diretamente — recalcula só o preview (peso/custo).
