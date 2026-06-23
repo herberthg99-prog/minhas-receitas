@@ -650,6 +650,7 @@ function renderRecipes() {
     html += '<div class="rcp-actions">';
     if (!guest) {
       html += '<button class="rcp-action-btn" onclick="openEdit(\'' + r.id + '\')" title="Editar"><i class="ti ti-edit"></i><span>Editar</span></button>';
+      html += '<button class="rcp-action-btn" onclick="abrirSeletorFotoCard(\'' + r.id + '\')" title="Adicionar foto"><i class="ti ti-camera-plus"></i><span>Foto</span></button>';
       html += '<button class="rcp-action-btn" onclick="duplicarReceitaPorId(\'' + r.id + '\')" title="Duplicar"><i class="ti ti-copy"></i><span>Duplicar</span></button>';
     }
     html += '<button class="rcp-action-btn" onclick="viewRecipe(\'' + r.id + '\');setTimeout(toggleFullReceita,300)" title="Tela cheia"><i class="ti ti-maximize"></i><span>Ampliar</span></button>';
@@ -868,6 +869,37 @@ function multiplicadorAro_porPeso(aro, valorPeso) {
 // precisa trocar o nome (já sugerido com "(cópia)") e clicar em Salvar.
 // Abre uma receita (pelo ID) já no modo de duplicação — usado pelo botão "Duplicar" do
 // card na lista de Receitas, sem precisar passar pela tela de edição primeiro.
+// Abre o seletor de arquivo direto do card de Receitas, sem precisar abrir o formulário de
+// edição completo. Adiciona a foto escolhida à lista de fotos da receita (a primeira foto
+// vira capa automaticamente) e salva direto no Supabase.
+function abrirSeletorFotoCard(id) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+      const r = recipes.find(function(x){ return x.id === id; });
+      if (!r) return;
+      if (!r.photos) r.photos = [];
+      r.photos.push(ev.target.result);
+      toast('Salvando foto...');
+      const resultado = await saveToCloud(r);
+      if (resultado.ok) {
+        renderRecipes();
+        toast('✅ Foto adicionada!' + (r.photos.length === 1 ? ' Já é a capa do card.' : ''));
+      } else {
+        toast('⚠️ Erro ao salvar foto: ' + (resultado.error?.message || 'sem conexão'));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
 function duplicarReceitaPorId(id) {
   openEdit(id);
   setTimeout(duplicarReceitaAtual, 0);
@@ -970,7 +1002,7 @@ function renderIngrTable() {
         <input value="${ig.name}" placeholder="Nome" autocomplete="off"
           oninput="curIngr[${i}].name=this.value;showIngrSugestoes(${i},this.value)"
           onfocus="showIngrSugestoes(${i},this.value)"
-          onblur="setTimeout(()=>hideIngrSugestoes(${i}),200)"
+          onblur="setTimeout(()=>{hideIngrSugestoes(${i});aplicarPrecoDoEstoque(${i})},200)"
           style="margin-bottom:3px;color:var(--text)">
         <div id="ingr-sug-${i}" class="ingr-sug-chips" style="display:none"></div>
         <input value="${ig.obs||''}" placeholder="Obs: pode substituir por..." oninput="curIngr[${i}].obs=this.value" style="font-size:11px;color:var(--text2);border-color:var(--border);padding:3px 5px;font-style:italic">
@@ -985,6 +1017,24 @@ function renderIngrTable() {
 }
 
 // Atualiza só o subtotal da linha, sem redesenhar a tabela (evita perder o foco/cursor ao digitar)
+// Ao sair do campo de nome de um ingrediente, verifica se ele já existe no Estoque com
+// preço cadastrado e preenche automaticamente — evita digitar o preço de novo para
+// ingredientes já usados em outras receitas. Só preenche se o campo de preço estiver
+// zerado, para não sobrescrever um valor que você já tenha ajustado manualmente.
+function aplicarPrecoDoEstoque(i) {
+  const ig = curIngr[i];
+  if (!ig || !ig.name) return;
+  if (typeof estoque === 'undefined') return;
+  const key = ig.name.trim().toLowerCase();
+  const itemEstoque = estoque[key];
+  if (!itemEstoque || !itemEstoque.price || itemEstoque.price <= 0) return;
+  if (ig.price && ig.price > 0) return; // já tem preço preenchido, não sobrescreve
+  ig.price = itemEstoque.price;
+  renderIngrTable();
+  atualizarMultiplicadorAroPreview();
+  toast('💰 Preço de "' + ig.name + '" preenchido do Estoque');
+}
+
 function updateIngrSubtotal(i) {
   const ig = curIngr[i];
   if (!ig) return;
@@ -1023,6 +1073,7 @@ function hideIngrSugestoes(i) {
 function selectIngrSugestao(i, nome) {
   curIngr[i].name = nome;
   renderIngrTable();
+  aplicarPrecoDoEstoque(i);
 }
 
 async function atualizarPrecos() {
@@ -1099,7 +1150,19 @@ function addRecipePhoto(e) {
 }
 function remRecipePhoto(i) { curPhotos.splice(i,1); renderRecipePhotosGrid(); }
 function renderRecipePhotosGrid() {
-  document.getElementById('recipe-photos-grid').innerHTML = curPhotos.map((p,i)=>`<div class="photo-grid-item"><img src="${p}"><button class="photo-del" onclick="remRecipePhoto(${i})"><i class="ti ti-x" style="font-size:9px"></i></button></div>`).join('');
+  document.getElementById('recipe-photos-grid').innerHTML = curPhotos.map((p,i)=>`<div class="photo-grid-item">
+    <img src="${p}">
+    ${i===0 ? '<div style="position:absolute;top:3px;left:3px;background:var(--gold);color:#020B18;font-size:9px;font-weight:800;padding:2px 6px;border-radius:10px">⭐ Capa</div>' : '<button onclick="tornarFotoCapa('+i+')" title="Tornar capa" style="position:absolute;top:3px;left:3px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:10px;font-size:9px;font-weight:700;padding:2px 6px;cursor:pointer">⭐ Tornar capa</button>'}
+    <button class="photo-del" onclick="remRecipePhoto(${i})"><i class="ti ti-x" style="font-size:9px"></i></button>
+  </div>`).join('');
+}
+
+// Move a foto do índice indicado para a posição 0 (capa), preservando a ordem das demais.
+function tornarFotoCapa(i) {
+  if (i <= 0 || i >= curPhotos.length) return;
+  const foto = curPhotos.splice(i, 1)[0];
+  curPhotos.unshift(foto);
+  renderRecipePhotosGrid();
 }
 
 function toggleFormas() { formasEnabled=!formasEnabled; updateFormaToggle(); }
@@ -3254,6 +3317,8 @@ function abrirModalItemCardapio(tipo, idx) {
 
 function fecharModalItemCardapio() {
   document.getElementById('modal-item-cardapio').style.display = 'none';
+  const modalContainer = document.getElementById('modal-item-container');
+  if (modalContainer) modalContainer.style.maxWidth = '420px';
   _modalItemState = null;
 }
 
