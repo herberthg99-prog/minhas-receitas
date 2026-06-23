@@ -65,6 +65,7 @@ button{font-family:inherit;cursor:pointer}
 .racts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .rb{background:rgba(212,162,74,.1);border:1px solid rgba(212,162,74,.3);color:#D4A24A;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
 .rb.share-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);font-weight:600}
+.rb.rb-active{background:var(--gold);color:#020B18;border-color:var(--gold);font-weight:800}
 .tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
 .td{background:var(--amber-light);color:var(--amber-dark)}.ts{background:var(--teal-light);color:var(--teal)}
 .pb{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
@@ -384,13 +385,13 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 </div>
 
 <div class="sidebar" id="bottomnav">
-  <button class="bni act" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
+  <button class="bni" onclick="goPage('home')" id="nav-home"><i class="ti ti-layout-grid"></i><span>Início</span></button>
   <button class="bni" onclick="goPage('receitas')" id="nav-receitas"><i class="ti ti-book"></i><span>Receitas</span></button>
   <button class="bni" id="nav-nova" onclick="openNewChoice()" style="color:var(--gold)">
     <i class="ti ti-circle-plus" style="font-size:24px;color:var(--gold)"></i>
     <span style="color:var(--gold);font-weight:700">Nova</span>
   </button>
-  <button class="bni" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
+  <button class="bni act" onclick="goPage('confeitaria')" id="nav-confeitaria"><i class="ti ti-cake"></i><span>Confeitaria</span></button>
   <button class="bni" onclick="goPage('estoque')" id="nav-estoque" title="Estoque e preços"><i class="ti ti-package"></i><span>Estoque</span></button>
   <button class="bni" onclick="goPage('metas')" id="nav-metas"><i class="ti ti-target"></i><span>Meta</span></button>
   <button class="bni" onclick="goPage('config')" id="nav-config"><i class="ti ti-settings"></i><span>Config</span></button>
@@ -413,7 +414,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   </div>
 </div>
 <div class="content">
-  <div class="page act" id="page-home"></div>
+  <div class="page" id="page-home"></div>
   <div class="page" id="page-receitas">
     <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:10px">
       <button id="cat-doce" onclick="setCatFilter('doce')" style="flex:1;padding:11px 8px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);color:var(--text2);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Doces</button>
@@ -428,7 +429,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     <input type="hidden" id="fc" value="">
     <div id="recipes-list"></div>
   </div>
-  <div class="page" id="page-confeitaria"></div>
+  <div class="page act" id="page-confeitaria"></div>
   <div class="page" id="page-estoque"></div>
   <div class="page" id="page-config"></div>
   <div class="page" id="page-share"></div>
@@ -552,7 +553,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <div class="fg"><label>Peso total da receita (g) — opcional, para massas/recheios</label><input type="number" id="fpesoTotal" placeholder="Ex: 900" min="0" oninput="atualizarMultiplicadorAroPreview()"></div>
 
       <div class="fg" style="margin-bottom:6px"><label style="margin-bottom:4px">Multiplicador por aro (opcional — para massas)</label>
-        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">Quantas vezes fazer esta receita em cada aro. Ex: 1,5 no aro 20 = fazer a receita 1 vez e meia. Deixe em branco se não usar esta receita por aro (ex: recheios, coberturas).</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">Preencha o Multiplicador OU o Peso (g) — o outro campo calcula automaticamente. Ex: digite 450g no aro 20 e o multiplicador aparece sozinho. Deixe em branco se não usar esta receita por aro (ex: recheios, coberturas).</div>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <thead><tr style="background:var(--bg)">
@@ -832,8 +833,8 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=36"></script>
-<script src="js/app-features.js?v=33"></script>
+<script src="js/app-core.js?v=37"></script>
+<script src="js/app-features.js?v=35"></script>
 <script src="js/version.js?v=19"></script>
 
 </body>
