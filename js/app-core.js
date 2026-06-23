@@ -692,7 +692,12 @@ function atualizarMultiplicadorAroPreview() {
   const tbody = document.getElementById('multiplicador-aro-tbody');
   if (!tbody) return;
   const pesoTotal = parseFloat(document.getElementById('fpesoTotal')?.value) || 0;
-  const custoReceita = typeof totIC === 'function' ? totIC(curIngr) : 0;
+  const custoIngr = typeof totIC === 'function' ? totIC(curIngr) : 0;
+  const cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  const valorHora = cfg.valorHora || 25;
+  const indiretoPct = cfg.indiretoPct || 15;
+  const horas = (parseFloat(document.getElementById('ftm')?.value) || 60) / 60;
+  const custoReceita = custoIngr ? (custoIngr + custoIngr * indiretoPct / 100 + horas * valorHora) : 0;
   tbody.innerHTML = [10,15,20,25,30].map(function(aro){
     const mult = curMultiplicadorAro[aro];
     const peso = (mult && pesoTotal) ? (pesoTotal * mult) : null;
@@ -707,33 +712,51 @@ function atualizarMultiplicadorAroPreview() {
         + '<input type="number" value="'+(peso!=null?Math.ceil(peso):'')+'" min="0" step="1" placeholder="g" id="fpeso-aro-'+aro+'" '
         + 'style="width:66px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:center;font-family:inherit;background:var(--surface);color:var(--text)" '
         + 'oninput="multiplicadorAro_porPeso('+aro+', this.value)"></td>'
-      + '<td style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--gold)">'+(custo!=null?'R$ '+custo.toFixed(2):'—')+'</td>'
+      + '<td id="fcusto-aro-'+aro+'" style="padding:4px;border-bottom:1px solid var(--border);text-align:right;font-size:12px;color:var(--gold)">'+(custo!=null?'R$ '+custo.toFixed(2):'—')+'</td>'
       + '</tr>';
   }).join('');
 }
 
 // Usuário digitou o multiplicador diretamente — recalcula só o preview (peso/custo).
+// Atualiza só a célula de Custo (R$) de um aro, sem recriar nenhum input — preserva foco/cursor.
+function atualizarCustoCelulaAro(aro) {
+  const custoReceita = typeof totIC === 'function' ? totIC(curIngr) : 0;
+  const cfg = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  const valorHora = cfg.valorHora || 25;
+  const indiretoPct = cfg.indiretoPct || 15;
+  const horas = (parseFloat(document.getElementById('ftm')?.value) || 60) / 60;
+  const custoTotal = custoReceita ? (custoReceita + custoReceita * indiretoPct / 100 + horas * valorHora) : 0;
+  const mult = curMultiplicadorAro[aro];
+  const custo = (mult && custoTotal) ? custoTotal * mult : null;
+  const elCusto = document.getElementById('fcusto-aro-' + aro);
+  if (elCusto) elCusto.textContent = custo != null ? 'R$ ' + custo.toFixed(2) : '—';
+}
+
+// Usuário digitou o multiplicador diretamente — atualiza só o campo de peso e o custo desse
+// aro (sem recriar a tabela inteira), preservando o foco e o cursor de digitação.
 function multiplicadorAro_porMultiplicador(aro, valor) {
-  curMultiplicadorAro[aro] = parseFloat(valor) || null;
-  atualizarMultiplicadorAroPreview();
+  const mult = parseFloat(valor);
+  curMultiplicadorAro[aro] = mult || null;
+  const pesoTotal = parseFloat(document.getElementById('fpesoTotal')?.value) || 0;
+  const elPeso = document.getElementById('fpeso-aro-' + aro);
+  if (elPeso && document.activeElement !== elPeso) {
+    elPeso.value = (mult && pesoTotal) ? Math.ceil(mult * pesoTotal) : '';
+  }
+  atualizarCustoCelulaAro(aro);
 }
 
 // Usuário digitou o peso (g) desejado para aquele aro — calcula o multiplicador
-// automaticamente (peso ÷ pesoTotal da receita) e atualiza o preview inteiro.
+// automaticamente (peso ÷ pesoTotal da receita) e atualiza só o campo de multiplicador e o
+// custo desse aro (sem recriar a tabela inteira), preservando o foco e o cursor de digitação.
 function multiplicadorAro_porPeso(aro, valorPeso) {
   const peso = parseFloat(valorPeso);
   const pesoTotal = parseFloat(document.getElementById('fpesoTotal')?.value) || 0;
-  if (!peso || !pesoTotal) {
-    curMultiplicadorAro[aro] = null;
-    atualizarMultiplicadorAroPreview();
-    return;
+  curMultiplicadorAro[aro] = (peso && pesoTotal) ? (peso / pesoTotal) : null;
+  const elMult = document.getElementById('fmult-' + aro);
+  if (elMult && document.activeElement !== elMult) {
+    elMult.value = curMultiplicadorAro[aro] ? Number(curMultiplicadorAro[aro].toFixed(3)) : '';
   }
-  curMultiplicadorAro[aro] = peso / pesoTotal;
-  atualizarMultiplicadorAroPreview();
-  // Mantém o foco no campo de peso, já que o usuário está digitando nele
-  // (atualizarMultiplicadorAroPreview reconstrói o HTML, então o input perde o foco — refoca aqui).
-  const elPeso = document.getElementById('fpeso-aro-' + aro);
-  if (elPeso) { elPeso.focus(); elPeso.value = Math.ceil(peso); }
+  atualizarCustoCelulaAro(aro);
 }
 
 function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
