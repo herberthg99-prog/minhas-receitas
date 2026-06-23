@@ -700,6 +700,33 @@ function getCustoMassaAro(nomeMassa, aro) {
   return custoPorGrama * gramasNecessarias;
 }
 
+// Busca a config completa de um recheio (cfg.recheios) pelo nome, usada para achar o
+// chocolate nobre companheiro e outras propriedades cadastradas em Configurar Cardápio.
+function getRecheioCfgPorNome(nomeRecheio) {
+  try {
+    var cardapioCfgRaw = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
+    return (cardapioCfgRaw && cardapioCfgRaw.recheios) ? cardapioCfgRaw.recheios.find(function(r){ return r.nome === nomeRecheio; }) : null;
+  } catch(e) { return null; }
+}
+
+// Custo do chocolate nobre picado que acompanha um recheio específico, para 1 camada, no aro dado.
+function getCustoChocNobreAro(nomeRecheio, aro) {
+  var recheioCfg = getRecheioCfgPorNome(nomeRecheio);
+  if (!recheioCfg || !recheioCfg.chocNobre || !recheioCfg.chocNobre.tipo) return { custo: 0, qtd: 0, tipo: '', nomeReceita: '' };
+  var tipo = recheioCfg.chocNobre.tipo;
+  var qtd = (recheioCfg.chocNobre.qtdAro || {})[aro] || 0;
+  if (!qtd) return { custo: 0, qtd: 0, tipo: tipo, nomeReceita: '' };
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var receitaNome = tipo === 'branco' ? (vincs.chocNobreBranco || 'Chocolate Nobre Branco') : (vincs.chocNobreMeioAmargo || 'Chocolate Nobre Meio Amargo');
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  if (!rec) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  var p = typeof calcAt === 'function' ? calcAt(rec, 1) : null;
+  if (!p || !p.cost) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  var pesoBase = rec.pesoTotal || rec.yield_qty;
+  if (!pesoBase) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  return { custo: (p.cost / pesoBase) * qtd, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+}
+
 function getCustoRecheioAro(nomeRecheio, aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
@@ -764,7 +791,7 @@ function calcPedidoTotal() {
   const valorBolo = parseFloat(document.getElementById('p-valor-bolo')?.value||0);
   const custoInput = parseFloat(document.getElementById('p-custo')?.value||0);
   const flores = curPedido.flores ? (sucreeConfig.floresValor||50) : 0;
-  const papelaria = curPedido.papelaria ? 35 : 0;
+  const papelaria = curPedido.papelaria ? (sucreeConfig.papelariaValor||35) : 0;
   const total = valorBolo + flores + papelaria;
   const sinal = parseFloat(document.getElementById('p-sinal')?.value||0);
   const restante = total - sinal;
@@ -864,6 +891,10 @@ function resetPedidoForm() {
   document.getElementById('p-pagamento').value = '';
   document.getElementById('p-status').value = 'pendente';
   setPedidoRetira(true);
+  const txtFlores = document.getElementById('txt-flores-valor');
+  if (txtFlores) txtFlores.textContent = 'R$ ' + (sucreeConfig.floresValor||50).toFixed(2);
+  const txtPapelaria = document.getElementById('txt-papelaria-valor');
+  if (txtPapelaria) txtPapelaria.textContent = 'R$ ' + (sucreeConfig.papelariaValor||35).toFixed(2);
   setFlores(false);
   setPapelaria(false);
 }
@@ -905,8 +936,8 @@ function savePedido() {
   const cliente = document.getElementById('p-cliente').value.trim();
   if(!cliente) { toast('Informe o nome do cliente'); stPedido(0); return; }
   const valorBolo = parseFloat(document.getElementById('p-valor-bolo').value||0);
-  const flores = curPedido.flores ? 50 : 0;
-  const papelaria = curPedido.papelaria ? 35 : 0;
+  const flores = curPedido.flores ? (sucreeConfig.floresValor||50) : 0;
+  const papelaria = curPedido.papelaria ? (sucreeConfig.papelariaValor||35) : 0;
   const total = valorBolo + flores + papelaria;
 
   const pedido = {
@@ -1038,8 +1069,8 @@ function viewPedido(id) {
       ${p.sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${parseFloat(p.sinal).toFixed(2)}</span></div>`:''}
       ${p.sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>💳 Restante</span><span>R$ ${(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)}</span></div>`:''}
     </div>
-    ${(p.topo || p.flores) ? `
-    <div class="st"><i class="ti ti-receipt"></i> Custo real (topo/flores)</div>
+    ${(p.topo || p.flores || p.papelaria) ? `
+    <div class="st"><i class="ti ti-receipt"></i> Custo real (topo/flores/papelaria)</div>
     <div style="background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.25);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
       <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Você cobra um valor fixo do cliente, mas o custo real varia. Informe quanto gastou de fato, para o lucro do pedido ficar correto.</p>
       ${p.topo ? `
@@ -1048,9 +1079,14 @@ function viewPedido(id) {
         <input type="number" id="custo-real-topo" value="${p.custoRealTopo ?? ''}" min="0" step="0.01" placeholder="Ex: 38.50" onchange="atualizarCustoRealPedido('${p.id}','custoRealTopo',this.value)">
       </div>` : ''}
       ${p.flores ? `
-      <div class="fg" style="margin-bottom:0">
+      <div class="fg" style="margin-bottom:${p.papelaria?'8px':'0'}">
         <label>💐 Custo real das Flores (cobrado R$ ${(sucreeConfig.floresValor||50).toFixed(2)})</label>
         <input type="number" id="custo-real-flores" value="${p.custoRealFlores ?? ''}" min="0" step="0.01" placeholder="Ex: 65.00" onchange="atualizarCustoRealPedido('${p.id}','custoRealFlores',this.value)">
+      </div>` : ''}
+      ${p.papelaria ? `
+      <div class="fg" style="margin-bottom:0">
+        <label>🎨 Custo real da Papelaria (cobrado R$ ${(sucreeConfig.papelariaValor||35).toFixed(2)})</label>
+        <input type="number" id="custo-real-papelaria" value="${p.custoRealPapelaria ?? ''}" min="0" step="0.01" placeholder="Ex: 20.00" onchange="atualizarCustoRealPedido('${p.id}','custoRealPapelaria',this.value)">
       </div>` : ''}
     </div>` : ''}
     <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
@@ -1079,7 +1115,8 @@ function atualizarCustoRealPedido(id, campo, valor) {
   p[campo] = parseFloat(valor) || 0;
   savePedidos();
   try {
-    const col = campo === 'custoRealTopo' ? 'custo_real_topo' : 'custo_real_flores';
+    const colMap = { custoRealTopo: 'custo_real_topo', custoRealFlores: 'custo_real_flores', custoRealPapelaria: 'custo_real_papelaria' };
+    const col = colMap[campo] || campo;
     sb.from('pedidos_confeitaria').update({ [col]: p[campo] }).eq('id', id).then(function(){});
   } catch(e) {}
 }
@@ -1090,8 +1127,17 @@ function abrirDetalhamentoCusto(id) {
   const aro = parseInt(p.aro) || 0;
 
   const custoMassa = getCustoMassaAro(p.massa, aro);
-  const custoRecheio1 = p.recheio1 ? getCustoRecheioAro(p.recheio1, aro) : 0;
-  const custoRecheio2 = p.recheio2 ? getCustoRecheioAro(p.recheio2, aro) : 0;
+  // 3 camadas de recheio no total: recheio1, recheio2, e um deles repetido (escolha manual sua, não do cliente).
+  const recheioRepetido = p.recheioRepetido || 'recheio1';
+  const camadasRecheio1 = p.recheio1 ? (recheioRepetido === 'recheio1' ? 2 : 1) : 0;
+  const camadasRecheio2 = p.recheio2 ? (recheioRepetido === 'recheio2' ? 2 : 1) : 0;
+  const custoRecheio1Camada = p.recheio1 ? getCustoRecheioAro(p.recheio1, aro) : 0;
+  const custoRecheio2Camada = p.recheio2 ? getCustoRecheioAro(p.recheio2, aro) : 0;
+  const custoRecheio1 = custoRecheio1Camada * camadasRecheio1;
+  const custoRecheio2 = custoRecheio2Camada * camadasRecheio2;
+  const chocNobre1 = p.recheio1 ? getCustoChocNobreAro(p.recheio1, aro) : { custo: 0 };
+  const chocNobre2 = p.recheio2 ? getCustoChocNobreAro(p.recheio2, aro) : { custo: 0 };
+  const custoChocNobre = (chocNobre1.custo * camadasRecheio1) + (chocNobre2.custo * camadasRecheio2);
   const custoChantilly = getCustoChantillyAro(aro);
   const custoButtercream = getCustoButtercreamAro(aro);
   const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : (p.cobertura === 'buttercream' ? custoButtercream : 0);
@@ -1114,8 +1160,16 @@ function abrirDetalhamentoCusto(id) {
 
   let html = '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Calculado automaticamente</div>';
   html += linhaAuto('Massa (' + (p.massa||'—') + ')', custoMassa);
-  if (p.recheio1) html += linhaAuto('Recheio 1 (' + p.recheio1 + ')', custoRecheio1);
-  if (p.recheio2) html += linhaAuto('Recheio 2 (' + p.recheio2 + ')', custoRecheio2);
+  if (p.recheio1 && p.recheio2) {
+    html += '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Qual sabor repete (3 camadas no total)?</label>'
+      + '<select id="dc-recheio-repetido" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+      + '<option value="recheio1"' + (recheioRepetido==='recheio1'?' selected':'') + '>' + p.recheio1 + ' (2x)</option>'
+      + '<option value="recheio2"' + (recheioRepetido==='recheio2'?' selected':'') + '>' + p.recheio2 + ' (2x)</option>'
+      + '</select></div>';
+  }
+  if (p.recheio1) html += linhaAuto('Recheio 1 (' + p.recheio1 + ', ' + camadasRecheio1 + 'x)', custoRecheio1);
+  if (p.recheio2) html += linhaAuto('Recheio 2 (' + p.recheio2 + ', ' + camadasRecheio2 + 'x)', custoRecheio2);
+  if (custoChocNobre > 0) html += linhaAuto('Chocolate nobre picado (camadas)', custoChocNobre);
   if (custoCoberturaAuto) html += linhaAuto('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
   html += linhaAuto('Operacional (total)', op);
   html += linhaSub('Embalagem', opDetalhado.embalagem);
@@ -1142,6 +1196,7 @@ function abrirDetalhamentoCusto(id) {
   html += linhaEditavel('Diferença na caixa de papel (R$, pode ser negativo)', 'dc-caixa', p.custoCaixa);
   if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
   if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
+  if (p.papelaria) html += linhaEditavel('Custo real da papelaria (cobrado R$ ' + (sucreeConfig.papelariaValor||35).toFixed(2) + ')', 'dc-papelaria', p.custoRealPapelaria);
   html += linhaEditavel('Mão de obra extra (além da padrão já calculada acima)', 'dc-maoobra', p.custoMaoObra);
 
   html += '<div id="dc-resultado" style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(212,162,74,.1);border:1px solid var(--gold)"></div>';
@@ -1152,8 +1207,8 @@ function abrirDetalhamentoCusto(id) {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
     const tipoCaldaSel = document.getElementById('dc-tipocalda')?.value || '';
     const custoCalda = tipoCaldaSel ? getCustoCaldaAro(tipoCaldaSel, aro, p.massa) : 0;
-    const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-maoobra');
-    const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoCoberturaAuto + op + manualTotal;
+    const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-maoobra');
+    const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoChocNobre + custoCoberturaAuto + op + manualTotal;
     const valorTotal = parseFloat(p.valorTotal||0);
     const lucro = valorTotal - custoTotal;
     const margemPct = valorTotal ? (lucro/valorTotal*100) : 0;
@@ -1164,10 +1219,15 @@ function abrirDetalhamentoCusto(id) {
       + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Lucro estimado</span><span style="font-weight:800;color:'+(lucro>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucro.toFixed(2)+' ('+margemPct.toFixed(0)+'%)</span></div>';
   }
   setTimeout(function(){
-    ['dc-tipocalda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-maoobra'].forEach(function(idc){
+    ['dc-tipocalda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-papelaria','dc-maoobra'].forEach(function(idc){
       const el = document.getElementById(idc);
       if (el) el.addEventListener('input', recalcular);
       if (el) el.addEventListener('change', recalcular);
+    });
+    const elRepetido = document.getElementById('dc-recheio-repetido');
+    if (elRepetido) elRepetido.addEventListener('change', function(){
+      p.recheioRepetido = elRepetido.value;
+      abrirDetalhamentoCusto(id); // reabre recalculando as 3 camadas com a nova escolha
     });
     recalcular();
   }, 0);
@@ -1176,17 +1236,21 @@ function abrirDetalhamentoCusto(id) {
   document.getElementById('modal-item-btn-confirmar').onclick = function() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
     p.tipoCalda = document.getElementById('dc-tipocalda')?.value || null;
+    p.recheioRepetido = document.getElementById('dc-recheio-repetido')?.value || p.recheioRepetido || 'recheio1';
     p.custoCakeboard = g('dc-cakeboard');
     p.custoCaixa = g('dc-caixa');
     if (p.topo) p.custoRealTopo = g('dc-topo');
     if (p.flores) p.custoRealFlores = g('dc-flores');
+    if (p.papelaria) p.custoRealPapelaria = g('dc-papelaria');
     p.custoMaoObra = g('dc-maoobra');
     savePedidos();
     try {
       sb.from('pedidos_confeitaria').update({
         tipo_calda: p.tipoCalda,
+        recheio_repetido: p.recheioRepetido,
         custo_cakeboard: p.custoCakeboard, custo_caixa: p.custoCaixa,
         custo_real_topo: p.custoRealTopo ?? null, custo_real_flores: p.custoRealFlores ?? null,
+        custo_real_papelaria: p.custoRealPapelaria ?? null,
         custo_mao_obra: p.custoMaoObra
       }).eq('id', id).then(function(){});
     } catch(e) {}
@@ -1236,11 +1300,16 @@ function updatePedidoStatus(id, status) {
   if (status === 'entregue') {
     const faltaTopo = p.topo && (p.custoRealTopo === undefined || p.custoRealTopo === null || p.custoRealTopo === '');
     const faltaFlores = p.flores && (p.custoRealFlores === undefined || p.custoRealFlores === null || p.custoRealFlores === '');
-    if (faltaTopo || faltaFlores) {
-      toast('⚠️ Informe o custo real do ' + (faltaTopo?'topo':'') + (faltaTopo&&faltaFlores?' e das ':'') + (faltaFlores?'flores':'') + ' antes de marcar como entregue');
+    const faltaPapelaria = p.papelaria && (p.custoRealPapelaria === undefined || p.custoRealPapelaria === null || p.custoRealPapelaria === '');
+    if (faltaTopo || faltaFlores || faltaPapelaria) {
+      const partes = [];
+      if (faltaTopo) partes.push('topo');
+      if (faltaFlores) partes.push('flores');
+      if (faltaPapelaria) partes.push('papelaria');
+      toast('⚠️ Informe o custo real de ' + partes.join(', ') + ' antes de marcar como entregue');
       const sel = document.querySelector('select[onchange*="' + id + '"]');
       if (sel) sel.value = p.status;
-      const campo = faltaTopo ? document.getElementById('custo-real-topo') : document.getElementById('custo-real-flores');
+      const campo = faltaTopo ? document.getElementById('custo-real-topo') : (faltaFlores ? document.getElementById('custo-real-flores') : document.getElementById('custo-real-papelaria'));
       if (campo) { campo.focus(); campo.style.borderColor = '#A32D2D'; }
       return;
     }
@@ -1290,7 +1359,7 @@ function abrirCardapioNovAba() {
 // ═══════════════════════════════════════════
 let sucreeConfig = {
   precos: { 10:{trad:110,prem:140}, 15:{trad:200,prem:240}, 20:{trad:250,prem:280}, 25:{trad:300,prem:335}, 30:{trad:350,prem:390} },
-  buttercream: 50, topoValor: 45, floresValor: 50,
+  buttercream: 50, topoValor: 45, floresValor: 50, papelariaValor: 35,
   pixKey: '(27) 9 9521-3194', minDias: 3, sinalPct: 50,
   custos: {
     embalagem:15, tabua:5, acessorios:2, energia:8, gas:5, limpeza:3,
@@ -1302,6 +1371,8 @@ let sucreeConfig = {
     caldaAroChiffon: { 10:60, 15:240, 20:360, 25:600, 30:840   },
     coberturaAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
     chantillyAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
+    vezesReceitaAmanteigada: { 10:0.5, 15:1, 20:1.5, 25:2.5, 30:3.5 },
+    vezesReceitaChiffon: {},
     margemLucro:30, valorHora:25, indiretoPct:15, margemNegocio:30
   }
 };
@@ -1458,6 +1529,35 @@ function renderConfigPage() {
     </div>
 
     <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-repeat"></i> Quantas vezes fazer a receita de massa, por aro</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Usado na Ficha Técnica de produção para a cozinha. Ex: aro 20 = 1,5 → fazer a receita de massa 1 vez e meia.</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--bg)">
+            <th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Aro</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Amanteigada</th>
+            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Chiffon / Pão de Ló</th>
+          </tr></thead>
+          <tbody>
+            ${[10,15,20,25,30].map(aro => `
+            <tr>
+              <td style="padding:6px;border-bottom:1px solid var(--border);font-weight:700">${aro} cm</td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.vezesReceitaAmanteigada||{})[aro]??''}" min="0" step="0.5" id="qtd-vezes-amant-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="x"></td>
+              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.vezesReceitaChiffon||{})[aro]??''}" min="0" step="0.5" id="qtd-vezes-chiffon-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="x"></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="st"><i class="ti ti-cash"></i> Valores de adicionais</div>
+      <div class="fg"><label>💐 Flores (R$)</label><input type="number" id="cfg-flores-valor" value="${sucreeConfig.floresValor||50}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.floresValor=parseFloat(this.value)||50"></div>
+      <div class="fg"><label>🎨 Papelaria (R$)</label><input type="number" id="cfg-papelaria-valor" value="${sucreeConfig.papelariaValor||35}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.papelariaValor=parseFloat(this.value)||35"></div>
+      <div class="fg" style="margin-bottom:0"><label>🪄 Topo (R$)</label><input type="number" id="cfg-topo-valor" value="${sucreeConfig.topoValor||45}" min="0" step="0.01" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.topoValor=parseFloat(this.value)||45"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-info-circle"></i> Informações gerais</div>
       <div class="fg"><label>Chave PIX</label><input type="text" id="cfg-pix" value="${sucreeConfig.pixKey}" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.pixKey=this.value"></div>
       <div class="fg" style="margin-bottom:0"><label>Mínimo de dias de antecedência</label><input type="number" id="cfg-dias" value="${sucreeConfig.minDias}" min="1" style="padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);width:100%" onchange="sucreeConfig.minDias=parseInt(this.value)||3"></div>
@@ -1501,15 +1601,21 @@ function salvarConfig() {
   if (!sucreeConfig.custos.caldaAro) sucreeConfig.custos.caldaAro = {};
   if (!sucreeConfig.custos.caldaAroChiffon) sucreeConfig.custos.caldaAroChiffon = {};
   if (!sucreeConfig.custos.coberturaAro) sucreeConfig.custos.coberturaAro = {};
+  if (!sucreeConfig.custos.vezesReceitaAmanteigada) sucreeConfig.custos.vezesReceitaAmanteigada = {};
+  if (!sucreeConfig.custos.vezesReceitaChiffon) sucreeConfig.custos.vezesReceitaChiffon = {};
   [10,15,20,25,30].forEach(function(aro){
     var elMassa = document.getElementById('qtd-massa-'+aro);
     var elCalda = document.getElementById('qtd-calda-'+aro);
     var elCaldaChiffon = document.getElementById('qtd-calda-chiffon-'+aro);
     var elCobertura = document.getElementById('qtd-cobertura-'+aro);
+    var elVezesAmant = document.getElementById('qtd-vezes-amant-'+aro);
+    var elVezesChiffon = document.getElementById('qtd-vezes-chiffon-'+aro);
     if (elMassa && elMassa.value) { if (typeof ARO_MASSA_G !== 'undefined') ARO_MASSA_G[aro] = parseFloat(elMassa.value)||0; }
     if (elCalda) sucreeConfig.custos.caldaAro[aro] = parseFloat(elCalda.value)||0;
     if (elCaldaChiffon) sucreeConfig.custos.caldaAroChiffon[aro] = parseFloat(elCaldaChiffon.value)||0;
     if (elCobertura) sucreeConfig.custos.coberturaAro[aro] = parseFloat(elCobertura.value)||0;
+    if (elVezesAmant && elVezesAmant.value !== '') sucreeConfig.custos.vezesReceitaAmanteigada[aro] = parseFloat(elVezesAmant.value)||0;
+    if (elVezesChiffon && elVezesChiffon.value !== '') sucreeConfig.custos.vezesReceitaChiffon[aro] = parseFloat(elVezesChiffon.value)||0;
   });
   saveConfig();
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
@@ -1571,6 +1677,79 @@ function notificarWhatsApp(p) {
   } catch(e) { console.log('WhatsApp erro:', e.message); }
 }
 
+// Monta a seção HTML da Ficha Técnica de Produção: quanto fazer de massa (e como dividir
+// nas 2 formas), recheio por camada (3 camadas, 1 sabor repetido), chocolate nobre
+// companheiro, calda total e cobertura final — tudo já calculado para o aro do pedido.
+function gerarFichaTecnicaProducaoHtml(p) {
+  const aro = parseInt(p.aro) || 0;
+  if (!aro) return '';
+  function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function row(key, val) {
+    return '<div class="row"><span class="key">'+escapeHtml(key)+'</span><span class="val">'+escapeHtml(val)+'</span></div>';
+  }
+
+  let html = '<div class="sec"><div class="st">🧾 Ficha técnica de produção (aro ' + aro + ')</div>';
+
+  // 1) Massa: quantas vezes fazer a receita + divisão em 2 formas
+  const massaTotal = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : 0) || 0;
+  const massaNome = (p.massa || '').toLowerCase();
+  const ehChiffon = massaNome.indexOf('chiffon') >= 0 || massaNome.indexOf('pão de ló') >= 0 || massaNome.indexOf('fofinha') >= 0;
+  const tabelaVezes = ehChiffon ? (sucreeConfig.custos?.vezesReceitaChiffon || {}) : (sucreeConfig.custos?.vezesReceitaAmanteigada || {});
+  const vezesReceita = tabelaVezes[aro];
+  html += row('Massa total necessária', massaTotal ? (massaTotal + 'g') : '—');
+  if (vezesReceita) {
+    html += row('Vezes a receita', vezesReceita + 'x' + (ehChiffon ? ' (Chiffon/Pão de Ló)' : ' (Amanteigada)'));
+  } else {
+    html += '<div style="padding:6px 0;font-size:11px;color:#c0392b;font-style:italic">⚠️ Quantidade de vezes da receita não configurada para este tipo de massa/aro — confira manualmente.</div>';
+  }
+  if (massaTotal) html += row('Por forma (2 formas)', Math.ceil(massaTotal/2) + 'g cada');
+  html += row('Discos após assar', '4 discos (corte cada forma ao meio)');
+
+  // 2) Recheio: 3 camadas, com indicação de qual sabor repete
+  if (p.recheio1 || p.recheio2) {
+    const recheioRepetido = p.recheioRepetido || 'recheio1';
+    const nomeRepetido = recheioRepetido === 'recheio2' ? p.recheio2 : p.recheio1;
+    const nomeUnico = recheioRepetido === 'recheio2' ? p.recheio1 : p.recheio2;
+    const qtdRecheioCfg1 = p.recheio1 ? getRecheioCfgPorNome(p.recheio1) : null;
+    const qtdRecheio1 = (qtdRecheioCfg1 && qtdRecheioCfg1.qtdAro) ? qtdRecheioCfg1.qtdAro[aro] : null;
+    const qtdRecheioCfg2 = p.recheio2 ? getRecheioCfgPorNome(p.recheio2) : null;
+    const qtdRecheio2 = (qtdRecheioCfg2 && qtdRecheioCfg2.qtdAro) ? qtdRecheioCfg2.qtdAro[aro] : null;
+    const qtdRepetido = recheioRepetido === 'recheio2' ? qtdRecheio2 : qtdRecheio1;
+    const qtdUnico = recheioRepetido === 'recheio2' ? qtdRecheio1 : qtdRecheio2;
+    if (nomeRepetido) html += row('Recheio (2 camadas)', nomeRepetido + (qtdRepetido ? ' — ' + qtdRepetido + 'g por camada (' + (qtdRepetido*2) + 'g total)' : ''));
+    if (nomeUnico) html += row('Recheio (1 camada)', nomeUnico + (qtdUnico ? ' — ' + qtdUnico + 'g' : ''));
+
+    // Chocolate nobre companheiro de cada camada
+    [{nome: p.recheio1, camadas: recheioRepetido==='recheio1'?2:1}, {nome: p.recheio2, camadas: recheioRepetido==='recheio2'?2:1}].forEach(function(item){
+      if (!item.nome) return;
+      const choc = getCustoChocNobreAro(item.nome, aro);
+      if (choc && choc.qtd) {
+        const nomeChoc = choc.tipo === 'branco' ? 'Chocolate Nobre Branco picado' : 'Chocolate Nobre Meio Amargo picado';
+        html += row(nomeChoc + ' (' + item.camadas + 'x)', (choc.qtd*item.camadas) + 'g (' + choc.qtd + 'g/camada)');
+      }
+    });
+  }
+
+  // 3) Calda total (por disco × 4 discos)
+  const grupoCalda = ehChiffon ? 'caldaAroChiffon' : 'caldaAro';
+  const qtdCaldaDisco = (sucreeConfig.custos?.[grupoCalda] || {})[aro] || (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
+  if (qtdCaldaDisco) {
+    html += row('Calda por disco', qtdCaldaDisco + 'ml/g');
+    html += row('Calda total (4 discos)', (qtdCaldaDisco*4) + 'ml/g');
+  }
+  if (p.tipoCalda) html += row('Tipo de calda', p.tipoCalda === 'chocolate' ? 'Calda de Chocolate' : 'Calda Branca de Ninho');
+
+  // 4) Cobertura final
+  if (p.cobertura) {
+    const qtdCobertura = (sucreeConfig.custos?.coberturaAro || {})[aro] || (sucreeConfig.custos?.chantillyAro || {})[aro] || 0;
+    const nomeCobertura = p.cobertura === 'chantininho' ? 'Chantininho' : (p.cobertura === 'buttercream' ? 'Buttercream' : p.cobertura);
+    html += row('Cobertura para finalizar', nomeCobertura + (qtdCobertura ? ' — ' + qtdCobertura + 'g' : ''));
+  }
+
+  html += '</div>';
+  return html;
+}
+
 function imprimirPedidoCozinha(id) {
   const p = pedidos.find(x => x.id === id);
   if (!p) return;
@@ -1594,6 +1773,9 @@ function imprimirPedidoCozinha(id) {
   if(p.cobertura) html += '<div class="row"><span class="key">Cobertura</span><span class="val">'+(p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream')+'</span></div>';
   html += '</div>';
   if(p.tema||p.obsDeco) { html += '<div class="sec"><div class="st">🎨 Decoração</div>'; if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>'; if(p.obsDeco) html += '<div style="padding:8px;background:#fffbe6;border-radius:6px;font-size:12px;font-style:italic;margin-top:6px">'+p.obsDeco+'</div>'; html += '</div>'; }
+
+  // ─── FICHA TÉCNICA DE PRODUÇÃO: quanto fazer de cada coisa para este aro específico ───
+  html += gerarFichaTecnicaProducaoHtml(p);
 
   // ─── RECEITAS: busca pelo nome cadastrado, mostra ingredientes + modo de preparo ───
   function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
@@ -1814,6 +1996,50 @@ function selectSemPreco() {
   window._estoqueSelected = new Set(Object.keys(estoque).filter(k => !estoque[k].price || estoque[k].price === 0));
   renderEstoque();
   toast(window._estoqueSelected.size + ' ingrediente(s) sem preço selecionados');
+}
+
+// Busca preços via IA para uma lista arbitrária de chaves de estoque (usado tanto pela tela
+// Estoque quanto pelo fluxo automático de "ingrediente novo" ao salvar receita).
+async function buscarPrecosIAIngredientes(keys) {
+  if (!keys || !keys.length) return 0;
+  const names = keys.map(k => estoque[k]?.name).filter(Boolean);
+  if (!names.length) return 0;
+  try {
+    const r = await fetch('/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `Pesquise preços atuais de supermercado no Espírito Santo, Brasil para: ${names.join(', ')}. Data: ${new Date().toLocaleDateString('pt-BR')}. Retorne APENAS JSON sem markdown: {"nome_ingrediente": preco_por_kg_em_reais}`,
+        maxTokens: 800, useWebSearch: true
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.erro || 'Erro ao buscar preços');
+    const txt = d.resultado || '';
+    let map; try { map = JSON.parse(txt.replace(/```json|```/g, '').trim()); } catch { throw new Error('Formato inválido'); }
+    let n = 0;
+    keys.forEach(key => {
+      const igName = (estoque[key]?.name||'').toLowerCase();
+      const match = Object.keys(map).find(k => igName.includes(k.toLowerCase()) || k.toLowerCase().includes(igName));
+      if (match && map[match] > 0) {
+        const priceKg = map[match];
+        estoque[key].price = priceKg / 1000;
+        estoque[key].updatedAt = new Date().toISOString();
+        recipes.forEach(rec => {
+          (rec.ingredients || []).forEach(ig => {
+            if (ig.name && ig.name.trim().toLowerCase() === key) ig.price = priceKg / 1000;
+          });
+        });
+        n++;
+      }
+    });
+    saveEstoque();
+    if (typeof savePedidos === 'function') {} // no-op, mantém escopo de recipes já persistido via saveToCloud no fluxo de receita
+    toast(n + ' de ' + keys.length + ' preços estimados por IA!');
+    return n;
+  } catch(err) {
+    toast('⚠️ Não foi possível estimar preços por IA: ' + err.message);
+    return 0;
+  }
 }
 
 async function atualizarEstoqueIASelecionados() {
