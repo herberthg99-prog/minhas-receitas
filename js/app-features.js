@@ -723,107 +723,95 @@ function getCustoTotalReceita(rec) {
   return custoIngr + custoIndireto + custoMdo;
 }
 
-function getCustoMassaAro(nomeMassa, aro) {
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var key = (nomeMassa||'').replace(/[^a-zA-Z0-9]/g,'_');
-  var receitaNome = vincs['massa_' + key] || nomeMassa;
+// Função genérica de custo por aro, usada por Massa/Recheio/Calda/Cobertura: lê o
+// multiplicador cadastrado dentro da própria receita (rec.multiplicadorAro[aro]) e aplica
+// sobre o custo TOTAL da receita (ingredientes + indireto + mão de obra do tempo de preparo).
+// Substitui as tabelas genéricas antigas de Config (Quantidades reais por aro).
+function getCustoReceitaPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
   if (!rec) return 0;
   var custoTotalReceita = getCustoTotalReceita(rec);
   if (!custoTotalReceita) return 0;
-  var pesoBase = rec.pesoTotal || rec.yield_qty; // usa peso em gramas se cadastrado, senão cai no rendimento (pode estar em porções)
-  if (!pesoBase) return 0;
-  var custoPorGrama = custoTotalReceita / pesoBase;
-  var gramasNecessarias = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : null) || 900;
-  return custoPorGrama * gramasNecessarias;
+  var mult = (rec.multiplicadorAro || {})[aro];
+  if (!mult) return 0;
+  return custoTotalReceita * mult;
 }
 
-// Busca a config completa de um recheio (cfg.recheios) pelo nome, usada para achar o
-// chocolate nobre companheiro e outras propriedades cadastradas em Configurar Cardápio.
-function getRecheioCfgPorNome(nomeRecheio) {
-  try {
-    var cardapioCfgRaw = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
-    return (cardapioCfgRaw && cardapioCfgRaw.recheios) ? cardapioCfgRaw.recheios.find(function(r){ return r.nome === nomeRecheio; }) : null;
-  } catch(e) { return null; }
-}
-
-// Custo do chocolate nobre picado que acompanha um recheio específico, para 1 camada, no aro dado.
-function getCustoChocNobreAro(nomeRecheio, aro) {
-  var recheioCfg = getRecheioCfgPorNome(nomeRecheio);
-  if (!recheioCfg || !recheioCfg.chocNobre || !recheioCfg.chocNobre.tipo) return { custo: 0, qtd: 0, tipo: '', nomeReceita: '' };
-  var tipo = recheioCfg.chocNobre.tipo;
-  var qtd = (recheioCfg.chocNobre.qtdAro || {})[aro] || 0;
-  if (!qtd) return { custo: 0, qtd: 0, tipo: tipo, nomeReceita: '' };
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var receitaNome = tipo === 'branco' ? (vincs.chocNobreBranco || 'Chocolate Nobre Branco') : (vincs.chocNobreMeioAmargo || 'Chocolate Nobre Meio Amargo');
+// Peso (g) necessário de um recheio/receita por aro, usado na Ficha Técnica de produção
+// (multiplicador × pesoTotal da receita), com o mesmo vínculo de nome usado no custo.
+// Peso (g) necessário de uma receita específica por aro (pesoTotal × multiplicador),
+// usado na Ficha Técnica de produção para Calda, Cobertura e outras receitas vinculadas.
+function getQtdAroDaReceita(receitaNome, aro) {
+  if (!receitaNome) return null;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
-  if (!rec) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
-  var custoTotalReceita = getCustoTotalReceita(rec);
-  if (!custoTotalReceita) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  if (!rec) return null;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
-  if (!pesoBase) return { custo: 0, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
-  return { custo: (custoTotalReceita / pesoBase) * qtd, qtd: qtd, tipo: tipo, nomeReceita: receitaNome };
+  var mult = (rec.multiplicadorAro || {})[aro];
+  if (!pesoBase || !mult) return null;
+  return Math.ceil(pesoBase * mult);
+}
+
+function getQtdAroDoRecheio(nomeRecheio, aro) {
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
+  var receitaNome = vincs['recheio_' + key] || nomeRecheio;
+  return getQtdAroDaReceita(receitaNome, aro);
+}
+
+function getCustoMassaAro(nomeMassa, aro) {
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var key = (nomeMassa||'').replace(/[^a-zA-Z0-9]/g,'_');
+  var receitaNome = vincs['massa_' + key] || nomeMassa;
+  return getCustoReceitaPorAro(receitaNome, aro);
+}
+
+// Busca todas as receitas que se aplicam automaticamente a um recheio específico (campo
+// recheiosVinculados), por exemplo "Chocolate Nobre Meio Amargo Picado" vinculado ao
+// recheio "Brigadeiro Meio Amargo". Pode haver mais de uma receita vinculada ao mesmo recheio.
+function getReceitasVinculadasAoRecheio(nomeRecheio) {
+  if (!nomeRecheio) return [];
+  return (typeof recipes !== 'undefined' ? recipes : []).filter(function(r){
+    return Array.isArray(r.recheiosVinculados) && r.recheiosVinculados.indexOf(nomeRecheio) >= 0;
+  });
+}
+
+// Custo de TODAS as receitas vinculadas a um recheio específico, para 1 camada, no aro dado.
+// Retorna um array (pode ser vazio, 1, ou vários itens — ex: chocolate nobre + outra coisa).
+function getCustosVinculadosAro(nomeRecheio, aro) {
+  return getReceitasVinculadasAoRecheio(nomeRecheio).map(function(rec){
+    var custoTotalReceita = getCustoTotalReceita(rec);
+    var mult = (rec.multiplicadorAro || {})[aro];
+    var custo = (custoTotalReceita && mult) ? custoTotalReceita * mult : 0;
+    var pesoBase = rec.pesoTotal || rec.yield_qty || 0;
+    var qtd = (pesoBase && mult) ? Math.ceil(pesoBase * mult) : 0;
+    return { custo: custo, qtd: qtd, nomeReceita: rec.name };
+  });
 }
 
 function getCustoRecheioAro(nomeRecheio, aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
   var receitaNome = vincs['recheio_' + key] || nomeRecheio;
-  if (!receitaNome) return 0;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
-  if (!rec) return 0;
-  var custoTotalReceita = getCustoTotalReceita(rec);
-  if (!custoTotalReceita) return 0;
-  var pesoBase = rec.pesoTotal || rec.yield_qty;
-  if (!pesoBase) return 0;
-  var custoPorGrama = custoTotalReceita / pesoBase;
-  // Busca a quantidade específica cadastrada para ESTE recheio (qtdAro), com fallback pro valor genérico antigo
-  var qtdAro = 0;
-  try {
-    var cardapioCfgRaw = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
-    var recheioCfg = cardapioCfgRaw && cardapioCfgRaw.recheios ? cardapioCfgRaw.recheios.find(function(r){ return r.nome === nomeRecheio; }) : null;
-    if (recheioCfg && recheioCfg.qtdAro && recheioCfg.qtdAro[aro]) qtdAro = recheioCfg.qtdAro[aro];
-  } catch(e) {}
-  if (!qtdAro) qtdAro = (sucreeConfig.custos?.recheioAro || {})[aro] || 0;
-  if (!qtdAro) return custoTotalReceita;
-  return custoPorGrama * qtdAro;
+  return getCustoReceitaPorAro(receitaNome, aro);
 }
 
 function getCustoCaldaAro(tipocalda, aro, tipoMassa) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = tipocalda === 'chocolate' ? (vincs.caldaChoco || 'Calda de Chocolate') : (vincs.caldaBranca || 'Calda Branca de Ninho');
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
-  if (!rec) return 0;
-  var custoTotalReceita = getCustoTotalReceita(rec);
-  if (!custoTotalReceita) return 0;
-  var pesoBase = rec.pesoTotal || rec.yield_qty;
-  if (!pesoBase) return 0;
-  // Detecta se é massa tipo Chiffon (Pão de ló) para usar quantidade de calda diferente
-  var ehChiffon = (tipoMassa||'').toLowerCase().indexOf('chiffon') >= 0 || (tipoMassa||'').toLowerCase().indexOf('pão de ló') >= 0 || (tipoMassa||'').toLowerCase().indexOf('fofinha') >= 0;
-  var grupoCalda = ehChiffon ? 'caldaAroChiffon' : 'caldaAro';
-  var qtdAro = (sucreeConfig.custos?.[grupoCalda] || {})[aro] || (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
-  if (!qtdAro) return 0;
-  return (custoTotalReceita / pesoBase) * qtdAro;
+  return getCustoReceitaPorAro(receitaNome, aro);
 }
 
 function getCustoChantillyAro(aro) {
-  var qtd = (sucreeConfig.custos?.chantillyAro || {})[aro] || 0;
-  return qtd * 0.025;
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var receitaNome = vincs.chantininho || 'Chantininho';
+  return getCustoReceitaPorAro(receitaNome, aro);
 }
 
 function getCustoButtercreamAro(aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = vincs.buttercream || 'Buttercream';
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
-  if (!rec) return 0;
-  var custoTotalReceita = getCustoTotalReceita(rec);
-  if (!custoTotalReceita) return 0;
-  var pesoBase = rec.pesoTotal || rec.yield_qty;
-  if (!pesoBase) return 0;
-  var qtdAro = (sucreeConfig.custos?.coberturaAro || {})[aro] || (sucreeConfig.custos?.chantillyAro||{})[aro] || 0;
-  if (!qtdAro) return 0;
-  return (custoTotalReceita / pesoBase) * qtdAro;
+  return getCustoReceitaPorAro(receitaNome, aro);
 }
 
 function calcPedidoTotal() {
@@ -1174,9 +1162,10 @@ function abrirDetalhamentoCusto(id) {
   const custoRecheio2Camada = p.recheio2 ? getCustoRecheioAro(p.recheio2, aro) : 0;
   const custoRecheio1 = custoRecheio1Camada * camadasRecheio1;
   const custoRecheio2 = custoRecheio2Camada * camadasRecheio2;
-  const chocNobre1 = p.recheio1 ? getCustoChocNobreAro(p.recheio1, aro) : { custo: 0 };
-  const chocNobre2 = p.recheio2 ? getCustoChocNobreAro(p.recheio2, aro) : { custo: 0 };
-  const custoChocNobre = (chocNobre1.custo * camadasRecheio1) + (chocNobre2.custo * camadasRecheio2);
+  const vinculados1 = p.recheio1 ? getCustosVinculadosAro(p.recheio1, aro).map(function(v){ return {...v, camadas: camadasRecheio1}; }) : [];
+  const vinculados2 = p.recheio2 ? getCustosVinculadosAro(p.recheio2, aro).map(function(v){ return {...v, camadas: camadasRecheio2}; }) : [];
+  const itensVinculados = vinculados1.concat(vinculados2);
+  const custoVinculados = itensVinculados.reduce(function(a, v){ return a + (v.custo * v.camadas); }, 0);
   const custoChantilly = getCustoChantillyAro(aro);
   const custoButtercream = getCustoButtercreamAro(aro);
   const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : (p.cobertura === 'buttercream' ? custoButtercream : 0);
@@ -1208,7 +1197,9 @@ function abrirDetalhamentoCusto(id) {
   }
   if (p.recheio1) html += linhaAuto('Recheio 1 (' + p.recheio1 + ', ' + camadasRecheio1 + 'x)', custoRecheio1);
   if (p.recheio2) html += linhaAuto('Recheio 2 (' + p.recheio2 + ', ' + camadasRecheio2 + 'x)', custoRecheio2);
-  if (custoChocNobre > 0) html += linhaAuto('Chocolate nobre picado (camadas)', custoChocNobre);
+  itensVinculados.forEach(function(v){
+    if (v.custo > 0) html += linhaAuto(v.nomeReceita + ' (' + v.camadas + 'x)', v.custo * v.camadas);
+  });
   if (custoCoberturaAuto) html += linhaAuto('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
   html += linhaAuto('Operacional (total)', op);
   html += linhaSub('Embalagem', opDetalhado.embalagem);
@@ -1251,7 +1242,7 @@ function abrirDetalhamentoCusto(id) {
     const tipoCaldaSel = document.getElementById('dc-tipocalda')?.value || '';
     const custoCalda = tipoCaldaSel ? getCustoCaldaAro(tipoCaldaSel, aro, p.massa) : 0;
     const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-recheio-extra-custo') + g('dc-maoobra');
-    const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoChocNobre + custoCoberturaAuto + op + manualTotal;
+    const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoVinculados + custoCoberturaAuto + op + manualTotal;
     const valorTotal = parseFloat(p.valorTotal||0);
     const lucro = valorTotal - custoTotal;
     const margemPct = valorTotal ? (lucro/valorTotal*100) : 0;
@@ -1409,15 +1400,10 @@ let sucreeConfig = {
   buttercream: 50, topoValor: 45, floresValor: 50, papelariaValor: 35,
   pixKey: '(27) 9 9521-3194', minDias: 3, sinalPct: 50,
   custos: {
-    embalagem:15, tabua:5, acessorios:2, energia:8, gas:5, limpeza:3,
+    embalagem:15, tabua:5, acessorios:2, limpeza:3,
     tabuaAro:   { 10:3.95, 15:5.60, 20:7.50, 25:9.75, 30:12.25 },
     embalagemAro:{ 10:4.45, 15:5.37, 20:5.95, 25:6.89, 30:7.87  },
     maoDeObra:  { 10:40,   15:60,   20:80,   25:100,  30:130   },
-    recheioAro: { 10:225,  15:900,  20:1350, 25:2250, 30:3150  },
-    caldaAro:   { 10:40,   15:160,  20:240,  25:400,  30:560   },
-    caldaAroChiffon: { 10:60, 15:240, 20:360, 25:600, 30:840   },
-    coberturaAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
-    chantillyAro:{ 10:123, 15:493,  20:740,  25:1233, 30:1727  },
     margemLucro:30, valorHora:25, indiretoPct:15, margemNegocio:30
   }
 };
@@ -1547,33 +1533,6 @@ function renderConfigPage() {
     </div>
 
     <div class="card" style="margin-bottom:12px">
-      <div class="st"><i class="ti ti-scale"></i> Quantidades reais por aro (gramas)</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Usado no Detalhamento de Custo para calcular automaticamente o gasto de massa, calda e cobertura. A quantidade de cada RECHEIO específico (Brigadeiro, Ninho, Morango, etc.) é configurada individualmente — edite o recheio em "Recheios" abaixo.</div>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:var(--bg)">
-            <th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Aro</th>
-            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Massa</th>
-            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Calda (Amanteigada)</th>
-            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Calda (Chiffon)</th>
-            <th style="padding:6px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text2)">Cobertura</th>
-          </tr></thead>
-          <tbody>
-            ${[10,15,20,25,30].map(aro => `
-            <tr>
-              <td style="padding:6px;border-bottom:1px solid var(--border);font-weight:700">${aro} cm</td>
-              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(typeof ARO_MASSA_G!=='undefined'?ARO_MASSA_G[aro]:'')||''}" min="0" id="qtd-massa-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
-              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.caldaAro||{})[aro]||''}" min="0" id="qtd-calda-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
-              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.caldaAroChiffon||{})[aro]||''}" min="0" id="qtd-calda-chiffon-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
-              <td style="padding:4px 6px;border-bottom:1px solid var(--border)"><input type="number" value="${(sucreeConfig.custos.coberturaAro||{})[aro]||''}" min="0" id="qtd-cobertura-${aro}" style="width:62px;padding:5px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;font-family:inherit;background:var(--surface);color:var(--text)" placeholder="g"></td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:8px">💡 "Chiffon" se aplica a massas Pão de Ló / Fofinha. As demais (Amanteigada) usam a coluna do meio.</div>
-    </div>
-
-    <div class="card" style="margin-bottom:12px">
       <div class="st"><i class="ti ti-hand-finger"></i> Mão de obra de finalização, por aro</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">Representa só o trabalho de MONTAR/DECORAR o bolo pronto (não inclui fazer massa, recheio ou calda — isso já está embutido no custo de cada receita).</div>
       <div style="font-size:11px;color:#c0392b;margin-bottom:10px;line-height:1.4">⚠️ Os valores abaixo ainda podem estar com o padrão antigo (R$40 a R$130), que representava o trabalho completo. Revise e diminua para refletir só a finalização.</div>
@@ -1642,25 +1601,13 @@ function renderConfigPage() {
 }
 
 function salvarConfig() {
-  if (!sucreeConfig.custos.caldaAro) sucreeConfig.custos.caldaAro = {};
-  if (!sucreeConfig.custos.caldaAroChiffon) sucreeConfig.custos.caldaAroChiffon = {};
-  if (!sucreeConfig.custos.coberturaAro) sucreeConfig.custos.coberturaAro = {};
   if (!sucreeConfig.custos.maoDeObra) sucreeConfig.custos.maoDeObra = {};
   [10,15,20,25,30].forEach(function(aro){
-    var elMassa = document.getElementById('qtd-massa-'+aro);
-    var elCalda = document.getElementById('qtd-calda-'+aro);
-    var elCaldaChiffon = document.getElementById('qtd-calda-chiffon-'+aro);
-    var elCobertura = document.getElementById('qtd-cobertura-'+aro);
     var elMaoObra = document.getElementById('qtd-maoobra-'+aro);
-    if (elMassa && elMassa.value) { if (typeof ARO_MASSA_G !== 'undefined') ARO_MASSA_G[aro] = parseFloat(elMassa.value)||0; }
-    if (elCalda) sucreeConfig.custos.caldaAro[aro] = parseFloat(elCalda.value)||0;
-    if (elCaldaChiffon) sucreeConfig.custos.caldaAroChiffon[aro] = parseFloat(elCaldaChiffon.value)||0;
-    if (elCobertura) sucreeConfig.custos.coberturaAro[aro] = parseFloat(elCobertura.value)||0;
     if (elMaoObra) sucreeConfig.custos.maoDeObra[aro] = parseFloat(elMaoObra.value)||0;
   });
   saveConfig();
   localStorage.setItem('mr_sucree_config', JSON.stringify(sucreeConfig));
-  try { localStorage.setItem('mr_aro_massa_g', JSON.stringify(ARO_MASSA_G)); } catch(e) {}
   toast('Configurações salvas! ✅');
 }
 
@@ -1732,11 +1679,12 @@ function gerarFichaTecnicaProducaoHtml(p) {
   let html = '<div class="sec"><div class="st">🧾 Ficha técnica de produção (aro ' + aro + ')</div>';
 
   // 1) Massa: quantas vezes fazer a receita + divisão em 2 formas
-  const massaTotal = (typeof ARO_MASSA_G !== 'undefined' ? ARO_MASSA_G[aro] : 0) || 0;
   const massaNome = (p.massa || '').toLowerCase();
   const ehChiffon = massaNome.indexOf('chiffon') >= 0 || massaNome.indexOf('pão de ló') >= 0 || massaNome.indexOf('fofinha') >= 0;
   const recMassa = p.massa ? (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return (r.name||'').trim().toLowerCase() === p.massa.trim().toLowerCase(); }) : null;
   const vezesReceita = (recMassa && recMassa.multiplicadorAro) ? recMassa.multiplicadorAro[aro] : null;
+  const pesoBaseMassa = recMassa ? (recMassa.pesoTotal || recMassa.yield_qty || 0) : 0;
+  const massaTotal = (vezesReceita && pesoBaseMassa) ? Math.ceil(vezesReceita * pesoBaseMassa) : 0;
   html += row('Massa total necessária', massaTotal ? (massaTotal + 'g') : '—');
   if (vezesReceita) {
     html += row('Vezes a receita', vezesReceita + 'x' + (ehChiffon ? ' (Chiffon/Pão de Ló)' : ' (Amanteigada)'));
@@ -1751,10 +1699,8 @@ function gerarFichaTecnicaProducaoHtml(p) {
     const recheioRepetido = p.recheioRepetido || 'recheio1';
     const nomeRepetido = recheioRepetido === 'recheio2' ? p.recheio2 : p.recheio1;
     const nomeUnico = recheioRepetido === 'recheio2' ? p.recheio1 : p.recheio2;
-    const qtdRecheioCfg1 = p.recheio1 ? getRecheioCfgPorNome(p.recheio1) : null;
-    const qtdRecheio1 = (qtdRecheioCfg1 && qtdRecheioCfg1.qtdAro) ? qtdRecheioCfg1.qtdAro[aro] : null;
-    const qtdRecheioCfg2 = p.recheio2 ? getRecheioCfgPorNome(p.recheio2) : null;
-    const qtdRecheio2 = (qtdRecheioCfg2 && qtdRecheioCfg2.qtdAro) ? qtdRecheioCfg2.qtdAro[aro] : null;
+    const qtdRecheio1 = p.recheio1 ? getQtdAroDoRecheio(p.recheio1, aro) : null;
+    const qtdRecheio2 = p.recheio2 ? getQtdAroDoRecheio(p.recheio2, aro) : null;
     const qtdRepetido = recheioRepetido === 'recheio2' ? qtdRecheio2 : qtdRecheio1;
     const qtdUnico = recheioRepetido === 'recheio2' ? qtdRecheio1 : qtdRecheio2;
     if (nomeRepetido) html += row('Recheio (2 camadas)', nomeRepetido + (qtdRepetido ? ' — ' + qtdRepetido + 'g por camada (' + (qtdRepetido*2) + 'g total)' : ''));
@@ -1771,14 +1717,12 @@ function gerarFichaTecnicaProducaoHtml(p) {
       html += row('Vezes a receita — ' + item.nome, Number(vezes.toFixed(2)) + 'x (' + totalNecessario + 'g necessários)');
     });
 
-    // Chocolate nobre companheiro de cada camada
+    // Itens vinculados automaticamente a cada recheio (ex: chocolate nobre picado)
     [{nome: p.recheio1, camadas: recheioRepetido==='recheio1'?2:1}, {nome: p.recheio2, camadas: recheioRepetido==='recheio2'?2:1}].forEach(function(item){
       if (!item.nome) return;
-      const choc = getCustoChocNobreAro(item.nome, aro);
-      if (choc && choc.qtd) {
-        const nomeChoc = choc.tipo === 'branco' ? 'Chocolate Nobre Branco picado' : 'Chocolate Nobre Meio Amargo picado';
-        html += row(nomeChoc + ' (' + item.camadas + 'x)', (choc.qtd*item.camadas) + 'g (' + choc.qtd + 'g/camada)');
-      }
+      getCustosVinculadosAro(item.nome, aro).forEach(function(v){
+        if (v.qtd) html += row(v.nomeReceita + ' (' + item.camadas + 'x)', (v.qtd*item.camadas) + 'g (' + v.qtd + 'g/camada)');
+      });
     });
   }
 
@@ -1787,17 +1731,20 @@ function gerarFichaTecnicaProducaoHtml(p) {
   }
 
   // 3) Calda total (por disco × 4 discos)
-  const grupoCalda = ehChiffon ? 'caldaAroChiffon' : 'caldaAro';
-  const qtdCaldaDisco = (sucreeConfig.custos?.[grupoCalda] || {})[aro] || (sucreeConfig.custos?.caldaAro || {})[aro] || 0;
+  const vincsCalda = sucreeConfig.receitasCardapio || {};
+  const receitaCaldaNome = p.tipoCalda === 'chocolate' ? (vincsCalda.caldaChoco || 'Calda de Chocolate') : (vincsCalda.caldaBranca || 'Calda Branca de Ninho');
+  const qtdCaldaDisco = p.tipoCalda ? getQtdAroDaReceita(receitaCaldaNome, aro) : null;
   if (qtdCaldaDisco) {
-    html += row('Calda por disco', qtdCaldaDisco + 'ml/g');
-    html += row('Calda total (4 discos)', (qtdCaldaDisco*4) + 'ml/g');
+    html += row('Calda por disco', qtdCaldaDisco + 'g');
+    html += row('Calda total (4 discos)', (qtdCaldaDisco*4) + 'g');
   }
   if (p.tipoCalda) html += row('Tipo de calda', p.tipoCalda === 'chocolate' ? 'Calda de Chocolate' : 'Calda Branca de Ninho');
 
   // 4) Cobertura final
   if (p.cobertura) {
-    const qtdCobertura = (sucreeConfig.custos?.coberturaAro || {})[aro] || (sucreeConfig.custos?.chantillyAro || {})[aro] || 0;
+    const vincsCobertura = sucreeConfig.receitasCardapio || {};
+    const receitaCoberturaNome = p.cobertura === 'chantininho' ? (vincsCobertura.chantininho || 'Chantininho') : (vincsCobertura.buttercream || 'Buttercream');
+    const qtdCobertura = getQtdAroDaReceita(receitaCoberturaNome, aro);
     const nomeCobertura = p.cobertura === 'chantininho' ? 'Chantininho' : (p.cobertura === 'buttercream' ? 'Buttercream' : p.cobertura);
     html += row('Cobertura para finalizar', nomeCobertura + (qtdCobertura ? ' — ' + qtdCobertura + 'g' : ''));
   }
