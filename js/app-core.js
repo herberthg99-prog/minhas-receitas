@@ -172,12 +172,42 @@ function dbToLocal(row) {
 }
 
 // ═══════ NAVIGATION ═══════
+// Navega para Receitas já filtrando por um grupo específico (usado pelos itens
+// Bolos/Recheios/Massas da sidebar — atalhos para o que já existe em Receitas).
+function goPageReceitasGrupo(grupo, navId) {
+  goPage('receitas');
+  setCatFilter(''); // garante "Todas" categorias antes de aplicar o sub-filtro de grupo
+  setTimeout(function(){ setSubAba(grupo); }, 0);
+  if (navId) {
+    document.querySelectorAll('.bni').forEach(function(e){ e.classList.remove('act'); });
+    var el = document.getElementById(navId);
+    if (el) el.classList.add('act');
+  }
+}
+
+// Navega para Config já rolando até a seção de valores/custos (usado pelo item
+// "Custos" da sidebar — atalho para a seção que já existe dentro de Config).
+function goPageConfigCustos() {
+  goPage('config');
+  document.querySelectorAll('.bni').forEach(function(e){ e.classList.remove('act'); });
+  var navEl = document.getElementById('nav-custos');
+  if (navEl) navEl.classList.add('act');
+  setTimeout(function(){
+    var alvo = [...document.querySelectorAll('#page-config .card')].find(function(c){
+      return /pre[çc]o|valor|custo/i.test(c.textContent);
+    });
+    if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
 function goPage(p) {
   document.querySelectorAll('.page').forEach(e => e.classList.remove('act'));
-  document.querySelectorAll('.bni').forEach(e => e.classList.remove('act'));
+  document.querySelectorAll('.bni, .bni-premium').forEach(e => e.classList.remove('act'));
   document.getElementById('page-' + p).classList.add('act');
   const el = document.getElementById('nav-' + p);
   if (el) el.classList.add('act');
+  const elp = document.getElementById('navp-' + p);
+  if (elp) elp.classList.add('act');
   if (p === 'home') renderHome();
   if (p === 'receitas') { 
     var curCat = document.getElementById('fc') ? document.getElementById('fc').value : '';
@@ -467,9 +497,7 @@ function setCatFilter(val) {
     var btn = document.getElementById('cat-' + k);
     if (!btn) return;
     var active = (k === 'all' && val === '') || k === val;
-    btn.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
-    btn.style.background  = active ? 'var(--gold)' : 'var(--bg)';
-    btn.style.color       = active ? '#fff' : 'var(--text2)';
+    btn.classList.toggle('act', active);
   });
   // Rebuild sub-abas
   buildSubAbas(val);
@@ -510,7 +538,22 @@ function setSubAba(grp) {
   if(btn) btn.classList.add('act');
   renderRecipes();
 }
+// Atualiza os números (Receitas/Bolos/Recheios) exibidos no card "Plano Premium" da sidebar.
+function atualizarStatsSidebarPremium() {
+  var elR = document.getElementById('sidebar-stat-receitas');
+  var elB = document.getElementById('sidebar-stat-bolos');
+  var elC = document.getElementById('sidebar-stat-recheios');
+  if (!elR) return; // sidebar premium não está visível (mobile) — não precisa calcular
+  var total = recipes.length;
+  var bolos = recipes.filter(function(r){ return r.group === 'Bolos'; }).length;
+  var recheiosCount = recipes.filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : r.group === 'Recheios'; }).length;
+  elR.textContent = total;
+  elB.textContent = bolos;
+  elC.textContent = recheiosCount;
+}
+
 function renderRecipes() {
+  atualizarStatsSidebarPremium();
   var q   = (document.getElementById('si').value || '').toLowerCase();
   var cat = window._currentCat || '';
   var grp = window._currentSubGrp || '';
@@ -549,34 +592,55 @@ function renderRecipes() {
     var pct    = p.cost > 0 ? (p.luc / p.cost * 100) : 0;
     var emoji  = r.cat === 'doce' ? '🍰' : '🥩';
 
-    html += '<div class="rc-card">';
-    if (shared) html += '<div class="rc-shared-badge"><i class="ti ti-share" style="font-size:9px"></i></div>';
-    if (!guest && p.cost > 0) html += '<div class="rc-lucro-badge"><span class="pb ' + pctClass(pct) + '" style="font-size:9px">' + pct.toFixed(0) + '%</span></div>';
-
-    if (photo) {
-      html += '<img class="rc-card-thumb" src="' + photo + '" alt="" loading="lazy" onclick="viewRecipe(\'' + r.id + '\')">';
-    } else {
-      html += '<div class="rc-card-no-photo" onclick="viewRecipe(\'' + r.id + '\')">' + emoji + '</div>';
+    // Custo médio: custo total ÷ peso (g→kg) se pesoTotal existir, senão ÷ rendimento em porções.
+    var custoMedioTxt = null;
+    if (p.cost > 0) {
+      if (r.pesoTotal) { custoMedioTxt = 'R$ ' + (p.cost / (r.pesoTotal/1000)).toFixed(2) + ' /kg'; }
+      else if (r.yield_qty) { custoMedioTxt = 'R$ ' + (p.cost / r.yield_qty).toFixed(2) + ' /' + (r.unit||'un'); }
     }
+    var rendimentoTxt = r.pesoTotal ? (r.pesoTotal >= 1000 ? (r.pesoTotal/1000).toFixed(1).replace('.0','') + 'kg' : r.pesoTotal + 'g')
+      : (r.yield_qty ? r.yield_qty + ' ' + (r.unit||'un') : null);
+    var descricao = (r.comment||'').trim();
+    if (descricao.length > 110) descricao = descricao.slice(0,107) + '...';
 
-    html += '<div class="rc-card-body">'
-      + '<div class="rc-card-name" onclick="viewRecipe(\'' + r.id + '\')">' + (r.name||'') + '</div>'
-      + '<div class="rc-card-meta">'
-      + '<span class="tag t' + r.cat[0] + '" style="font-size:9px">' + r.cat + '</span>'
-      + (r.group ? '<span class="badge badge-blue" style="font-size:9px">' + r.group + '</span>' : '')
-      + (r.time ? '<span style="font-size:10px;color:var(--text3)"><i class="ti ti-clock"></i> ' + fT(r.time) + '</span>' : '')
+    html += '<div class="rc-card rc-card-premium">';
+    html += '<div class="rcp-media">';
+    if (photo) {
+      html += '<img class="rcp-media-img" src="' + photo + '" alt="" loading="lazy" onclick="viewRecipe(\'' + r.id + '\')">';
+    } else {
+      html += '<div class="rcp-media-empty" onclick="viewRecipe(\'' + r.id + '\')">' + emoji + '</div>';
+    }
+    if (!guest && p.cost > 0) html += '<div class="rcp-badge-pct ' + (pct>=0?'pos':'neg') + '">' + pct.toFixed(0) + '%</div>';
+    if (!guest) html += '<button class="rcp-badge-share ' + (shared?'on':'') + '" onclick="toggleShare(\'' + r.id + '\',this)" title="Compartilhar"><i class="ti ti-' + (shared?'share-3':'share') + '"></i></button>';
+    html += '</div>';
+
+    html += '<div class="rcp-info">';
+    html += '<div class="rcp-tag-row"><span class="rcp-tag-main">' + emoji + ' ' + r.cat.toUpperCase() + '</span></div>';
+    html += '<div class="rcp-name" onclick="viewRecipe(\'' + r.id + '\')">' + (r.name||'') + '</div>';
+    if (descricao) html += '<div class="rcp-desc">' + descricao + '</div>';
+    html += '<div class="rcp-chips">'
+      + '<span class="rcp-chip">' + r.cat + '</span>'
+      + (r.group ? '<span class="rcp-chip rcp-chip-blue">' + r.group + '</span>' : '')
+      + (r.time ? '<span class="rcp-chip-time"><i class="ti ti-clock"></i> ' + fT(r.time) + '</span>' : '')
       + '</div>';
 
-    // Ações: admin vê tudo, convidado só maximizar
-    html += '<div class="rc-card-actions">';
-    html += '<button class="rc-card-btn azul" onclick="viewRecipe(\'' + r.id + '\')" title="Ver"><i class="ti ti-eye"></i></button>';
-    if (!guest) {
-      html += '<button class="rc-card-btn verde" onclick="openEdit(\'' + r.id + '\')" title="Editar"><i class="ti ti-edit"></i></button>'
-        + '<button class="rc-card-btn ' + (shared ? 'shared-on' : '') + '" onclick="toggleShare(\'' + r.id + '\',this)" title="Compartilhar"><i class="ti ti-' + (shared ? 'share-3' : 'share') + '"></i></button>';
+    if (custoMedioTxt || rendimentoTxt) {
+      html += '<div class="rcp-metrics">';
+      if (custoMedioTxt) html += '<div class="rcp-metric"><i class="ti ti-currency-dollar"></i><div><div class="rcp-metric-lbl">Custo médio</div><div class="rcp-metric-val">' + custoMedioTxt + '</div></div></div>';
+      if (rendimentoTxt) html += '<div class="rcp-metric"><i class="ti ti-scale"></i><div><div class="rcp-metric-lbl">Rendimento</div><div class="rcp-metric-val">' + rendimentoTxt + '</div></div></div>';
+      html += '</div>';
     }
-    html += '<button class="rc-card-btn ouro" onclick="viewRecipe(\'' + r.id + '\');setTimeout(toggleFullReceita,300)" title="Tela cheia"><i class="ti ti-maximize"></i></button>';
+
+    html += '<button class="rcp-btn-main" onclick="viewRecipe(\'' + r.id + '\')"><i class="ti ti-eye"></i> Ver receita <i class="ti ti-chevron-right"></i></button>';
+
+    html += '<div class="rcp-actions">';
     if (!guest) {
-      html += '<button class="rc-card-btn vermelho" onclick="delRecipe(\'' + r.id + '\')" title="Excluir"><i class="ti ti-trash"></i></button>';
+      html += '<button class="rcp-action-btn" onclick="openEdit(\'' + r.id + '\')" title="Editar"><i class="ti ti-edit"></i><span>Editar</span></button>';
+      html += '<button class="rcp-action-btn" onclick="duplicarReceitaPorId(\'' + r.id + '\')" title="Duplicar"><i class="ti ti-copy"></i><span>Duplicar</span></button>';
+    }
+    html += '<button class="rcp-action-btn" onclick="viewRecipe(\'' + r.id + '\');setTimeout(toggleFullReceita,300)" title="Tela cheia"><i class="ti ti-maximize"></i><span>Ampliar</span></button>';
+    if (!guest) {
+      html += '<button class="rcp-action-btn danger" onclick="delRecipe(\'' + r.id + '\')" title="Excluir"><i class="ti ti-trash"></i><span>Excluir</span></button>';
     }
     html += '</div>';
 
@@ -763,6 +827,13 @@ function multiplicadorAro_porPeso(aro, valorPeso) {
 // Transforma a receita que está sendo editada em uma NOVA receita (cópia), preservando
 // tudo que já está preenchido na tela (incluindo ajustes ainda não salvos). Usuário só
 // precisa trocar o nome (já sugerido com "(cópia)") e clicar em Salvar.
+// Abre uma receita (pelo ID) já no modo de duplicação — usado pelo botão "Duplicar" do
+// card na lista de Receitas, sem precisar passar pela tela de edição primeiro.
+function duplicarReceitaPorId(id) {
+  openEdit(id);
+  setTimeout(duplicarReceitaAtual, 0);
+}
+
 function duplicarReceitaAtual() {
   if (!editId) return;
   editId = null; // próximo "Salvar" cria uma receita nova, em vez de sobrescrever a original
