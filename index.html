@@ -248,26 +248,54 @@ button{font-family:inherit;cursor:pointer}
   align-items:center;justify-content:flex-end;
   padding:0 12px 20px;overflow-y:auto;
 }
+@keyframes loginCardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .login-box{
-  background:rgba(10,6,0,.85);border-radius:14px;
-  padding:10px 10px 12px;width:100%;max-width:360px;
-  box-shadow:0 4px 40px rgba(0,0,0,.8);
-  text-align:center;border:1px solid rgba(212,162,74,.25);
-  backdrop-filter:blur(16px);
+  background:rgba(4,18,43,.82);border-radius:24px;
+  padding:32px 28px;width:100%;max-width:420px;
+  box-shadow:0 25px 60px rgba(0,0,0,.45);
+  text-align:center;border:1px solid rgba(212,162,74,.35);
+  backdrop-filter:blur(20px);
   position:relative;z-index:1;
+  animation:loginCardIn .5s ease both;
 }
-.login-input{width:100%;padding:8px 14px;border:1px solid rgba(212,162,74,.25);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(30,20,8,.8);color:var(--text);margin-bottom:7px;transition:border-color .2s}
-.login-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,162,74,.15)}
-.login-btn{width:100%;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:6px;transition:opacity .15s}
-.login-btn:active{opacity:.8}
-.login-err{font-size:12px;color:#A32D2D;margin-top:3px;min-height:16px}
+.login-premium-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#061A38;background:linear-gradient(135deg,#D4A24A,#E8C87A);border-radius:20px;padding:6px 14px;margin-bottom:18px}
+.login-title{font-family:Georgia,'Playfair Display',serif;font-size:26px;font-weight:700;color:#F5F5F5;margin-bottom:6px}
+.login-title span{color:#D4A24A}
+.login-subtitle{font-size:13px;color:#AEB8C7;margin-bottom:22px}
+.login-input{width:100%;height:54px;padding:0 14px;border:1px solid rgba(212,162,74,.25);border-radius:var(--radius-sm);font-size:16px;text-align:center;letter-spacing:.15em;font-family:inherit;background:rgba(255,255,255,.04);color:var(--text);margin-bottom:7px;transition:border-color .2s}
+.login-input:focus{outline:none;border-color:#D4A24A;box-shadow:0 0 0 3px rgba(212,162,74,.18)}
+.login-btn{
+  width:100%;height:56px;background:linear-gradient(135deg,#D4A24A,#E8C87A);color:#061A38;border:none;
+  border-radius:14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:6px;
+  box-shadow:0 12px 30px rgba(212,162,74,.28);transition:transform .2s,box-shadow .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(212,162,74,.4)}
+.login-btn:active{transform:translateY(0)}
+.login-err{font-size:12px;color:#FF4D4F;margin-top:3px;min-height:16px}
 .login-hint{font-size:10px;color:rgba(212,162,74,.3);margin-top:8px}
-.login-setup{background:var(--bg);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px;font-size:12px;color:var(--text2);text-align:left}
+.login-security-note{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11.5px;color:#AEB8C7;margin:18px 0 14px}
+.login-security-note i{color:#00D68F}
+.login-footer{border-top:1px solid rgba(212,162,74,.15);padding-top:14px;font-size:11px;color:#AEB8C7}
+.login-footer .login-footer-tags{color:#D4A24A;font-weight:600;margin-top:4px}
+.login-setup{background:rgba(255,255,255,.03);border:1px solid rgba(212,162,74,.15);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;font-size:12px;color:var(--text2);text-align:left}
 .login-setup p{font-weight:700;margin-bottom:4px;color:var(--text)}
 .pwd-toggle{position:relative;margin-bottom:7px}
-.pwd-toggle input{padding-right:40px}
-.pwd-toggle button{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px}
+.pwd-toggle .pwd-lock-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#AEB8C7;font-size:16px;pointer-events:none}
+.pwd-toggle input{padding-left:42px;padding-right:42px}
+.pwd-toggle button{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#AEB8C7;font-size:16px;cursor:pointer;padding:4px}
 .login-forgot{font-size:11px;color:var(--gold);cursor:pointer;text-decoration:underline;margin-top:5px;display:inline-block}
+.login-user-selector{display:flex;gap:8px;margin-bottom:16px;width:100%}
+.login-user-btn{
+  flex:1;padding:12px 6px;border-radius:12px;font-size:13px;font-weight:700;font-family:inherit;
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .2s;
+}
+.login-user-btn.act{
+  background:linear-gradient(135deg,#D4A24A,#E8C87A);color:#061A38;border:1px solid transparent;
+  box-shadow:0 0 22px rgba(212,162,74,.35);
+}
+.login-user-btn:not(.act){background:rgba(255,255,255,.04);border:1px solid rgba(212,162,74,.25);color:#AEB8C7}
+.login-user-label{font-size:10px;font-weight:700;color:rgba(212,162,74,.7);margin-bottom:6px;text-align:left;width:100%;letter-spacing:.05em;text-transform:uppercase}
 
 @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}100%{transform:translateX(0)}}
 
@@ -451,29 +479,41 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <div id="login-overlay" class="login-overlay">
 
   <!-- Gradiente esquerda: escurece lado esq e cobre logo da foto -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(5,2,0,.85) 0%,rgba(5,2,0,.6) 25%,rgba(5,2,0,.2) 50%,rgba(5,2,0,0) 70%);z-index:0;pointer-events:none"></div>
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right,rgba(4,18,43,.88) 0%,rgba(4,18,43,.62) 25%,rgba(4,18,43,.22) 50%,rgba(4,18,43,0) 70%);z-index:0;pointer-events:none"></div>
   <!-- Gradiente rodapé: fundo escuro para o card -->
-  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(5,2,0,.98) 0%,rgba(5,2,0,.7) 28%,rgba(5,2,0,0) 52%);z-index:0;pointer-events:none"></div>
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(4,18,43,.98) 0%,rgba(4,18,43,.75) 28%,rgba(4,18,43,0) 55%);z-index:0;pointer-events:none"></div>
+  <!-- Glow azul atrás do rosto + dourado discreto na lateral -->
+  <div style="position:absolute;top:18%;left:55%;width:420px;height:420px;background:radial-gradient(circle,rgba(27,94,168,.28) 0%,transparent 70%);z-index:0;pointer-events:none;filter:blur(10px)"></div>
+  <div style="position:absolute;top:0;right:0;width:280px;height:60%;background:radial-gradient(circle at top right,rgba(212,162,74,.14) 0%,transparent 65%);z-index:0;pointer-events:none"></div>
 
   <!-- LOGO CANTO SUPERIOR ESQUERDO -->
-  <div style="position:absolute;top:24px;left:20px;z-index:2">
+  <div style="position:absolute;top:32px;left:28px;z-index:2">
     <img src="https://herberthg99-prog.github.io/minhas-receitas/logo.png" alt="Sucrée"
-      style="height:100px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 24px rgba(212,162,74,1))">
+      style="height:118px;width:auto;filter:brightness(1.9) drop-shadow(0 2px 28px rgba(212,162,74,1))">
   </div>
 
-  <!-- CARD COMPACTO NO RODAPÉ -->
+  <!-- ESTATÍSTICAS CANTO INFERIOR ESQUERDO -->
+  <div style="position:absolute;bottom:24px;left:24px;z-index:2;display:flex;gap:18px" id="login-stats-row">
+    <div style="display:flex;align-items:center;gap:8px"><i class="ti ti-book" style="color:#D4A24A;font-size:18px"></i><div style="text-align:left"><div style="font-size:15px;font-weight:800;color:#D4A24A" id="login-stat-receitas">+87</div><div style="font-size:10px;color:#AEB8C7">Receitas</div></div></div>
+    <div style="display:flex;align-items:center;gap:8px"><i class="ti ti-cake" style="color:#D4A24A;font-size:18px"></i><div style="text-align:left"><div style="font-size:15px;font-weight:800;color:#D4A24A" id="login-stat-bolos">+12</div><div style="font-size:10px;color:#AEB8C7">Bolos</div></div></div>
+    <div style="display:flex;align-items:center;gap:8px"><i class="ti ti-stack-2" style="color:#D4A24A;font-size:18px"></i><div style="text-align:left"><div style="font-size:15px;font-weight:800;color:#D4A24A" id="login-stat-recheios">+35</div><div style="font-size:10px;color:#AEB8C7">Recheios</div></div></div>
+  </div>
+
+  <!-- CARD PREMIUM -->
   <div class="login-box">
 
-    <div id="user-selector" style="display:flex;gap:6px;margin-bottom:10px;width:100%">
-      <button id="btn-user-admin" onclick="selectUser('admin')"
-        style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--coral);background:var(--gold);color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+    <div class="login-premium-pill"><i class="ti ti-crown"></i> Plano Premium</div>
+    <div class="login-title">Bem-vindo à <span>Sucrée</span></div>
+    <div class="login-subtitle">Acesse seu painel premium de receitas</div>
+
+    <div id="user-selector" class="login-user-selector">
+      <button id="btn-user-admin" onclick="selectUser('admin')" class="login-user-btn act">
         <img src="https://herberthg99-prog.github.io/minhas-receitas/chef-herberth.jpg"
           style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:center top;border:1.5px solid rgba(255,255,255,.8)"
           onerror="this.outerHTML='<span style=\'font-size:18px\'>👨‍🍳</span>'">
         <span>Administrador</span>
       </button>
-      <button id="btn-user-guest" onclick="selectUser('guest')"
-        style="flex:1;padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid rgba(212,162,74,.2);background:rgba(26,18,8,.8);color:rgba(212,162,74,.6);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
+      <button id="btn-user-guest" onclick="selectUser('guest')" class="login-user-btn">
         <span style="font-size:18px">👤</span>
         <span>Convidado</span>
       </button>
@@ -484,9 +524,10 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <span style="font-size:12px;color:var(--text2)">Esta senha protege o acesso total ao app.</span>
     </div>
 
-    <div id="login-user-label" style="font-size:10px;font-weight:600;color:rgba(212,162,74,.5);margin-bottom:5px;text-align:left;width:100%;letter-spacing:.05em;text-transform:uppercase">Senha do Administrador</div>
+    <div id="login-user-label" class="login-user-label">Senha do Administrador</div>
 
     <div class="pwd-toggle">
+      <i class="ti ti-lock pwd-lock-icon"></i>
       <input class="login-input" type="password" id="login-pwd" placeholder="••••••"
         onkeydown="if(event.key==='Enter')doLogin()"
         oninput="document.getElementById('login-err').textContent=''">
@@ -495,16 +536,24 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
     <div id="confirm-pwd-box" style="display:none">
       <div class="pwd-toggle">
+        <i class="ti ti-lock pwd-lock-icon"></i>
         <input class="login-input" type="password" id="login-pwd2" placeholder="Confirmar senha"
           onkeydown="if(event.key==='Enter')doLogin()">
         <button onclick="toggleLoginPwd2()"><i class="ti ti-eye"></i></button>
       </div>
     </div>
 
-    <button class="login-btn" onclick="doLogin()" id="login-btn-label">Entrar</button>
+    <button class="login-btn" onclick="doLogin()" id="login-btn-label">Entrar no painel <i class="ti ti-arrow-right"></i></button>
     <div class="login-err" id="login-err"></div>
     <span class="login-forgot" id="login-forgot" onclick="forgotPwd()" style="display:none">Esqueci minha senha</span>
     <div class="login-hint" id="login-hint">Acesso completo ao app de receitas</div>
+
+    <div class="login-security-note"><i class="ti ti-shield-check"></i> Ambiente seguro e sincronizado</div>
+
+    <div class="login-footer">
+      Sistema exclusivo Sucrée Confeitaria
+      <div class="login-footer-tags">Receitas • Custos • Estoque • Decoração IA</div>
+    </div>
   </div>
 </div>
 
@@ -1030,8 +1079,8 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=44"></script>
-<script src="js/app-features.js?v=36"></script>
+<script src="js/app-core.js?v=45"></script>
+<script src="js/app-features.js?v=37"></script>
 <script src="js/version.js?v=19"></script>
 
 </body>
