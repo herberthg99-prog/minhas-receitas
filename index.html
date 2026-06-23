@@ -640,6 +640,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   </div>
   <div class="sheet-footer">
     <button class="btns" onclick="cm('modal-edit')">Cancelar</button>
+    <button class="btns" id="btn-duplicar-receita" onclick="duplicarReceitaAtual()" style="display:none"><i class="ti ti-copy"></i> Duplicar</button>
     <button class="btnp" onclick="saveRecipe()"><i class="ti ti-device-floppy"></i> Salvar</button>
   </div>
 </div>
@@ -839,7 +840,7 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=40"></script>
+<script src="js/app-core.js?v=41"></script>
 <script src="js/app-features.js?v=36"></script>
 <script src="js/version.js?v=19"></script>
 
