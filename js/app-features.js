@@ -10,12 +10,12 @@ function _safeToast(msg, dur) {
 // ═══════════════════════════════════════════
 // LOGIN / USUÁRIOS
 // ═══════════════════════════════════════════
-const ADMIN_PWD_KEY  = 'mr_admin_pwd';
-const GUEST_PWD_KEY  = 'mr_guest_pwd';
-const SESSION_KEY    = 'mr_session';
-const SESSION_ROLE   = 'mr_role';
+var ADMIN_PWD_KEY  = 'mr_admin_pwd';
+var GUEST_PWD_KEY  = 'mr_guest_pwd';
+var SESSION_KEY    = 'mr_session';
+var SESSION_ROLE   = 'mr_role';
 
-let currentLoginRole = 'admin';
+var currentLoginRole = 'admin';
 
 function getAdminPwd() { return localStorage.getItem(ADMIN_PWD_KEY) || ''; }
 function getGuestPwd() { return localStorage.getItem(GUEST_PWD_KEY) || ''; }
@@ -53,39 +53,33 @@ function selectUser(role) {
   document.getElementById('login-pwd').value = '';
   err.textContent = '';
 
+  function setLoginBtnText(txt) {
+    loginBtn.innerHTML = txt + ' <i class="ti ti-arrow-right"></i>';
+  }
+
   if (role === 'admin') {
-    adminBtn.style.background = 'var(--coral)';
-    adminBtn.style.color = '#fff';
-    adminBtn.style.borderColor = 'var(--coral)';
-    guestBtn.style.background = 'var(--bg)';
-    guestBtn.style.color = 'var(--text2)';
-    guestBtn.style.borderColor = 'var(--border)';
+    adminBtn.classList.add('act'); guestBtn.classList.remove('act');
     label.textContent = 'Senha do Administrador';
     hint.textContent = 'Acesso completo ao app de receitas';
 
     const hasPwd = !!getAdminPwd();
     setup.style.display = hasPwd ? 'none' : 'block';
     confirm.style.display = hasPwd ? 'none' : 'block';
-    loginBtn.textContent = hasPwd ? 'Entrar como Admin' : 'Criar senha e entrar';
+    setLoginBtnText(hasPwd ? 'Entrar como Admin' : 'Criar senha e entrar');
     forgot.style.display = hasPwd ? 'inline-block' : 'none';
     if (!hasPwd) {
       hint.textContent = 'Se já tem senha em outro dispositivo, digite ela aqui.';
       setup.innerHTML = '<p>👋 Primeira vez neste dispositivo?</p><span style="font-size:12px;color:var(--text2)">Se já criou senha em outro dispositivo, basta digitar ela. Se for a primeira vez, crie uma senha nova.</span>';
       confirm.style.display = 'none';
-      loginBtn.textContent = 'Entrar / Criar senha';
+      setLoginBtnText('Entrar / Criar senha');
     }
   } else {
-    guestBtn.style.background = 'var(--blue)';
-    guestBtn.style.color = '#fff';
-    guestBtn.style.borderColor = 'var(--blue)';
-    adminBtn.style.background = 'var(--bg)';
-    adminBtn.style.color = 'var(--text2)';
-    adminBtn.style.borderColor = 'var(--border)';
+    guestBtn.classList.add('act'); adminBtn.classList.remove('act');
     label.textContent = 'Senha de Convidado';
     hint.textContent = 'Acesso apenas às receitas compartilhadas';
     setup.style.display = 'none';
     confirm.style.display = 'none';
-    loginBtn.textContent = 'Entrar como Convidado';
+    setLoginBtnText('Entrar como Convidado');
     forgot.style.display = 'none';
 
     if (!getGuestPwd()) {
