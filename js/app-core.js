@@ -3380,3 +3380,23 @@ function salvarCardapioConfig() {
   saveCardapioConfig(cfg);
   toast('✅ Cardápio atualizado! Seus clientes já veem as alterações.');
 }
+
+// Carrega as estatísticas reais (total de receitas/bolos/recheios) para exibir na tela
+// de LOGIN, antes de qualquer autenticação. Usa só sb (anon key), consultando apenas as
+// colunas necessárias para contagem — não expõe conteúdo de receitas antes do login.
+async function carregarStatsLogin() {
+  try {
+    const { data } = await sb.from('receitas').select('group').eq('user_id', USER_ID);
+    if (!data) return;
+    const total = data.length;
+    const bolos = data.filter(function(r){ return r.group === 'Bolos'; }).length;
+    const recheios = data.filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : r.group === 'Recheios'; }).length;
+    var elR = document.getElementById('login-stat-receitas');
+    var elB = document.getElementById('login-stat-bolos');
+    var elC = document.getElementById('login-stat-recheios');
+    if (elR) elR.textContent = '+' + total;
+    if (elB) elB.textContent = '+' + bolos;
+    if (elC) elC.textContent = '+' + recheios;
+  } catch(e) { /* mantém os números padrão do HTML se a consulta falhar */ }
+}
+carregarStatsLogin();
