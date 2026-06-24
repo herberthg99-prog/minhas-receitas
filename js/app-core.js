@@ -24,7 +24,14 @@ function fT(m) { if (!m) return '—'; if (m < 60) return m + 'min'; const h = M
 function toast(msg, dur = 2400) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), dur); }
 function cm(id) { document.getElementById(id).style.display = 'none'; }
 function getBase(r) { return (r.ingredients || []).find(i => i.isBase) || null; }
-function iCost(ig, q) { return q * parseFloat(ig.price || 0); }
+// Custo de uma quantidade de ingrediente. O preço NUNCA é lido de ig.price — sempre vem
+// do Estoque (fonte única de verdade), via getPrecoIngrediente(), definida em
+// app-features.js. Isso garante que mudar o preço no Estoque reflita automaticamente em
+// toda receita que usa aquele ingrediente, sem precisar editar/salvar cada uma.
+function iCost(ig, q) {
+  var preco = (typeof getPrecoIngrediente === 'function') ? getPrecoIngrediente(ig.name) : parseFloat(ig.price || 0);
+  return q * preco;
+}
 function totIC(ingrs) { return ingrs.reduce((a, ig) => a + iCost(ig, parseFloat(ig.qty || 0)), 0); }
 function pctClass(p) { return p >= 50 ? 'pok' : p >= 10 ? 'pwn' : 'pbd'; }
 function setSyncStatus(state, text) {
@@ -316,7 +323,20 @@ function renderHome() {
   const lucroEstimado = faturamento - custoEstimado;
   const margemAtual = faturamento > 0 ? (lucroEstimado / faturamento * 100) : 0;
 
+  // ── PENDÊNCIAS DE PREÇO NO ESTOQUE ──
+  const pendentesPreco = typeof getIngredientesPendentesDePreco === 'function' ? getIngredientesPendentesDePreco() : [];
+  const cardPendenciasHtml = pendentesPreco.length ? `
+    <div onclick="goPage('estoque')" style="cursor:pointer;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:28px">⚠️</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:800;color:#e74c3c">${pendentesPreco.length} ingrediente(s) sem preço no Estoque</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">O custo das receitas que usam ${pendentesPreco.length===1?'ele':'eles'} está incompleto. Toque para cadastrar.</div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:#e74c3c"></i>
+    </div>` : '';
+
   document.getElementById('page-home').innerHTML = `
+    ${cardPendenciasHtml}
     <!-- DASHBOARD MENSAL -->
     <div style="background:linear-gradient(160deg,#1E1408,#2A1C0A);border:1px solid rgba(200,163,91,.3);border-radius:14px;padding:16px;margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -1367,58 +1387,57 @@ function st2(n) {
   if(n===3) updCosts();
 }
 
-function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', price: 0, isBase: false }); renderIngrTable(); atualizarMultiplicadorAroPreview(); }
+function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', isBase: false }); renderIngrTable(); atualizarMultiplicadorAroPreview(); }
 function remIngr(i) { curIngr.splice(i, 1); renderIngrTable(); atualizarMultiplicadorAroPreview(); }
 function setBase(i) { curIngr.forEach((ig, j) => ig.isBase = (j === i)); renderIngrTable(); }
 
+// O preço (coluna R$/kg) é SOMENTE LEITURA aqui — vem sempre do Estoque, fonte única de
+// verdade. Para mudar o preço de um ingrediente, edite-o na tela de Estoque; a mudança
+// já reflete automaticamente em todas as receitas que o usam. Ingredientes ainda sem
+// preço cadastrado aparecem com "—" e um aviso, em vez de um campo digitável.
 function renderIngrTable() {
   const tb = document.getElementById('ingr-body');
   if (!curIngr.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</td></tr>`; return; }
   tb.innerHTML = curIngr.map((ig, i) => {
-    const sub = (parseFloat(ig.qty||0) * parseFloat(ig.price||0)).toFixed(2);
+    const preco = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : 0;
+    const semPreco = typeof ingredienteSemPreco === 'function' ? ingredienteSemPreco(ig.name) : !preco;
+    const sub = (parseFloat(ig.qty||0) * preco).toFixed(2);
+    const precoCell = (ig.name && semPreco)
+      ? `<span style="color:#e74c3c;font-size:11px;cursor:pointer" onclick="goPage('estoque')" title="Cadastrar preço no Estoque"><i class="ti ti-alert-circle"></i> sem preço</span>`
+      : `<span style="color:var(--text2);font-size:12px">${preco>0 ? 'R$ '+(preco*1000).toFixed(2) : '—'}</span>`;
     return `<tr class="${ig.isBase ? 'ihl' : ''}">
       <td style="text-align:center"><input type="radio" name="bir" ${ig.isBase?'checked':''} onchange="setBase(${i})" style="accent-color:var(--blue);width:18px;height:18px"></td>
       <td>
         <input value="${ig.name}" placeholder="Nome" autocomplete="off"
           oninput="curIngr[${i}].name=this.value;showIngrSugestoes(${i},this.value)"
           onfocus="showIngrSugestoes(${i},this.value)"
-          onblur="setTimeout(()=>{hideIngrSugestoes(${i});aplicarPrecoDoEstoque(${i})},200)"
+          onblur="setTimeout(()=>{hideIngrSugestoes(${i});atualizarPrecoExibidoIngr(${i})},200)"
           style="margin-bottom:3px;color:var(--text)">
         <div id="ingr-sug-${i}" class="ingr-sug-chips" style="display:none"></div>
         <input value="${ig.obs||''}" placeholder="Obs: pode substituir por..." oninput="curIngr[${i}].obs=this.value" style="font-size:11px;color:var(--text2);border-color:var(--border);padding:3px 5px;font-style:italic">
       </td>
       <td><input type="number" inputmode="decimal" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;updateIngrSubtotal(${i})"></td>
       <td><input value="${ig.unit}" placeholder="g" oninput="curIngr[${i}].unit=this.value"></td>
-      <td><input type="number" inputmode="decimal" value="${(parseFloat(ig.price||0)*1000).toFixed(2)}" min="0" step=".01" oninput="curIngr[${i}].price=(parseFloat(this.value)||0)/1000;updateIngrSubtotal(${i})"></td>
+      <td style="text-align:center">${precoCell}</td>
       <td style="text-align:right;color:var(--text2);font-size:11px;white-space:nowrap" id="ingr-sub-${i}">${fR(sub)}</td>
       <td><button class="db" onclick="remIngr(${i})"><i class="ti ti-trash"></i></button></td>
     </tr>`;
   }).join('');
 }
 
-// Atualiza só o subtotal da linha, sem redesenhar a tabela (evita perder o foco/cursor ao digitar)
-// Ao sair do campo de nome de um ingrediente, verifica se ele já existe no Estoque com
-// preço cadastrado e preenche automaticamente — evita digitar o preço de novo para
-// ingredientes já usados em outras receitas. Só preenche se o campo de preço estiver
-// zerado, para não sobrescrever um valor que você já tenha ajustado manualmente.
-function aplicarPrecoDoEstoque(i) {
-  const ig = curIngr[i];
-  if (!ig || !ig.name) return;
-  if (typeof estoque === 'undefined') return;
-  const key = ig.name.trim().toLowerCase();
-  const itemEstoque = estoque[key];
-  if (!itemEstoque || !itemEstoque.price || itemEstoque.price <= 0) return;
-  if (ig.price && ig.price > 0) return; // já tem preço preenchido, não sobrescreve
-  ig.price = itemEstoque.price;
+// Re-renderiza só a linha de um ingrediente para mostrar o preço atual do Estoque (que
+// agora é a única fonte de preço) assim que o nome é digitado/confirmado — não "copia"
+// mais nada para dentro da receita, só atualiza a exibição em tela.
+function atualizarPrecoExibidoIngr(i) {
   renderIngrTable();
   atualizarMultiplicadorAroPreview();
-  toast('💰 Preço de "' + ig.name + '" preenchido do Estoque');
 }
 
 function updateIngrSubtotal(i) {
   const ig = curIngr[i];
   if (!ig) return;
-  const sub = (parseFloat(ig.qty||0) * parseFloat(ig.price||0)).toFixed(2);
+  const preco = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : 0;
+  const sub = (parseFloat(ig.qty||0) * preco).toFixed(2);
   const el = document.getElementById('ingr-sub-' + i);
   if (el) el.textContent = fR(sub);
   atualizarMultiplicadorAroPreview();
@@ -1445,6 +1464,7 @@ function showIngrSugestoes(i, val) {
   box.style.display = 'flex';
 }
 
+
 function hideIngrSugestoes(i) {
   const box = document.getElementById('ingr-sug-' + i);
   if (box) box.style.display = 'none';
@@ -1453,7 +1473,6 @@ function hideIngrSugestoes(i) {
 function selectIngrSugestao(i, nome) {
   curIngr[i].name = nome;
   renderIngrTable();
-  aplicarPrecoDoEstoque(i);
 }
 
 async function atualizarPrecos() {
@@ -1625,7 +1644,7 @@ function abrirModalIngredientesNovos(novos) {
   document.getElementById('modal-item-titulo').textContent = 'Ingrediente(s) novo(s) no Estoque';
   let html = '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5">'
     + (novos.length===1 ? 'Este ingrediente ainda não está no Estoque.' : 'Estes ' + novos.length + ' ingredientes ainda não estão no Estoque.')
-    + ' Informe o preço por kg/L. Os que ficarem em branco tentam ser estimados por IA — se não houver IA disponível, você pode preenchê-los depois em Estoque.</div>';
+    + ' Informe o preço por kg/L agora, ou deixe em branco e cadastre depois — vai aparecer como pendência em Estoque e na Home até você preencher.</div>';
   novos.forEach(function(n, i){
     html += '<div style="margin-bottom:12px">'
       + '<label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">' + n.nome + ' <span style="color:var(--text3)">(R$ por kg/L)</span></label>'
@@ -1646,13 +1665,14 @@ async function confirmarIngredientesNovos(novos) {
   novos.forEach(function(n, i){
     const el = document.getElementById('ni-preco-' + i);
     const precoKg = el ? parseFloat(el.value) : NaN;
-    // Cria a entrada no Estoque (mesmo sem preço ainda, igual ao comportamento já existente do app)
+    // Cria a entrada no Estoque (mesmo sem preço ainda, para aparecer como pendência)
     estoque[n.key] = estoque[n.key] || { name: n.nome, price: 0, unit: n.unit || 'g', updatedAt: null, usedIn: [] };
     if (!isNaN(precoKg) && precoKg > 0) {
       const precoUnit = precoKg / 1000; // mesma convenção usada em atualizarEstoqueIASelecionados (preço por g/ml)
       estoque[n.key].price = precoUnit;
       estoque[n.key].updatedAt = new Date().toISOString();
-      curIngr.forEach(ig => { if (ig.name && ig.name.trim().toLowerCase() === n.key) ig.price = precoUnit; });
+      // Não copia o preço para dentro de curIngr — o Estoque já é a única fonte de
+      // verdade, e iCost()/getPrecoIngrediente() já leem direto de lá.
     } else {
       semPreco.push(n);
     }
@@ -1661,15 +1681,10 @@ async function confirmarIngredientesNovos(novos) {
   fecharModalItemCardapio();
 
   await saveRecipeFinal();
+  renderIngrTable(); // reflete os preços recém-cadastrados na tabela, se o formulário ainda estiver aberto
 
-  if (semPreco.length && typeof buscarPrecosIAIngredientes === 'function') {
-    const nEncontrados = await buscarPrecosIAIngredientes(semPreco.map(function(n){ return n.key; }));
-    if (nEncontrados > 0) {
-      // A IA atualizou curIngr em memória — persiste de novo para refletir os preços encontrados
-      await saveRecipeFinal();
-    }
-    // Se nEncontrados === 0, o toast de erro de buscarPrecosIAIngredientes já ficou visível
-    // e não deve ser sobrescrito por um novo "Receita salva na nuvem!".
+  if (semPreco.length) {
+    toast('⚠️ ' + semPreco.length + ' ingrediente(s) ficaram sem preço — veja a pendência em Estoque ou na Home.', 5000);
   }
 }
 
@@ -2121,6 +2136,7 @@ async function loadPedidosFromCloud() {
   while(typeof getCurrentRole==='undefined'&&_w<20){await new Promise(r=>setTimeout(r,100));_w++;}
   document.getElementById('loading-text').textContent='Conectando à nuvem...';
   if(typeof loadConfigFromCloud==='function') await loadConfigFromCloud();
+  if(typeof loadEstoqueFromCloud==='function') await loadEstoqueFromCloud(); // preços (fonte única) entre dispositivos
   const ok=await loadFromCloud();
   await loadGruposEstruturaFromCloud(); // depende de "recipes" já carregado, para detectar grupos avulsos
   document.getElementById('loading-overlay').style.display='none';
@@ -2130,10 +2146,12 @@ async function loadPedidosFromCloud() {
   setInterval(async()=>{
     try{
       await loadFromCloud();
+      if(typeof loadEstoqueFromCloud==='function')await loadEstoqueFromCloud();
       if(typeof loadPedidosFromCloud==='function')await loadPedidosFromCloud();
       const curPage=document.querySelector('.page.act')?.id;
       if(curPage==='page-home')renderHome();
       if(curPage==='page-receitas')renderRecipes();
+      if(curPage==='page-estoque')renderEstoque();
       if(curPage==='page-confeitaria'&&typeof _renderConfeitariaUI==='function')_renderConfeitariaUI();
       setSyncStatus('ok','sincronizado ✓');
     }catch(e){console.log('Auto-sync error:',e.message);}
