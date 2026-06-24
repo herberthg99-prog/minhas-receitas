@@ -270,8 +270,11 @@ function loadGuestView() {
 }
 
 // ═══════════════════════════════════════════
-// ESTOQUE
+// ESTOQUE — fonte única de preço por ingrediente
 // ═══════════════════════════════════════════
+// A partir desta versão, o preço de um ingrediente vive SÓ aqui (estoque[key].price).
+// As receitas não guardam mais preço próprio — getPrecoIngrediente() é sempre a fonte
+// usada pelos cálculos de custo (totIC, calcAt, getCustoTotalReceita, etc. em app-core.js).
 let estoque = {};
 
 function loadEstoque() {
@@ -280,17 +283,69 @@ function loadEstoque() {
 
 function saveEstoque() {
   try { localStorage.setItem('mr_estoque', JSON.stringify(estoque)); } catch(e) {}
+  saveEstoqueToCloud();
 }
 
+async function saveEstoqueToCloud() {
+  try {
+    await sb.from('config').upsert({
+      user_id: USER_ID,
+      estoque: JSON.stringify(estoque)
+    }, { onConflict: 'user_id' });
+  } catch(e) { console.log('saveEstoqueToCloud erro:', e.message); }
+}
+
+async function loadEstoqueFromCloud() {
+  try {
+    const { data } = await sb.from('config').select('estoque').eq('user_id', USER_ID).limit(1);
+    if (data && data.length && data[0].estoque) {
+      const cloudEstoque = JSON.parse(data[0].estoque);
+      // Nuvem é a fonte de verdade entre dispositivos — mas preserva itens locais que
+      // ainda não foram sincronizados (ex: criados offline).
+      estoque = {...estoque, ...cloudEstoque};
+      saveEstoque();
+    }
+  } catch(e) { console.log('loadEstoqueFromCloud erro:', e.message); }
+}
+
+// Normaliza o nome de um ingrediente para a chave usada no Estoque (mesma convenção já
+// usada em todo o app: trim + lowercase).
+function normalizarChaveIngrediente(nome) {
+  return (nome || '').trim().toLowerCase();
+}
+
+// Função central de leitura de preço: TODA leitura de preço de ingrediente no app deve
+// passar por aqui (em vez de ler ig.price diretamente). Retorna preço por g/ml (mesma
+// convenção interna sempre usada: price = R$ por grama/mililitro, não por kg/L).
+// Se o ingrediente ainda não tem preço cadastrado no Estoque, retorna 0.
+function getPrecoIngrediente(nome) {
+  if (!nome) return 0;
+  const key = normalizarChaveIngrediente(nome);
+  return (estoque[key] && estoque[key].price) ? estoque[key].price : 0;
+}
+
+// Verdadeiro se o ingrediente ainda não tem preço cadastrado no Estoque — usado para
+// destacar pendências na tela de Estoque e no aviso da Home.
+function ingredienteSemPreco(nome) {
+  if (!nome) return false;
+  const key = normalizarChaveIngrediente(nome);
+  return !estoque[key] || !estoque[key].price || estoque[key].price <= 0;
+}
+
+// Garante que todo ingrediente usado em qualquer receita já tenha uma entrada no Estoque
+// (mesmo sem preço ainda, para aparecer como pendência) e mantém a lista "usedIn"
+// atualizada para exibição. Não sobrescreve preços já existentes.
 function syncEstoqueFromRecipes() {
   recipes.forEach(r => {
     (r.ingredients || []).forEach(ig => {
       if (!ig.name) return;
-      const key = ig.name.trim().toLowerCase();
+      const key = normalizarChaveIngrediente(ig.name);
       if (!estoque[key]) {
-        estoque[key] = { name: ig.name.trim(), price: ig.price || 0, unit: ig.unit || 'g', updatedAt: null, usedIn: [] };
+        // Migração: se a receita ainda tiver um preço antigo gravado nela (ig.price, de
+        // antes desta mudança), usa esse valor como ponto de partida no Estoque — depois
+        // disso, o preço da receita nunca mais é lido diretamente.
+        estoque[key] = { name: ig.name.trim(), price: ig.price || 0, unit: ig.unit || 'g', updatedAt: ig.price ? new Date().toISOString() : null, usedIn: [] };
       } else {
-        if (ig.price > 0 && !estoque[key].price) estoque[key].price = ig.price;
         estoque[key].name = ig.name.trim();
       }
       if (!estoque[key].usedIn) estoque[key].usedIn = [];
@@ -300,16 +355,14 @@ function syncEstoqueFromRecipes() {
   saveEstoque();
 }
 
-function applyEstoqueToRecipes() {
-  let updated = 0;
-  recipes.forEach(r => {
-    (r.ingredients || []).forEach(ig => {
-      if (!ig.name) return;
-      const key = ig.name.trim().toLowerCase();
-      if (estoque[key] && estoque[key].price > 0) { ig.price = estoque[key].price; updated++; }
-    });
-  });
-  return updated;
+// Lista de ingredientes que aparecem em pelo menos uma receita e ainda não têm preço no
+// Estoque — usada para o card de pendências na Home e o filtro "Sem preço" no Estoque.
+function getIngredientesPendentesDePreco() {
+  syncEstoqueFromRecipes();
+  return Object.keys(estoque)
+    .filter(function(k){ return ingredienteSemPreco(k); })
+    .map(function(k){ return estoque[k]; })
+    .sort(function(a,b){ return (a.usedIn||[]).length - (b.usedIn||[]).length; }).reverse();
 }
 
 const PRAZO_VALIDADE_PRECO_DIAS = 45;
@@ -325,6 +378,109 @@ function setEstoqueFiltro(f) {
   renderEstoque();
 }
 
+// Normaliza removendo acentos, pra detectar duplicados que só diferem por acentuação
+// (ex: "Açúcar" vs "Acucar"). Não usada como chave do Estoque (isso quebraria nomes
+// diferentes de fato) — só para a comparação de similaridade abaixo.
+function removerAcentos(s) {
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Distância de Levenshtein simples (número de edições para transformar uma string na
+// outra) — usada só para nomes curtos de ingrediente, então o custo computacional é
+// desprezível mesmo comparando todos os pares do Estoque.
+function distanciaLevenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Similaridade entre dois nomes de ingrediente (0 a 1, onde 1 = idênticos), já
+// normalizando acentos e espaços para focar em diferenças de digitação reais.
+function similaridadeIngredientes(nomeA, nomeB) {
+  const a = removerAcentos(normalizarChaveIngrediente(nomeA));
+  const b = removerAcentos(normalizarChaveIngrediente(nomeB));
+  if (a === b) return 1;
+  const maxLen = Math.max(a.length, b.length);
+  if (!maxLen) return 0;
+  return 1 - (distanciaLevenshtein(a, b) / maxLen);
+}
+
+const LIMIAR_DUPLICADO = 0.82; // acima disso, consideramos "provável duplicado"
+
+// Procura no Estoque já existente algum ingrediente muito parecido com o nome informado
+// (e que NÃO seja o próprio item, no caso de já existir exatamente). Usada antes de criar
+// uma entrada nova, para avisar e evitar duplicidade (ex: "Açucar" quando já existe "Açúcar").
+function buscarPossivelDuplicado(nome) {
+  const keyNovo = normalizarChaveIngrediente(nome);
+  if (estoque[keyNovo]) return null; // já existe exatamente — não é duplicado, é o mesmo item
+  let melhor = null, melhorScore = 0;
+  Object.keys(estoque).forEach(function(key){
+    const score = similaridadeIngredientes(estoque[key].name, nome);
+    if (score > melhorScore) { melhorScore = score; melhor = estoque[key]; }
+  });
+  return (melhor && melhorScore >= LIMIAR_DUPLICADO) ? { item: melhor, score: melhorScore } : null;
+}
+
+// Varre TODO o Estoque procurando pares de itens parecidos entre si (não com um nome
+// novo) — usado para mostrar um aviso geral na tela de Estoque sobre duplicados que já
+// possam existir, mesmo sem nenhuma ação do usuário no momento.
+function encontrarDuplicadosNoEstoque() {
+  const keys = Object.keys(estoque);
+  const pares = [];
+  const jaPareados = new Set();
+  for (let i = 0; i < keys.length; i++) {
+    if (jaPareados.has(keys[i])) continue;
+    for (let j = i+1; j < keys.length; j++) {
+      if (jaPareados.has(keys[j])) continue;
+      const score = similaridadeIngredientes(estoque[keys[i]].name, estoque[keys[j]].name);
+      if (score >= LIMIAR_DUPLICADO) {
+        pares.push({ a: estoque[keys[i]], b: estoque[keys[j]], keyA: keys[i], keyB: keys[j], score: score });
+        jaPareados.add(keys[i]); jaPareados.add(keys[j]);
+        break;
+      }
+    }
+  }
+  return pares;
+}
+
+// Funde o ingrediente "origem" dentro do ingrediente "destino": todas as receitas que
+// citam o nome de origem passam a citar o nome de destino, o item de origem é removido do
+// Estoque, e o preço do destino é preservado (a menos que esteja vazio e a origem tenha
+// preço, caso em que herda o preço da origem).
+async function fundirIngredientesDuplicados(keyOrigem, keyDestino) {
+  if (keyOrigem === keyDestino) return;
+  const origem = estoque[keyOrigem], destino = estoque[keyDestino];
+  if (!origem || !destino) return;
+  if ((!destino.price || destino.price <= 0) && origem.price > 0) {
+    destino.price = origem.price;
+    destino.updatedAt = origem.updatedAt;
+  }
+  // Atualiza o nome dentro de cada receita que usa o nome antigo
+  recipes.forEach(function(r){
+    (r.ingredients||[]).forEach(function(ig){
+      if (ig.name && normalizarChaveIngrediente(ig.name) === keyOrigem) ig.name = destino.name;
+    });
+  });
+  // Persiste as receitas alteradas
+  const afetadas = recipes.filter(function(r){
+    return (r.ingredients||[]).some(function(ig){ return ig.name === destino.name; });
+  });
+  await Promise.all(afetadas.map(function(r){ return typeof saveToCloud === 'function' ? saveToCloud(r) : Promise.resolve(); }));
+  destino.usedIn = Array.from(new Set([...(destino.usedIn||[]), ...(origem.usedIn||[])]));
+  delete estoque[keyOrigem];
+  saveEstoque();
+  renderEstoque();
+  toast('✅ "' + origem.name + '" mesclado com "' + destino.name + '"!');
+}
+
 function renderEstoque() {
   syncEstoqueFromRecipes();
   const el = document.getElementById('page-estoque');
@@ -332,6 +488,7 @@ function renderEstoque() {
   const total = allKeys.length;
   const semPreco = allKeys.filter(k => !estoque[k].price || estoque[k].price === 0);
   const vencidos = allKeys.filter(k => (estoque[k].price && estoque[k].price > 0) && precoVencido(estoque[k]));
+  const duplicados = encontrarDuplicadosNoEstoque();
 
   const filtro = window._estoqueFiltro || 'todos';
   const keys = filtro === 'sem_preco' ? semPreco : (filtro === 'vencido' ? vencidos : allKeys);
@@ -351,6 +508,8 @@ function renderEstoque() {
         </button>
       </div>
     </div>
+    ${duplicados.length ? `<div class="warn-box" style="margin-bottom:10px;background:rgba(212,162,74,.1);border-color:rgba(212,162,74,.4)"><i class="ti ti-copy" style="flex-shrink:0;margin-top:1px"></i><span><strong>${duplicados.length} possível(is) duplicado(s) encontrado(s)</strong> — pode ser o mesmo ingrediente escrito de formas diferentes. <button onclick="abrirModalDuplicados()" style="background:none;border:none;color:var(--gold);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0">Revisar agora</button></span></div>` : ''}
+    ${semPreco.length ? `<div class="warn-box" style="margin-bottom:10px"><i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px"></i><span><strong>${semPreco.length} ingrediente(s) sem preço</strong> — o custo das receitas que os usam está incompleto até você preencher o preço aqui.</span></div>` : ''}
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
       <button class="rb ${filtro==='todos'?'rb-active':''}" onclick="setEstoqueFiltro('todos')" style="font-size:12px">Todos (${total})</button>
       <button class="rb ${filtro==='sem_preco'?'rb-active':''}" onclick="setEstoqueFiltro('sem_preco')" style="font-size:12px;${semPreco.length?'color:#c0392b':''}"><i class="ti ti-alert-circle"></i> Sem preço (${semPreco.length})</button>
@@ -371,10 +530,11 @@ function renderEstoqueItem(key) {
   const priceKg = ig.price ? (ig.price * 1000).toFixed(2) : '';
   const updStr = ig.updatedAt ? new Date(ig.updatedAt).toLocaleDateString('pt-BR') : null;
   const vencido = (ig.price && ig.price > 0) && precoVencido(ig);
+  const semPreco = !ig.price || ig.price <= 0;
   let estoqueSelected = window._estoqueSelected || new Set();
   window._estoqueSelected = estoqueSelected;
   const isChecked = estoqueSelected.has(key);
-  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':''}">
+  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(192,57,43,.4)':'')}">
     <div class="estoque-item-header">
       <div style="display:flex;align-items:flex-start;gap:8px">
         <input type="checkbox" ${isChecked?'checked':''} onchange="toggleEstoqueSelect('${key}',this.checked)"
@@ -385,6 +545,7 @@ function renderEstoqueItem(key) {
             <span>${ig.unit || 'g'}</span>
             ${updStr ? `<span><i class="ti ti-clock" style="font-size:10px"></i> ${updStr}</span>` : '<span class="estoque-badge-new">Sem atualização</span>'}
             ${vencido ? `<span class="estoque-badge" style="background:rgba(192,57,43,.15);color:#c0392b;border-color:rgba(192,57,43,.4)"><i class="ti ti-clock-exclamation" style="font-size:10px"></i> Vencido (45+ dias)</span>` : ''}
+            ${semPreco ? `<span class="estoque-badge" style="background:rgba(192,57,43,.2);color:#e74c3c;border-color:rgba(192,57,43,.5)"><i class="ti ti-alert-circle" style="font-size:10px"></i> Pendente</span>` : ''}
             ${ig.usedIn && ig.usedIn.length ? `<span class="estoque-badge">${ig.usedIn.length} receita(s)</span>` : ''}
           </div>
           ${ig.usedIn && ig.usedIn.length ? `<div class="estoque-item-recipes"><i class="ti ti-book" style="font-size:10px"></i> ${ig.usedIn.slice(0,3).join(', ')}${ig.usedIn.length > 3 ? '...' : ''}</div>` : ''}
@@ -409,19 +570,22 @@ function renderEstoqueItem(key) {
   </div>`;
 }
 
+// Atualiza o preço de um ingrediente no Estoque — única fonte de verdade. As receitas não
+// guardam mais preço próprio, então não há nada para "empurrar" para elas: a próxima vez
+// que qualquer cálculo de custo rodar (calcAt, getCustoTotalReceita, etc.), ele já lê o
+// valor novo direto daqui via getPrecoIngrediente().
 function updateEstoquePrice(key, priceKg) {
   if (!estoque[key]) return;
   estoque[key].price = priceKg / 1000;
   estoque[key].updatedAt = new Date().toISOString();
   saveEstoque();
-  recipes.forEach(r => {
-    (r.ingredients || []).forEach(ig => {
-      if (ig.name && ig.name.trim().toLowerCase() === key) ig.price = priceKg / 1000;
-    });
-  });
   const itemEl = document.getElementById('est-item-' + key.replace(/[^a-z0-9]/g,'_'));
   if (itemEl) itemEl.outerHTML = renderEstoqueItem(key);
-  toast('Preço atualizado em todas as receitas!');
+  // Se a tela de Receitas (lista ou visualização) estiver aberta, re-renderiza para
+  // refletir o novo custo imediatamente, sem precisar recarregar a página.
+  if (typeof renderRecipes === 'function' && document.getElementById('page-receitas')?.classList.contains('act')) renderRecipes();
+  if (typeof renderHome === 'function' && document.getElementById('page-home')?.classList.contains('act')) renderHome();
+  toast('✅ Preço atualizado! Todas as receitas que usam este ingrediente já refletem o novo valor.');
 }
 
 function updateEstoqueUnit(key, unit) {
@@ -442,10 +606,67 @@ function addEstoqueManual() {
   if (!nome || !nome.trim()) return;
   const key = nome.trim().toLowerCase();
   if (estoque[key]) { toast('Ingrediente já existe no estoque!'); return; }
+  const possivelDuplicado = buscarPossivelDuplicado(nome);
+  if (possivelDuplicado) {
+    const confirmar = confirm(
+      'Já existe "' + possivelDuplicado.item.name + '" no Estoque, bem parecido com "' + nome.trim() + '".\n\n' +
+      'Pode ser o mesmo ingrediente escrito de forma diferente.\n\n' +
+      'Clique OK para criar mesmo assim como item separado, ou Cancelar para não criar.'
+    );
+    if (!confirmar) return;
+  }
   estoque[key] = { name: nome.trim(), price: 0, unit: 'g', updatedAt: null, usedIn: [] };
   saveEstoque();
   renderEstoque();
   toast('Ingrediente adicionado!');
+}
+
+// ═══ MODAL: revisar e mesclar possíveis duplicados do Estoque ═══
+function abrirModalDuplicados() {
+  const pares = encontrarDuplicadosNoEstoque();
+  document.getElementById('modal-item-titulo').textContent = 'Possíveis ingredientes duplicados';
+  if (!pares.length) {
+    document.getElementById('modal-item-campos').innerHTML = '<div style="font-size:13px;color:var(--text2)">Nenhum duplicado encontrado. 🎉</div>';
+  } else {
+    let html = '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5">Estes pares parecem ser o mesmo ingrediente escrito de formas diferentes. Escolha qual nome manter — o outro será removido e suas receitas passam a usar o nome escolhido.</div>';
+    pares.forEach(function(par, i){
+      html += '<div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:10px">'
+        + '<div style="font-size:11px;color:var(--text3);margin-bottom:8px">' + Math.round(par.score*100) + '% parecidos</div>'
+        + '<div style="display:flex;flex-direction:column;gap:8px">'
+        + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
+          + '<input type="radio" name="dup-escolha-' + i + '" value="a" checked style="width:16px;height:16px">'
+          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.a.name + '"</strong>' + (par.a.price ? ' (R$ ' + (par.a.price*1000).toFixed(2) + '/kg)' : ' (sem preço)') + '</span>'
+        + '</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
+          + '<input type="radio" name="dup-escolha-' + i + '" value="b" style="width:16px;height:16px">'
+          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.b.name + '"</strong>' + (par.b.price ? ' (R$ ' + (par.b.price*1000).toFixed(2) + '/kg)' : ' (sem preço)') + '</span>'
+        + '</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
+          + '<input type="radio" name="dup-escolha-' + i + '" value="none" style="width:16px;height:16px">'
+          + '<span style="font-size:13px;color:var(--text2)">Não é duplicado — manter os dois separados</span>'
+        + '</label>'
+        + '</div>'
+        + '<input type="hidden" id="dup-keyA-' + i + '" value="' + par.keyA + '">'
+        + '<input type="hidden" id="dup-keyB-' + i + '" value="' + par.keyB + '">'
+        + '</div>';
+    });
+    document.getElementById('modal-item-campos').innerHTML = html;
+  }
+  document.getElementById('modal-item-btn-confirmar').textContent = pares.length ? 'Aplicar' : 'Fechar';
+  document.getElementById('modal-item-btn-confirmar').onclick = async function() {
+    if (!pares.length) { fecharModalItemCardapio(); return; }
+    for (let i = 0; i < pares.length; i++) {
+      const escolha = document.querySelector('input[name="dup-escolha-' + i + '"]:checked')?.value;
+      if (escolha === 'none') continue;
+      const keyA = document.getElementById('dup-keyA-' + i).value;
+      const keyB = document.getElementById('dup-keyB-' + i).value;
+      if (escolha === 'a') await fundirIngredientesDuplicados(keyB, keyA);
+      else if (escolha === 'b') await fundirIngredientesDuplicados(keyA, keyB);
+    }
+    fecharModalItemCardapio();
+    renderEstoque();
+  };
+  document.getElementById('modal-item-cardapio').style.display = 'flex';
 }
 
 loadEstoque();
@@ -718,7 +939,7 @@ function gerarHtmlReceitaExpandida(rec, mult, camadas) {
   var linhas = ingrs.map(function(ig){
     var qtyBase = parseFloat(ig.qty || 0);
     var qtyEscalada = qtyBase * mult;
-    var custoUnit = parseFloat(ig.price || 0);
+    var custoUnit = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : parseFloat(ig.price || 0);
     var custoBase = qtyBase * custoUnit;
     var custoEscalado = qtyEscalada * custoUnit * camadas;
     custoIngrTotalBase += custoBase;
@@ -1936,84 +2157,6 @@ function compartilharLinkTemporario() {
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
-// ═══════════════════════════════════════════
-// GERENCIADOR DE GRUPOS
-// ═══════════════════════════════════════════
-function getGruposConfig() {
-  try { return JSON.parse(localStorage.getItem('mr_grupos') || 'null'); } catch(e) { return null; }
-}
-function saveGruposConfig(cfg) { localStorage.setItem('mr_grupos', JSON.stringify(cfg)); }
-
-function getGruposParaCat(cat) {
-  var saved = getGruposConfig();
-  var padrao;
-  if (cat === 'doce') { padrao = ['Recheios','Bolos','Caldas','Coberturas','Biscoitos','Sobremesas','Pães','Bebidas']; }
-  else if (cat === 'salgada') { padrao = ['Carnes','Aves','Peixes','Massas','Tortas','Lanches','Sopas']; }
-  else { padrao = []; }
-  var base = (saved && saved[cat] && saved[cat].length) ? saved[cat].slice() : padrao.slice();
-  // Garante que os grupos padrão sempre estejam presentes, mesmo em configs salvas antigas
-  padrao.forEach(function(g) { if (base.indexOf(g) === -1) base.push(g); });
-  for (var i = 0; i < recipes.length; i++) {
-    var r = recipes[i];
-    if (r.cat === cat && r.group && base.indexOf(r.group) === -1) base.push(r.group);
-  }
-  base.sort();
-  return base;
-}
-
-function renderGrupoLists() {
-  ['doce','salgada'].forEach(function(cat) {
-    const el = document.getElementById('grupos-' + cat + '-list');
-    if (!el) return;
-    const grupos = getGruposParaCat(cat);
-    const recipeGroups = [...new Set(recipes.filter(r=>r.cat===cat&&r.group).map(r=>r.group))];
-    const all = [...new Set([...grupos, ...recipeGroups])].sort();
-    el.innerHTML = all.map(g => `
-      <div style="display:inline-flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600">
-        <span>${g}</span>
-        <button onclick="removeGrupo('${cat}','${g}')" style="background:none;border:none;color:#A32D2D;font-size:13px;cursor:pointer;padding:0 2px;line-height:1"><i class="ti ti-x"></i></button>
-      </div>`).join('');
-  });
-}
-
-function addGrupo(cat) {
-  const inp = document.getElementById('novo-grupo-' + cat);
-  const val = (inp.value || '').trim();
-  if (!val) { toast('Digite o nome do grupo'); return; }
-  const saved = getGruposConfig() || { doce: getGruposParaCat('doce'), salgada: getGruposParaCat('salgada') };
-  if (!saved[cat]) saved[cat] = getGruposParaCat(cat);
-  if (!saved[cat].includes(val)) { saved[cat].push(val); saved[cat].sort(); }
-  saveGruposConfig(saved);
-  inp.value = '';
-  renderGrupoLists();
-  updateGrupoSelects();
-  toast('Grupo "' + val + '" adicionado!');
-}
-
-function removeGrupo(cat, grp) {
-  const saved = getGruposConfig() || { doce: getGruposParaCat('doce'), salgada: getGruposParaCat('salgada') };
-  if (!saved[cat]) saved[cat] = getGruposParaCat(cat);
-  saved[cat] = saved[cat].filter(g => g !== grp);
-  saveGruposConfig(saved);
-  renderGrupoLists();
-  updateGrupoSelects();
-  toast('Grupo removido');
-}
-
-function updateGrupoSelects() {
-  ['fgrp','choice-grp'].forEach(function(selId) {
-    const sel = document.getElementById(selId);
-    if (!sel) return;
-    const cat = selId === 'fgrp'
-      ? (document.getElementById('fcat')?.value || 'salgada')
-      : (document.getElementById('choice-cat')?.value || 'salgada');
-    const grupos = getGruposParaCat(cat).slice().sort(function(a,b){ return a.localeCompare(b,'pt-BR'); });
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">Sem grupo</option>'
-      + grupos.map(g => `<option value="${g}" ${g===cur?'selected':''}>${g}</option>`).join('');
-  });
-}
-
 function simularPrecificacao() {
   var c = sucreeConfig.custos || {};
   var ingr = 50, horas = 2;
@@ -2116,16 +2259,10 @@ async function buscarPrecosIAIngredientes(keys) {
         const priceKg = map[match];
         estoque[key].price = priceKg / 1000;
         estoque[key].updatedAt = new Date().toISOString();
-        recipes.forEach(rec => {
-          (rec.ingredients || []).forEach(ig => {
-            if (ig.name && ig.name.trim().toLowerCase() === key) ig.price = priceKg / 1000;
-          });
-        });
         n++;
       }
     });
     saveEstoque();
-    if (typeof savePedidos === 'function') {} // no-op, mantém escopo de recipes já persistido via saveToCloud no fluxo de receita
     toast(n + ' de ' + keys.length + ' preços estimados por IA!');
     return n;
   } catch(err) {
@@ -2164,11 +2301,6 @@ async function atualizarEstoqueIASelecionados() {
         const priceKg = map[match];
         estoque[key].price = priceKg / 1000;
         estoque[key].updatedAt = new Date().toISOString();
-        recipes.forEach(rec => {
-          (rec.ingredients || []).forEach(ig => {
-            if (ig.name && ig.name.trim().toLowerCase() === key) ig.price = priceKg / 1000;
-          });
-        });
         n++;
       }
     });
