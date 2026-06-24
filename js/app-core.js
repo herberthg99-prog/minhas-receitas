@@ -1130,34 +1130,47 @@ function renderRecheiosVinculadosChecklist(recheiosSelecionados) {
   renderizarChipsRecheiosVinculados(recheiosDisponiveis);
 }
 
+// Lista em cache dos recheios disponíveis no momento da última renderização — usada
+// pelo toggle por índice, para nunca depender de nomes com caracteres especiais
+// (parênteses, aspas, etc.) embutidos em atributos onclick, que causavam o bug de chips
+// não refletirem visualmente a seleção real quando o nome tinha esses caracteres.
+let _recheiosVinculadosCache = [];
+
 function renderizarChipsRecheiosVinculados(recheiosDisponiveis) {
   const el = document.getElementById('recheios-vinculados-checklist');
   if (!el) return;
-  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px">' + recheiosDisponiveis.map(function(nome){
+  _recheiosVinculadosCache = recheiosDisponiveis;
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px">' + recheiosDisponiveis.map(function(nome, i){
     const selecionado = curRecheiosVinculados.indexOf(nome) !== -1;
+    const nomeEscapado = nome.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     if (selecionado) {
-      return '<span onclick="toggleRecheioVinculado(\'' + nome.replace(/'/g,"\\'") + '\')" style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#020B18;border-radius:20px;padding:6px 6px 6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">'
-        + nome
+      return '<span onclick="toggleRecheioVinculadoPorIndice(' + i + ')" style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#020B18;border-radius:20px;padding:6px 6px 6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">'
+        + nomeEscapado
         + '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.25);font-size:11px;line-height:1">✕</span>'
         + '</span>';
     }
-    return '<span onclick="toggleRecheioVinculado(\'' + nome.replace(/'/g,"\\'") + '\')" style="display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap">'
-      + nome + '</span>';
+    return '<span onclick="toggleRecheioVinculadoPorIndice(' + i + ')" style="display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap">'
+      + nomeEscapado + '</span>';
   }).join('') + '</div>';
 }
 
-// Alterna a seleção de um recheio (adiciona ou remove de curRecheiosVinculados) e
-// re-renderiza só os chips — nunca perde a seleção dos outros itens, porque o estado
-// vive em JS, não no atributo "checked" de cada checkbox individual.
-function toggleRecheioVinculado(nome) {
+// Alterna a seleção de um recheio pelo seu índice na lista cacheada (não pelo nome
+// embutido em HTML) — evita qualquer problema de escaping com parênteses, aspas ou
+// outros caracteres especiais no nome do recheio (ex: "Compota de Banana (Banoffee)").
+function toggleRecheioVinculadoPorIndice(i) {
+  const nome = _recheiosVinculadosCache[i];
+  if (!nome) return;
   const idx = curRecheiosVinculados.indexOf(nome);
   if (idx === -1) curRecheiosVinculados.push(nome);
   else curRecheiosVinculados.splice(idx, 1);
-  const recheiosDisponiveis = (typeof recipes !== 'undefined' ? recipes : [])
-    .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group === 'Recheios'); })
-    .map(function(r){ return r.name; })
-    .sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
-  renderizarChipsRecheiosVinculados(recheiosDisponiveis);
+  renderizarChipsRecheiosVinculados(_recheiosVinculadosCache);
+}
+
+// Mantida por compatibilidade (não é mais usada internamente, mas algum código externo
+// pode ter referência a ela) — encontra o índice do nome e delega para a versão por índice.
+function toggleRecheioVinculado(nome) {
+  const i = _recheiosVinculadosCache.indexOf(nome);
+  if (i !== -1) toggleRecheioVinculadoPorIndice(i);
 }
 
 function getRecheiosVinculadosSelecionados() {
