@@ -11,6 +11,7 @@ localStorage.setItem('mr_user_id', USER_ID);
 let recipes = [];
 let shareConfig = { pwd: '', sharedIds: [] };
 let editId = null, curIngr = [], curPhotos = [], curFormas = [], formasEnabled = false;
+let curRecheiosVinculados = []; // seleção do checklist "Aplica-se automaticamente a estes recheios" — guardada aqui, não só no DOM, para nunca perder seleção ao clicar em outro item
 let curMultiplicadorAro = {};
 let newMode = null, fotoB64 = null, viewState = {}, rmap = {};
 let syncPending = false;
@@ -1110,10 +1111,14 @@ function togglePanelaMexedora() {
 // em tempo real, a partir dos valores já digitados em curMultiplicadorAro.
 // Renderiza a lista de recheios cadastrados (group === 'Recheios') como checkboxes, para
 // vincular automaticamente um item (ex: Chocolate Nobre picado) a um ou mais recheios.
+// Renderiza a lista de recheios disponíveis como chips clicáveis. A seleção fica guardada
+// em curRecheiosVinculados (variável JS), NÃO depende do estado nativo do checkbox — isso
+// evita qualquer comportamento estranho de desmarcação ao clicar em outro item. Itens já
+// selecionados aparecem em destaque dourado com um "X" para remover rapidamente.
 function renderRecheiosVinculadosChecklist(recheiosSelecionados) {
   const el = document.getElementById('recheios-vinculados-checklist');
   if (!el) return;
-  const sel = new Set(recheiosSelecionados || []);
+  curRecheiosVinculados = Array.isArray(recheiosSelecionados) ? [...recheiosSelecionados] : [];
   const recheiosDisponiveis = (typeof recipes !== 'undefined' ? recipes : [])
     .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group === 'Recheios'); })
     .map(function(r){ return r.name; })
@@ -1122,18 +1127,41 @@ function renderRecheiosVinculadosChecklist(recheiosSelecionados) {
     el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:4px">Nenhum recheio cadastrado ainda.</div>';
     return;
   }
-  el.innerHTML = recheiosDisponiveis.map(function(nome){
-    const id = 'rv-' + nome.replace(/[^a-zA-Z0-9]/g,'_');
-    return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer;font-size:13px">'
-      + '<input type="checkbox" id="' + id + '" value="' + nome.replace(/"/g,'&quot;') + '" ' + (sel.has(nome)?'checked':'') + ' style="width:16px;height:16px;accent-color:var(--gold)">'
-      + nome + '</label>';
-  }).join('');
+  renderizarChipsRecheiosVinculados(recheiosDisponiveis);
+}
+
+function renderizarChipsRecheiosVinculados(recheiosDisponiveis) {
+  const el = document.getElementById('recheios-vinculados-checklist');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px">' + recheiosDisponiveis.map(function(nome){
+    const selecionado = curRecheiosVinculados.indexOf(nome) !== -1;
+    if (selecionado) {
+      return '<span onclick="toggleRecheioVinculado(\'' + nome.replace(/'/g,"\\'") + '\')" style="display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#020B18;border-radius:20px;padding:6px 6px 6px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">'
+        + nome
+        + '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.25);font-size:11px;line-height:1">✕</span>'
+        + '</span>';
+    }
+    return '<span onclick="toggleRecheioVinculado(\'' + nome.replace(/'/g,"\\'") + '\')" style="display:inline-flex;align-items:center;background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap">'
+      + nome + '</span>';
+  }).join('') + '</div>';
+}
+
+// Alterna a seleção de um recheio (adiciona ou remove de curRecheiosVinculados) e
+// re-renderiza só os chips — nunca perde a seleção dos outros itens, porque o estado
+// vive em JS, não no atributo "checked" de cada checkbox individual.
+function toggleRecheioVinculado(nome) {
+  const idx = curRecheiosVinculados.indexOf(nome);
+  if (idx === -1) curRecheiosVinculados.push(nome);
+  else curRecheiosVinculados.splice(idx, 1);
+  const recheiosDisponiveis = (typeof recipes !== 'undefined' ? recipes : [])
+    .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group === 'Recheios'); })
+    .map(function(r){ return r.name; })
+    .sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
+  renderizarChipsRecheiosVinculados(recheiosDisponiveis);
 }
 
 function getRecheiosVinculadosSelecionados() {
-  const el = document.getElementById('recheios-vinculados-checklist');
-  if (!el) return [];
-  return [...el.querySelectorAll('input[type="checkbox"]:checked')].map(function(cb){ return cb.value; });
+  return [...curRecheiosVinculados];
 }
 
 // Preenche o <select id="fcaldavinc"> com as receitas de grupo "Caldas" cadastradas,
