@@ -1280,10 +1280,12 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(pre?.recheiosVinculados);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
-  const elSub = document.getElementById('fsubgrp');
-  if (elSub) elSub.value = pre?.subgrupo || '';
+  // Mesma lógica resiliente usada em openEdit — define o subgrupo recebendo cat/grupo
+  // diretamente como parâmetros, sem depender do timing de updateGrupoSelects() acima.
+  aplicarSubgrupoNoFormulario(cat, grp || '', pre?.subgrupo || '');
   document.getElementById('modal-edit').style.display = 'flex';
 }
+
 
 function openEdit(id) {
   const r = recipes.find(x => x.id === id); if (!r) return;
@@ -1314,10 +1316,35 @@ function openEdit(id) {
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(r.recheiosVinculados);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
-  const elSub = document.getElementById('fsubgrp');
-  if (elSub) elSub.value = r.subgrupo || '';
+  // Define o subgrupo desta receita explicitamente, com os mesmos valores de cat/grupo
+  // que acabamos de aplicar — não depende do timing de updateGrupoSelects() acima, que em
+  // alguns casos rodava antes do <select> de categoria refletir o valor já atribuído.
+  aplicarSubgrupoNoFormulario(r.cat || 'salgada', r.group || '', r.subgrupo || '');
   document.getElementById('modal-edit').style.display = 'flex';
 }
+
+// Garante que o campo Subgrupo do formulário fique corretamente populado e com o valor
+// certo selecionado, recebendo cat/grupo/subgrupo diretamente como parâmetros — em vez de
+// reler do DOM, que pode não estar 100% sincronizado no exato instante desta chamada.
+function aplicarSubgrupoNoFormulario(cat, grpNome, subgrupoAtual) {
+  var elSubBox = document.getElementById('fsubgrp-box');
+  var elSub = document.getElementById('fsubgrp');
+  if (!elSubBox || !elSub) return;
+  var subgrupos = grpNome ? getSubgruposDoGrupo(cat, grpNome) : [];
+  if (!subgrupos.length) {
+    elSubBox.style.display = 'none';
+    elSub.innerHTML = '<option value="">Sem subgrupo</option>';
+    return;
+  }
+  var html = '<option value="">Sem subgrupo</option>';
+  subgrupos.forEach(function(s){
+    html += '<option value="' + s.replace(/"/g,'&quot;') + '">' + s + '</option>';
+  });
+  elSub.innerHTML = html;
+  if (subgrupos.indexOf(subgrupoAtual) !== -1) elSub.value = subgrupoAtual;
+  elSubBox.style.display = 'block';
+}
+
 
 function checkFormaTab() {
   const grp = document.getElementById('fgrp').value;
