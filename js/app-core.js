@@ -1229,36 +1229,41 @@ function renderMassasVinculadasChecklist() {
     el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:4px">Nenhuma receita de Massa/Bolo cadastrada ainda.</div>';
     return;
   }
-  el.innerHTML = massas.map(function(m){
-    const id = 'mv-' + m.id;
-    const marcado = m.caldaVinculada === nomeCaldaAtual && nomeCaldaAtual;
-    return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer;font-size:13px">'
-      + '<input type="checkbox" id="' + id + '" data-massa-id="' + m.id + '" ' + (marcado?'checked':'') + ' onchange="onToggleMassaVinculada(this)" style="width:16px;height:16px;accent-color:var(--gold)">'
-      + m.name + (m.caldaVinculada && m.caldaVinculada !== nomeCaldaAtual ? ' <span style="color:var(--text3);font-size:11px">(hoje: ' + m.caldaVinculada + ')</span>' : '')
-      + '</label>';
-  }).join('');
+  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:2px">' + massas.map(function(m, i){
+    const marcado = !!(nomeCaldaAtual && m.caldaVinculada === nomeCaldaAtual);
+    const textoExtra = (m.caldaVinculada && m.caldaVinculada !== nomeCaldaAtual) ? ' <span style="color:var(--text3);font-size:11px">(hoje: ' + m.caldaVinculada + ')</span>' : '';
+    if (marcado) {
+      return '<div onclick="toggleMassaVinculadaPorIndice(' + i + ')" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(212,162,74,.15);cursor:pointer;font-size:13px">'
+        + '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;background:var(--gold);color:#020B18;font-size:12px;flex-shrink:0">✓</span>'
+        + '<span style="color:#F5EDD8;font-weight:600">' + m.name + '</span>' + textoExtra
+        + '</div>';
+    }
+    return '<div onclick="toggleMassaVinculadaPorIndice(' + i + ')" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px">'
+      + '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;border:1px solid var(--border);flex-shrink:0"></span>'
+      + '<span style="color:var(--text2)">' + m.name + '</span>' + textoExtra
+      + '</div>';
+  }).join('') + '</div>';
+  window._massasVinculadasCache = massas;
 }
 
-// Ao marcar/desmarcar uma massa no checklist (dentro do cadastro de uma Calda), atualiza
-// e salva imediatamente o campo caldaVinculada daquela massa — não espera o usuário
-// salvar a receita de Calda, porque a mudança real é em outro registro (a Massa).
-async function onToggleMassaVinculada(checkbox) {
-  const massaId = checkbox.getAttribute('data-massa-id');
-  const massa = recipes.find(function(r){ return r.id === massaId; });
+// Alterna o vínculo de uma massa com a calda atual pelo ÍNDICE na lista renderizada (não
+// depende do estado nativo "checked" de checkbox, que combinado com a re-renderização
+// assíncrona após salvar na nuvem causava o bug de "marca mas não aparece marcado até o
+// segundo clique"). Atualiza o visual IMEDIATAMENTE, e só depois salva na nuvem.
+async function toggleMassaVinculadaPorIndice(i) {
+  const massas = window._massasVinculadasCache || [];
+  const massa = massas[i];
   if (!massa) return;
   const nomeCaldaAtual = document.getElementById('fn')?.value?.trim() || '';
-  if (checkbox.checked) {
-    massa.caldaVinculada = nomeCaldaAtual;
-  } else {
-    if (massa.caldaVinculada === nomeCaldaAtual) massa.caldaVinculada = '';
-  }
+  const vaiVincular = massa.caldaVinculada !== nomeCaldaAtual;
+  massa.caldaVinculada = vaiVincular ? nomeCaldaAtual : '';
+  renderMassasVinculadasChecklist(); // atualiza o visual JÁ, antes de esperar a rede
   const resultado = await saveToCloud(massa);
   if (resultado.ok) {
-    toast('✅ "' + massa.name + '" ' + (checkbox.checked ? 'vinculada a esta calda!' : 'desvinculada.'));
+    toast('✅ "' + massa.name + '" ' + (vaiVincular ? 'vinculada a esta calda!' : 'desvinculada.'));
   } else {
     toast('⚠️ Erro ao salvar vínculo: ' + (resultado.error?.message || 'sem conexão'));
   }
-  renderMassasVinculadasChecklist(); // atualiza os textos "(hoje: ...)" de outras massas
 }
 
 function atualizarMultiplicadorAroPreview() {
