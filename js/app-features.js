@@ -1036,11 +1036,25 @@ function getQtdAroDoRecheio(nomeRecheio, aro) {
   return getQtdAroDaReceita(receitaNome, aro);
 }
 
+// Custo de SÓ INGREDIENTES de uma receita, escalado pelo multiplicador do aro — sem
+// indireto e sem mão de obra (que na tela de Detalhamento de Custo do pedido passaram a
+// ser calculados uma única vez sobre o total do pedido, não por receita individual).
+function getCustoIngredientesPorAro(receitaNome, aro) {
+  if (!receitaNome) return 0;
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  if (!rec) return 0;
+  var custoIngr = (typeof totIC === 'function') ? totIC(rec.ingredients || []) : 0;
+  if (!custoIngr) return 0;
+  var mult = (rec.multiplicadorAro || {})[aro];
+  if (!mult) return 0;
+  return custoIngr * mult;
+}
+
 function getCustoMassaAro(nomeMassa, aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var key = (nomeMassa||'').replace(/[^a-zA-Z0-9]/g,'_');
   var receitaNome = vincs['massa_' + key] || nomeMassa;
-  return getCustoReceitaPorAro(receitaNome, aro);
+  return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
 // Busca todas as receitas que se aplicam automaticamente a um recheio específico (campo
@@ -1053,13 +1067,14 @@ function getReceitasVinculadasAoRecheio(nomeRecheio) {
   });
 }
 
-// Custo de TODAS as receitas vinculadas a um recheio específico, para 1 camada, no aro dado.
-// Retorna um array (pode ser vazio, 1, ou vários itens — ex: chocolate nobre + outra coisa).
+// Custo de TODAS as receitas vinculadas a um recheio específico, para 1 camada, no aro
+// dado — só ingredientes (mesma regra acima: indireto/mão de obra saíram da conta por
+// receita e passaram a ser únicos, sobre o total do pedido).
 function getCustosVinculadosAro(nomeRecheio, aro) {
   return getReceitasVinculadasAoRecheio(nomeRecheio).map(function(rec){
-    var custoTotalReceita = getCustoTotalReceita(rec);
+    var custoIngr = (typeof totIC === 'function') ? totIC(rec.ingredients || []) : 0;
     var mult = (rec.multiplicadorAro || {})[aro];
-    var custo = (custoTotalReceita && mult) ? custoTotalReceita * mult : 0;
+    var custo = (custoIngr && mult) ? custoIngr * mult : 0;
     var pesoBase = rec.pesoTotal || rec.yield_qty || 0;
     var qtd = (pesoBase && mult) ? Math.ceil(pesoBase * mult) : 0;
     return { custo: custo, qtd: qtd, nomeReceita: rec.name };
@@ -1070,25 +1085,44 @@ function getCustoRecheioAro(nomeRecheio, aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
   var receitaNome = vincs['recheio_' + key] || nomeRecheio;
-  return getCustoReceitaPorAro(receitaNome, aro);
+  return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
-function getCustoCaldaAro(tipocalda, aro, tipoMassa) {
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var receitaNome = tipocalda === 'chocolate' ? (vincs.caldaChoco || 'Calda de Chocolate') : (vincs.caldaBranca || 'Calda Branca de Ninho');
-  return getCustoReceitaPorAro(receitaNome, aro);
+// Retorna a receita de Calda vinculada a uma Massa específica (campo caldaVinculada,
+// cadastrado dentro da receita de Massa) — relação 1:1, diferente dos recheiosVinculados
+// (que podem ter vários itens por recheio). A calda nunca é escolhida pelo cliente; é
+// 100% automática a partir do que foi cadastrado na receita de Massa.
+function getCaldaVinculadaDaMassa(nomeMassa) {
+  if (!nomeMassa) return null;
+  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeMassa; });
+  if (!rec || !rec.caldaVinculada) return null;
+  return (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === rec.caldaVinculada; }) || null;
+}
+
+// Custo da calda vinculada a uma massa, para o aro do pedido — mesmo formato de retorno
+// de getCustosVinculadosAro ({custo, qtd, nomeReceita}), para reaproveitar a mesma forma
+// de exibição na tela de Detalhamento de Custo e na Ficha Técnica de produção.
+function getCustoCaldaVinculadaAro(nomeMassa, aro) {
+  var caldaRec = getCaldaVinculadaDaMassa(nomeMassa);
+  if (!caldaRec) return null;
+  var custoIngr = (typeof totIC === 'function') ? totIC(caldaRec.ingredients || []) : 0;
+  var mult = (caldaRec.multiplicadorAro || {})[aro];
+  var custo = (custoIngr && mult) ? custoIngr * mult : 0;
+  var pesoBase = caldaRec.pesoTotal || caldaRec.yield_qty || 0;
+  var qtd = (pesoBase && mult) ? Math.ceil(pesoBase * mult) : 0;
+  return { custo: custo, qtd: qtd, nomeReceita: caldaRec.name };
 }
 
 function getCustoChantillyAro(aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = vincs.chantininho || 'Chantininho';
-  return getCustoReceitaPorAro(receitaNome, aro);
+  return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
 function getCustoButtercreamAro(aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = vincs.buttercream || 'Buttercream';
-  return getCustoReceitaPorAro(receitaNome, aro);
+  return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
 function calcPedidoTotal() {
@@ -1107,8 +1141,10 @@ function calcPedidoTotal() {
   var nomeR2 = document.getElementById('p-recheio2')?.value || '';
   var custoRecheio1  = getCustoRecheioAro(nomeR1, aro);
   var custoRecheio2  = getCustoRecheioAro(nomeR2, aro);
-  var tipoCaldaPed   = curPedido.calda || 'branca';
-  var custoCalda     = getCustoCaldaAro(tipoCaldaPed, aro);
+  // Calda 100% automática, vinda do vínculo cadastrado na receita de Massa — não há mais
+  // escolha manual de calda em lugar nenhum do app.
+  var caldaVincPedido = typeof getCustoCaldaVinculadaAro === 'function' ? getCustoCaldaVinculadaAro(curPedido.massa, aro) : null;
+  var custoCalda     = caldaVincPedido ? caldaVincPedido.custo : 0;
   var custoChantilly = getCustoChantillyAro(aro);
   var custoCobertura = curPedido.cobertura === 'buttercream' ? (sucreeConfig.buttercream||50) : custoChantilly;
   var custoIngr = custoRecheio1 + custoRecheio2 + custoCalda;
@@ -1456,13 +1492,23 @@ function abrirDetalhamentoCusto(id) {
   const vinculados2 = p.recheio2 ? getCustosVinculadosAro(p.recheio2, aro).map(function(v){ return {...v, camadas: camadasRecheio2}; }) : [];
   const itensVinculados = vinculados1.concat(vinculados2);
   const custoVinculados = itensVinculados.reduce(function(a, v){ return a + (v.custo * v.camadas); }, 0);
+
+  // Calda: 100% automática, vinda do vínculo cadastrado na receita de Massa — nunca
+  // escolhida pelo cliente nem pelo admin no pedido. Serve só para custo e ficha de cozinha.
+  const caldaVinculada = getCustoCaldaVinculadaAro(p.massa, aro);
+  const custoCalda = caldaVinculada ? caldaVinculada.custo : 0;
+
   const custoChantilly = getCustoChantillyAro(aro);
   const custoButtercream = getCustoButtercreamAro(aro);
   const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : (p.cobertura === 'buttercream' ? custoButtercream : 0);
   const nomeCoberturaAuto = p.cobertura === 'chantininho' ? 'Chantininho' : (p.cobertura === 'buttercream' ? 'Buttercream' : p.cobertura);
 
-  const opDetalhado = typeof calcCustoOperacionalDetalhado === 'function' ? calcCustoOperacionalDetalhado(aro) : { total: 0 };
-  const op = opDetalhado.total;
+  // Descartáveis (tábua/cakeboard + embalagem), vindos de Config — NÃO inclui mais
+  // acessórios/limpeza/mão de obra de finalização aqui, porque a formação de preço nesta
+  // tela passou a usar só o indireto de 18% sobre o total de ingredientes (ver mais abaixo).
+  const cfgCustos = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
+  const tabuaPadrao = ((cfgCustos.tabuaAro||{})[aro] !== undefined ? (cfgCustos.tabuaAro||{})[aro] : (cfgCustos.tabua ?? 3));
+  const embalagemPadrao = ((cfgCustos.embalagemAro||{})[aro] !== undefined ? (cfgCustos.embalagemAro||{})[aro] : (cfgCustos.embalagem ?? 15));
 
   document.getElementById('modal-item-titulo').textContent = 'Detalhamento de custo — ' + (p.cliente||'');
   function linhaAuto(label, valor) {
@@ -1481,15 +1527,12 @@ function abrirDetalhamentoCusto(id) {
       + '<div id="'+idExpand+'" style="display:none"></div>'
       + '</div>';
   }
-  function linhaSub(label, valor) {
-    return '<div style="display:flex;justify-content:space-between;padding:5px 0 5px 14px;font-size:12px"><span style="color:var(--text3)">↳ '+label+'</span><span style="color:var(--text3)">R$ '+valor.toFixed(2)+'</span></div>';
-  }
   function linhaEditavel(label, id_, valor) {
     return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
       + '<input type="number" id="'+id_+'" value="'+(valor??'')+'" min="0" step="0.01" placeholder="0,00" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"></div>';
   }
 
-  let html = '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Calculado automaticamente</div>';
+  let html = '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Calculado automaticamente (só ingredientes)</div>';
   html += linhaAutoExpandivel('Massa (' + (p.massa||'—') + ')', custoMassa, massaResolvida.nome, massaResolvida.mult, 'expand-massa-'+id);
   if (p.recheio1 && p.recheio2) {
     html += '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Qual sabor repete (3 camadas no total)?</label>'
@@ -1498,32 +1541,31 @@ function abrirDetalhamentoCusto(id) {
       + '<option value="recheio2"' + (recheioRepetido==='recheio2'?' selected':'') + '>' + p.recheio2 + ' (2x)</option>'
       + '</select></div>';
   }
-  if (p.recheio1) html += linhaAutoExpandivel('Recheio 1 (' + p.recheio1 + ', ' + camadasRecheio1 + 'x)', custoRecheio1, recheio1Resolvido.nome, recheio1Resolvido.mult, 'expand-recheio1-'+id, camadasRecheio1);
-  if (p.recheio2) html += linhaAutoExpandivel('Recheio 2 (' + p.recheio2 + ', ' + camadasRecheio2 + 'x)', custoRecheio2, recheio2Resolvido.nome, recheio2Resolvido.mult, 'expand-recheio2-'+id, camadasRecheio2);
-  itensVinculados.forEach(function(v){
-    if (v.custo > 0) html += linhaAuto(v.nomeReceita + ' (' + v.camadas + 'x)', v.custo * v.camadas);
-  });
-  if (custoCoberturaAuto) html += linhaAuto('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
-  html += linhaAuto('Operacional (total)', op);
-  html += linhaSub('Embalagem', opDetalhado.embalagem);
-  html += linhaSub('Tábua/cakeboard', opDetalhado.tabua);
-  html += linhaSub('Acessórios', opDetalhado.acessorios);
-  html += linhaSub('Limpeza (água/material)', opDetalhado.limpeza);
-  html += linhaSub('Mão de obra de finalização (montagem/decoração)', opDetalhado.maoDeObra);
-
-  function selectCalda(label, id_, valorAtual) {
-    return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
-      + '<select id="'+id_+'" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
-      + '<option value=""'+(!valorAtual?' selected':'')+'>Não usou calda</option>'
-      + '<option value="chocolate"'+(valorAtual==='chocolate'?' selected':'')+'>Calda de Chocolate</option>'
-      + '<option value="branca"'+(valorAtual==='branca'?' selected':'')+'>Calda Branca de Ninho</option>'
-      + '</select></div>';
+  if (p.recheio1) html += linhaAutoExpandivel('Recheio 1 (' + p.recheio1 + ')', custoRecheio1Camada, recheio1Resolvido.nome, recheio1Resolvido.mult, 'expand-recheio1-'+id, 1);
+  if (p.recheio2) html += linhaAutoExpandivel('Recheio 2 (' + p.recheio2 + ')', custoRecheio2Camada, recheio2Resolvido.nome, recheio2Resolvido.mult, 'expand-recheio2-'+id, 1);
+  if (p.recheio1 || p.recheio2) {
+    const nomeRepetidoTxt = recheioRepetido === 'recheio2' ? p.recheio2 : p.recheio1;
+    const custoRepetidoTxt = recheioRepetido === 'recheio2' ? custoRecheio2Camada : custoRecheio1Camada;
+    if (nomeRepetidoTxt) html += linhaAuto('Recheio 3 (repete ' + nomeRepetidoTxt + ')', custoRepetidoTxt);
   }
+  itensVinculados.forEach(function(v){
+    if (v.custo > 0) html += linhaAuto('Adicional: ' + v.nomeReceita + ' (' + v.camadas + 'x)', v.custo * v.camadas);
+  });
+  if (caldaVinculada && caldaVinculada.custo > 0) html += linhaAuto('Calda (' + caldaVinculada.nomeReceita + ')', caldaVinculada.custo);
+  if (custoCoberturaAuto) html += linhaAuto('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
 
-  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Informe manualmente</div>';
-  html += selectCalda('Usou calda?', 'dc-tipocalda', p.tipoCalda);
-  html += '<div style="font-size:11px;color:var(--text3);margin:18px 0 6px;line-height:1.5">Os campos abaixo já têm um valor padrão dentro do "Operacional" acima. Só preencha aqui se este pedido específico teve uma DIFERENÇA em relação ao padrão (ex: cliente trouxe a própria caixa → diferença negativa, ou pediu embalagem especial → diferença positiva). Deixe 0,00 se não houve diferença.</div>';
-  html += linhaEditavel('Diferença no cakeboard/tábua (R$, pode ser negativo)', 'dc-cakeboard', p.custoCakeboard);
+  const custoIngredientesTotal = custoMassa + custoRecheio1Camada + custoRecheio2Camada
+    + (p.recheio1||p.recheio2 ? (recheioRepetido === 'recheio2' ? custoRecheio2Camada : custoRecheio1Camada) : 0)
+    + custoVinculados + custoCalda + custoCoberturaAuto;
+
+  html += '<div style="display:flex;justify-content:space-between;padding:8px 0;margin-top:4px;border-top:1.5px solid rgba(212,162,74,.3);font-size:13px;font-weight:800"><span style="color:var(--gold)">Total ingredientes</span><span style="color:var(--gold)">R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>';
+
+  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Descartáveis (Config)</div>';
+  html += linhaAuto('Tábua/Cakeboard', tabuaPadrao);
+  html += linhaAuto('Embalagem', embalagemPadrao);
+
+  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Decoração — informe manualmente</div>';
+  html += linhaEditavel('Diferença no cakeboard/tábua (R$, pode ser negativo — só se diferente do padrão acima)', 'dc-cakeboard', p.custoCakeboard);
   html += linhaEditavel('Diferença na caixa de papel (R$, pode ser negativo)', 'dc-caixa', p.custoCaixa);
   if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
   if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
@@ -1534,29 +1576,45 @@ function abrirDetalhamentoCusto(id) {
     + '<input type="number" id="dc-recheio-extra-qtd" value="' + (p.recheioExtraQtd??'') + '" min="0" placeholder="Qtd (g)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
     + '<input type="number" id="dc-recheio-extra-custo" value="' + (p.recheioExtraCusto??'') + '" min="0" step="0.01" placeholder="Custo (R$)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
     + '</div></div>';
-  html += linhaEditavel('Mão de obra extra (além da padrão já calculada acima)', 'dc-maoobra', p.custoMaoObra);
 
   html += '<div id="dc-resultado" style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(212,162,74,.1);border:1px solid var(--gold)"></div>';
 
   document.getElementById('modal-item-campos').innerHTML = html;
 
+  // Margem ideal Sucrée fixa em 40%: preço sugerido = custo total ÷ 0,60
+  const MARGEM_IDEAL = 0.40;
+
   function recalcular() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
-    const tipoCaldaSel = document.getElementById('dc-tipocalda')?.value || '';
-    const custoCalda = tipoCaldaSel ? getCustoCaldaAro(tipoCaldaSel, aro, p.massa) : 0;
-    const manualTotal = custoCalda + g('dc-cakeboard') + g('dc-caixa') + g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-recheio-extra-custo') + g('dc-maoobra');
-    const custoTotal = custoMassa + custoRecheio1 + custoRecheio2 + custoVinculados + custoCoberturaAuto + op + manualTotal;
+    const custoDescartaveis = tabuaPadrao + embalagemPadrao + g('dc-cakeboard') + g('dc-caixa');
+    const custoDecoracao = g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-recheio-extra-custo');
+    // Custo Operacional = 18% sobre o total de ingredientes do pedido (substitui o
+    // indireto que antes era calculado individualmente dentro de cada receita).
+    const custoOperacional = custoIngredientesTotal * 0.18;
+    const custoMaoObraExtra = g('dc-maoobra');
+    const custoTotal = custoIngredientesTotal + custoOperacional + custoDescartaveis + custoDecoracao + custoMaoObraExtra;
+
     const valorTotal = parseFloat(p.valorTotal||0);
-    const lucro = valorTotal - custoTotal;
-    const margemPct = valorTotal ? (lucro/valorTotal*100) : 0;
+    const lucroObtido = valorTotal - custoTotal;
+    const precoSugerido = custoTotal / (1 - MARGEM_IDEAL); // custo ÷ 0,60
+    const lucroDesejado = precoSugerido - custoTotal; // = precoSugerido × 40%
+
     document.getElementById('dc-resultado').innerHTML =
-      (custoCalda ? '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--text3)"><span>Calda calculada</span><span>R$ '+custoCalda.toFixed(2)+'</span></div>' : '')
-      + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Custo total real</span><span style="font-weight:700">R$ '+custoTotal.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:var(--text2)">Valor cobrado</span><span style="font-weight:700">R$ '+valorTotal.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Lucro estimado</span><span style="font-weight:800;color:'+(lucro>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucro.toFixed(2)+' ('+margemPct.toFixed(0)+'%)</span></div>';
+      '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Resumo</div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Ingredientes</span><span>R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Operacional (18%)</span><span>R$ '+custoOperacional.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Descartáveis</span><span>R$ '+custoDescartaveis.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Decoração</span><span>R$ '+custoDecoracao.toFixed(2)+'</span></div>'
+      + (custoMaoObraExtra ? '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Mão de obra extra</span><span>R$ '+custoMaoObraExtra.toFixed(2)+'</span></div>' : '')
+      + '<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;margin-top:4px;border-top:1px solid rgba(212,162,74,.25);font-weight:700"><span style="color:var(--text)">Custo total real</span><span>R$ '+custoTotal.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--teal)"><span>Preço sugerido (margem 40%)</span><span>R$ '+precoSugerido.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--teal)"><span>Valor do Lucro Desejado (40%)</span><span>R$ '+lucroDesejado.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text2)"><span>Valor cobrado do cliente</span><span style="font-weight:700">R$ '+valorTotal.toFixed(2)+'</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;margin-top:4px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Valor do Lucro Obtido</span><span style="font-weight:800;color:'+(lucroObtido>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucroObtido.toFixed(2)+'</span></div>'
+      + (lucroObtido < lucroDesejado ? '<div style="font-size:11px;color:#FF8080;margin-top:6px">⚠️ Abaixo da margem ideal de 40%. Preço sugerido: R$ '+precoSugerido.toFixed(2)+'</div>' : '<div style="font-size:11px;color:var(--teal);margin-top:4px">✅ Dentro ou acima da margem ideal de 40%</div>');
   }
   setTimeout(function(){
-    ['dc-tipocalda','dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-papelaria','dc-recheio-extra-qtd','dc-recheio-extra-custo','dc-maoobra'].forEach(function(idc){
+    ['dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-papelaria','dc-recheio-extra-qtd','dc-recheio-extra-custo','dc-maoobra'].forEach(function(idc){
       const el = document.getElementById(idc);
       if (el) el.addEventListener('input', recalcular);
       if (el) el.addEventListener('change', recalcular);
@@ -1572,7 +1630,6 @@ function abrirDetalhamentoCusto(id) {
   document.getElementById('modal-item-btn-confirmar').textContent = 'Salvar custos';
   document.getElementById('modal-item-btn-confirmar').onclick = function() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
-    p.tipoCalda = document.getElementById('dc-tipocalda')?.value || null;
     p.recheioRepetido = document.getElementById('dc-recheio-repetido')?.value || p.recheioRepetido || 'recheio1';
     p.custoCakeboard = g('dc-cakeboard');
     p.custoCaixa = g('dc-caixa');
@@ -1586,7 +1643,6 @@ function abrirDetalhamentoCusto(id) {
     savePedidos();
     try {
       sb.from('pedidos_confeitaria').update({
-        tipo_calda: p.tipoCalda,
         recheio_repetido: p.recheioRepetido,
         custo_cakeboard: p.custoCakeboard, custo_caixa: p.custoCaixa,
         custo_real_topo: p.custoRealTopo ?? null, custo_real_flores: p.custoRealFlores ?? null,
@@ -2033,15 +2089,15 @@ function gerarFichaTecnicaProducaoHtml(p) {
     html += row('Recheio adicional (caso especial)', p.recheioExtraNome + (p.recheioExtraQtd ? ' — ' + p.recheioExtraQtd + 'g' : ''));
   }
 
-  // 3) Calda total (por disco × 4 discos)
-  const vincsCalda = sucreeConfig.receitasCardapio || {};
-  const receitaCaldaNome = p.tipoCalda === 'chocolate' ? (vincsCalda.caldaChoco || 'Calda de Chocolate') : (vincsCalda.caldaBranca || 'Calda Branca de Ninho');
-  const qtdCaldaDisco = p.tipoCalda ? getQtdAroDaReceita(receitaCaldaNome, aro) : null;
+  // 3) Calda total (por disco × 4 discos) — 100% automática, vinda do vínculo cadastrado
+  // na receita de Massa (campo caldaVinculada), nunca escolhida pelo cliente.
+  const caldaRecFicha = getCaldaVinculadaDaMassa(p.massa);
+  const qtdCaldaDisco = caldaRecFicha ? getQtdAroDaReceita(caldaRecFicha.name, aro) : null;
   if (qtdCaldaDisco) {
     html += row('Calda por disco', qtdCaldaDisco + 'g');
     html += row('Calda total (4 discos)', (qtdCaldaDisco*4) + 'g');
   }
-  if (p.tipoCalda) html += row('Tipo de calda', p.tipoCalda === 'chocolate' ? 'Calda de Chocolate' : 'Calda Branca de Ninho');
+  if (caldaRecFicha) html += row('Tipo de calda', caldaRecFicha.name);
 
   // 4) Cobertura final
   if (p.cobertura) {
