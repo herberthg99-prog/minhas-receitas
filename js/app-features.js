@@ -1187,6 +1187,20 @@ function isGrupoRecheio(g) {
   return norm === 'recheio' || norm === 'recheios';
 }
 
+// Identifica receitas de Massa por nome de grupo (aceita tanto "Bolos" quanto "Massas",
+// já que o app foi cadastrando massas embaixo de "Bolos" historicamente).
+function isGrupoMassa(g) {
+  if (!g) return false;
+  var norm = g.toString().trim().toLowerCase();
+  return norm === 'bolos' || norm === 'massas' || norm === 'massa';
+}
+
+function isGrupoCalda(g) {
+  if (!g) return false;
+  var norm = g.toString().trim().toLowerCase();
+  return norm === 'calda' || norm === 'caldas';
+}
+
 function getRecheios() {
   const todos = recipes.filter(r => isGrupoRecheio(r.group)).map(r => r.name);
   return [...new Set(todos)];
