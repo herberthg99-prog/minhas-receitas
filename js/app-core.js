@@ -176,6 +176,7 @@ function localToDb(r) {
     peso_total: r.pesoTotal || null,
     multiplicador_aro: r.multiplicadorAro ? JSON.stringify(r.multiplicadorAro) : null,
     recheios_vinculados: (r.recheiosVinculados && r.recheiosVinculados.length) ? JSON.stringify(r.recheiosVinculados) : null,
+    calda_vinculada: r.caldaVinculada || null,
     time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
     preparo: r.preparo || '', comment: r.comment || '',
     usa_panela_mexedora: r.usaPanelaMexedora || false,
@@ -197,6 +198,7 @@ function dbToLocal(row) {
     pesoTotal: row.peso_total || null,
     multiplicadorAro: (function(){ try { return row.multiplicador_aro ? JSON.parse(row.multiplicador_aro) : null; } catch(e) { return null; } })(),
     recheiosVinculados: (function(){ try { return row.recheios_vinculados ? JSON.parse(row.recheios_vinculados) : []; } catch(e) { return []; } })(),
+    caldaVinculada: row.calda_vinculada || '',
     time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
     preparo: row.preparo || '', comment: row.comment || '',
     usaPanelaMexedora: row.usa_panela_mexedora || false,
@@ -1134,6 +1136,27 @@ function getRecheiosVinculadosSelecionados() {
   return [...el.querySelectorAll('input[type="checkbox"]:checked')].map(function(cb){ return cb.value; });
 }
 
+// Preenche o <select id="fcaldavinc"> com as receitas de grupo "Caldas" cadastradas,
+// para o usuário escolher qual calda acompanha automaticamente esta receita de Massa.
+// Diferente do checklist de recheios vinculados (que permite vários), aqui é só 1
+// calda por massa — o cliente nunca escolhe isso, é sempre automático no pedido.
+function renderCaldaVinculadaSelect(caldaSelecionada) {
+  const el = document.getElementById('fcaldavinc');
+  if (!el) return;
+  const caldasDisponiveis = (typeof recipes !== 'undefined' ? recipes : [])
+    .filter(function(r){ return (r.group||'').trim().toLowerCase() === 'caldas'; })
+    .map(function(r){ return r.name; })
+    .sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
+  let html = '<option value="">Sem calda vinculada</option>';
+  caldasDisponiveis.forEach(function(nome){
+    html += '<option value="' + nome.replace(/"/g,'&quot;') + '"' + (nome === caldaSelecionada ? ' selected' : '') + '>' + nome + '</option>';
+  });
+  el.innerHTML = html;
+  if (!caldasDisponiveis.length) {
+    el.innerHTML = '<option value="">Nenhuma calda cadastrada ainda</option>';
+  }
+}
+
 function atualizarMultiplicadorAroPreview() {
   const tbody = document.getElementById('multiplicador-aro-tbody');
   if (!tbody) return;
@@ -1308,6 +1331,7 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   renderIngrTable(); renderFormas(); updateFormaToggle(); checkFormaTab(); st2(0);
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(pre?.recheiosVinculados);
+  renderCaldaVinculadaSelect(pre?.caldaVinculada);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   // Mesma lógica resiliente usada em openEdit — define o subgrupo recebendo cat/grupo
   // diretamente como parâmetros, sem depender do timing de updateGrupoSelects() acima.
@@ -1344,6 +1368,7 @@ function openEdit(id) {
   renderIngrTable(); renderFormas(); renderRecipePhotosGrid(); updateFormaToggle(); checkFormaTab(); st2(0);
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(r.recheiosVinculados);
+  renderCaldaVinculadaSelect(r.caldaVinculada);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   // Define o subgrupo desta receita explicitamente, com os mesmos valores de cat/grupo
   // que acabamos de aplicar — não depende do timing de updateGrupoSelects() acima, que em
@@ -1702,6 +1727,7 @@ async function saveRecipeFinal() {
     pesoTotal: parseFloat(document.getElementById('fpesoTotal').value)||null,
     multiplicadorAro: Object.keys(curMultiplicadorAro).length ? {...curMultiplicadorAro} : null,
     recheiosVinculados: getRecheiosVinculadosSelecionados(),
+    caldaVinculada: document.getElementById('fcaldavinc') ? (document.getElementById('fcaldavinc').value || null) : null,
     time: parseFloat(document.getElementById('ftm').value)||60,
     margin: parseFloat(document.getElementById('fmrg').value)||100,
     extra: parseFloat(document.getElementById('fext').value)||0,
