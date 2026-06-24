@@ -1144,7 +1144,7 @@ function renderCaldaVinculadaSelect(caldaSelecionada) {
   const el = document.getElementById('fcaldavinc');
   if (!el) return;
   const caldasDisponiveis = (typeof recipes !== 'undefined' ? recipes : [])
-    .filter(function(r){ return (r.group||'').trim().toLowerCase() === 'caldas'; })
+    .filter(function(r){ return typeof isGrupoCalda === 'function' ? isGrupoCalda(r.group) : (r.group||'').trim().toLowerCase() === 'caldas'; })
     .map(function(r){ return r.name; })
     .sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
   let html = '<option value="">Sem calda vinculada</option>';
@@ -1155,6 +1155,69 @@ function renderCaldaVinculadaSelect(caldaSelecionada) {
   if (!caldasDisponiveis.length) {
     el.innerHTML = '<option value="">Nenhuma calda cadastrada ainda</option>';
   }
+}
+
+// Mostra/escode os dois blocos de vínculo de calda de acordo com o Grupo da receita
+// atual: quem está editando uma Massa vê o select "Calda vinculada" (1 calda); quem está
+// editando uma Calda vê o checklist "Massas que usam esta calda" (várias massas podem
+// apontar para a mesma calda). Chamada sempre que o Grupo do formulário muda.
+function atualizarBlocosCaldaPorGrupo() {
+  const grpValor = document.getElementById('fgrp')?.value || '';
+  const ehMassa = typeof isGrupoMassa === 'function' ? isGrupoMassa(grpValor) : ['bolos','massas'].includes(grpValor.trim().toLowerCase());
+  const ehCalda = typeof isGrupoCalda === 'function' ? isGrupoCalda(grpValor) : grpValor.trim().toLowerCase() === 'caldas';
+  const boxSelect = document.getElementById('fcaldavinc-box');
+  const boxChecklist = document.getElementById('massas-vinculadas-box');
+  if (boxSelect) boxSelect.style.display = ehMassa ? 'block' : 'none';
+  if (boxChecklist) boxChecklist.style.display = ehCalda ? 'block' : 'none';
+  if (ehCalda) renderMassasVinculadasChecklist();
+}
+
+// Dentro do cadastro de uma receita de CALDA: lista todas as Massas, marcando como
+// selecionadas as que já têm esta calda como caldaVinculada. Marcar/desmarcar aqui
+// escreve diretamente no campo caldaVinculada da Massa correspondente (relação 1
+// calda por massa — marcar nesta lista substitui qualquer vínculo anterior daquela massa).
+function renderMassasVinculadasChecklist() {
+  const el = document.getElementById('massas-vinculadas-checklist');
+  if (!el) return;
+  const nomeCaldaAtual = document.getElementById('fn')?.value?.trim() || '';
+  const massas = (typeof recipes !== 'undefined' ? recipes : [])
+    .filter(function(r){ return typeof isGrupoMassa === 'function' ? isGrupoMassa(r.group) : ['bolos','massas'].includes((r.group||'').trim().toLowerCase()); })
+    .filter(function(r){ return r.id !== editId; }) // não lista a própria receita sendo editada (não se aplica aqui, mas por segurança)
+    .sort(function(a,b){ return a.name.localeCompare(b.name, 'pt-BR'); });
+  if (!massas.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:4px">Nenhuma receita de Massa/Bolo cadastrada ainda.</div>';
+    return;
+  }
+  el.innerHTML = massas.map(function(m){
+    const id = 'mv-' + m.id;
+    const marcado = m.caldaVinculada === nomeCaldaAtual && nomeCaldaAtual;
+    return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer;font-size:13px">'
+      + '<input type="checkbox" id="' + id + '" data-massa-id="' + m.id + '" ' + (marcado?'checked':'') + ' onchange="onToggleMassaVinculada(this)" style="width:16px;height:16px;accent-color:var(--gold)">'
+      + m.name + (m.caldaVinculada && m.caldaVinculada !== nomeCaldaAtual ? ' <span style="color:var(--text3);font-size:11px">(hoje: ' + m.caldaVinculada + ')</span>' : '')
+      + '</label>';
+  }).join('');
+}
+
+// Ao marcar/desmarcar uma massa no checklist (dentro do cadastro de uma Calda), atualiza
+// e salva imediatamente o campo caldaVinculada daquela massa — não espera o usuário
+// salvar a receita de Calda, porque a mudança real é em outro registro (a Massa).
+async function onToggleMassaVinculada(checkbox) {
+  const massaId = checkbox.getAttribute('data-massa-id');
+  const massa = recipes.find(function(r){ return r.id === massaId; });
+  if (!massa) return;
+  const nomeCaldaAtual = document.getElementById('fn')?.value?.trim() || '';
+  if (checkbox.checked) {
+    massa.caldaVinculada = nomeCaldaAtual;
+  } else {
+    if (massa.caldaVinculada === nomeCaldaAtual) massa.caldaVinculada = '';
+  }
+  const resultado = await saveToCloud(massa);
+  if (resultado.ok) {
+    toast('✅ "' + massa.name + '" ' + (checkbox.checked ? 'vinculada a esta calda!' : 'desvinculada.'));
+  } else {
+    toast('⚠️ Erro ao salvar vínculo: ' + (resultado.error?.message || 'sem conexão'));
+  }
+  renderMassasVinculadasChecklist(); // atualiza os textos "(hoje: ...)" de outras massas
 }
 
 function atualizarMultiplicadorAroPreview() {
@@ -1332,6 +1395,7 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(pre?.recheiosVinculados);
   renderCaldaVinculadaSelect(pre?.caldaVinculada);
+  atualizarBlocosCaldaPorGrupo();
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   // Mesma lógica resiliente usada em openEdit — define o subgrupo recebendo cat/grupo
   // diretamente como parâmetros, sem depender do timing de updateGrupoSelects() acima.
@@ -1369,6 +1433,7 @@ function openEdit(id) {
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(r.recheiosVinculados);
   renderCaldaVinculadaSelect(r.caldaVinculada);
+  atualizarBlocosCaldaPorGrupo();
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
   // Define o subgrupo desta receita explicitamente, com os mesmos valores de cat/grupo
   // que acabamos de aplicar — não depende do timing de updateGrupoSelects() acima, que em
