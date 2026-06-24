@@ -676,13 +676,17 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
           <div class="rcp-page-subtitle">Gerencie todas as suas receitas em um só lugar</div>
         </div>
       </div>
+      <div class="rcp-page-header-right">
+        <button onclick="abrirModalGerenciarGrupos()" class="btns" style="font-size:13px"><i class="ti ti-folders"></i> Gerenciar grupos</button>
+      </div>
     </div>
     <div id="cat-filters" style="display:flex;gap:8px;margin-bottom:10px">
       <button id="cat-doce" onclick="setCatFilter('doce')" class="rcp-cat-btn">🍰 Doces</button>
       <button id="cat-salgada" onclick="setCatFilter('salgada')" class="rcp-cat-btn">🥩 Salgadas</button>
       <button id="cat-all" onclick="setCatFilter('')" class="rcp-cat-btn act">🍽 Todas</button>
     </div>
-    <div id="sub-abas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap"></div>
+    <div id="sub-abas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:8px;overflow-x:auto;flex-wrap:nowrap"></div>
+    <div id="sub-subabas-container" class="sub-abas-row" style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap;padding-left:6px;border-left:2px solid rgba(212,162,74,.25)"></div>
     <div class="rcp-search-row">
       <i class="ti ti-search"></i>
       <input type="text" placeholder="Buscar receitas..." id="si" oninput="renderRecipes()">
@@ -798,7 +802,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <div class="fg"><label>Nome da receita</label><input type="text" id="fn" placeholder="Ex: Bolo de cenoura"></div>
       <div class="fr">
         <div class="fg"><label>Categoria</label><select id="fcat" onchange="checkFormaTab();if(typeof updateGrupoSelects==='function')updateGrupoSelects()"><option value="salgada">Salgada</option><option value="doce">Doce</option></select></div>
-        <div class="fg"><label>Grupo</label><select id="fgrp" onchange="checkFormaTab()">
+        <div class="fg"><label>Grupo</label><select id="fgrp" onchange="checkFormaTab();if(typeof updateSubgrupoSelect==='function')updateSubgrupoSelect()">
           <option value="">Sem grupo</option>
           <option value="Recheios">Recheios</option><option value="Bolos">Bolos</option><option value="Caldas">Caldas</option><option value="Coberturas">Coberturas</option>
           <option value="Biscoitos">Biscoitos</option><option value="Sobremesas">Sobremesas</option><option value="Pães">Pães</option>
@@ -807,12 +811,17 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
           <option value="Lanches">Lanches</option><option value="Sopas">Sopas</option>
         </select></div>
       </div>
+      <div class="fg" id="fsubgrp-box" style="display:none">
+        <label>Subgrupo</label>
+        <select id="fsubgrp"><option value="">Sem subgrupo</option></select>
+      </div>
       <div class="fr">
         <div class="fg"><label>Rendimento</label><input type="number" id="fyld" value="6" min="1"></div>
         <div class="fg"><label>Tempo (min)</label><input type="number" id="ftm" value="60" min="1"></div>
       </div>
       <div class="fg"><label>Unidade de venda</label><select id="funit"><option value="porção">Porção</option><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="ml">ml</option><option value="unidade">Unidade</option><option value="fatia">Fatia</option><option value="dúzia">Dúzia</option></select></div>
       <div class="fg"><label>Peso total da receita (g) — opcional, para massas/recheios</label><input type="number" id="fpesoTotal" placeholder="Ex: 900" min="0" oninput="atualizarMultiplicadorAroPreview()"></div>
+
 
       <div class="fg" style="margin-bottom:6px"><label style="margin-bottom:4px">Multiplicador por aro (opcional — para massas)</label>
         <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">Preencha o Multiplicador OU o Peso (g) — o outro campo calcula automaticamente. Ex: digite 450g no aro 20 e o multiplicador aparece sozinho. Deixe em branco se não usar esta receita por aro (ex: recheios, coberturas).</div>
@@ -1102,8 +1111,20 @@ if("serviceWorker" in navigator){
   </div>
 </div>
 
+<!-- MODAL: gerenciar grupos e subgrupos das receitas -->
+<div id="modal-grupos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#020B18;border:1px solid var(--gold);border-radius:16px;padding:22px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <h3 style="color:#F8F7F4;font-size:17px"><i class="ti ti-folders" style="color:var(--gold)"></i> Gerenciar grupos</h3>
+      <button onclick="fecharModalGerenciarGrupos()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5">Crie grupos (ex: Recheios) e subgrupos dentro deles (ex: Compotas) para organizar melhor suas receitas por categoria.</p>
+    <div id="modal-grupos-body"></div>
+  </div>
+</div>
+
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=57"></script>
+<script src="js/app-core.js?v=58"></script>
 <script src="js/app-features.js?v=40"></script>
 <script src="js/version.js?v=19"></script>
 
