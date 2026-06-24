@@ -164,6 +164,7 @@ function localToDb(r) {
   return {
     id: r.id, user_id: USER_ID,
     name: r.name, cat: r.cat, recipe_group: r.group || null,
+    subgrupo: r.subgrupo || null,
     unit: r.unit, yield_qty: r.yield_qty || r.yield || 6,
     peso_total: r.pesoTotal || null,
     multiplicador_aro: r.multiplicadorAro ? JSON.stringify(r.multiplicadorAro) : null,
@@ -184,6 +185,7 @@ function localToDb(r) {
 function dbToLocal(row) {
   return {
     id: row.id, name: row.name, cat: row.cat, group: row.recipe_group || '',
+    subgrupo: row.subgrupo || '',
     unit: row.unit || 'porção', yield_qty: row.yield_qty || 6, yield: row.yield_qty || 6,
     pesoTotal: row.peso_total || null,
     multiplicadorAro: (function(){ try { return row.multiplicador_aro ? JSON.parse(row.multiplicador_aro) : null; } catch(e) { return null; } })(),
@@ -200,6 +202,7 @@ function dbToLocal(row) {
     createdAt: new Date(row.created_at).getTime()
   };
 }
+
 
 // ═══════ NAVIGATION ═══════
 // Navega para Receitas já filtrando por um grupo específico (usado pelos itens
@@ -519,6 +522,285 @@ async function syncNow() {
   toast(ok ? 'Sincronizado! ' + recipes.length + ' receita(s)' : 'Erro na conexão');
 }
 
+// ═══════ ESTRUTURA DE GRUPOS/SUBGRUPOS (editável) ═══════
+// Estrutura padrão usada quando o usuário ainda não personalizou nada — replica os
+// grupos fixos que já existiam antes desta feature, sem subgrupos.
+var GRUPOS_PADRAO = {
+  doce: ['Recheios','Bolos','Caldas','Coberturas','Biscoitos','Sobremesas','Pães','Bebidas','Massas','Tortas'],
+  salgada: ['Recheios','Bolos','Caldas','Coberturas','Biscoitos','Pães','Bebidas','Carnes','Aves','Peixes','Massas','Lanches','Sopas']
+};
+// window._gruposEstrutura = { doce: [{nome, subgrupos:[]}], salgada: [...] }
+window._gruposEstrutura = null;
+
+function getGruposEstruturaPadrao() {
+  var out = { doce: [], salgada: [] };
+  Object.keys(GRUPOS_PADRAO).forEach(function(cat){
+    out[cat] = GRUPOS_PADRAO[cat].map(function(nome){ return { nome: nome, subgrupos: [] }; });
+  });
+  return out;
+}
+
+async function loadGruposEstruturaFromCloud() {
+  try {
+    const { data } = await sb.from('config').select('grupos_estrutura').eq('user_id', USER_ID).limit(1);
+    if (data && data.length && data[0].grupos_estrutura) {
+      window._gruposEstrutura = JSON.parse(data[0].grupos_estrutura);
+    } else {
+      window._gruposEstrutura = getGruposEstruturaPadrao();
+    }
+  } catch(e) {
+    window._gruposEstrutura = getGruposEstruturaPadrao();
+  }
+  // Garante que toda receita já cadastrada com um Grupo "avulso" (criado antes desta
+  // feature, ou direto no banco) apareça na lista de grupos, mesmo que o usuário nunca
+  // tenha aberto o gerenciador — assim nenhuma receita antiga "desaparece" dos filtros.
+  ['doce','salgada'].forEach(function(cat){
+    var nomesExistentes = window._gruposEstrutura[cat].map(function(g){ return g.nome; });
+    recipes.forEach(function(r){
+      if (r.cat === cat && r.group && nomesExistentes.indexOf(r.group) === -1) {
+        window._gruposEstrutura[cat].push({ nome: r.group, subgrupos: [] });
+        nomesExistentes.push(r.group);
+      }
+    });
+  });
+}
+
+async function saveGruposEstruturaToCloud() {
+  try {
+    await sb.from('config').upsert({
+      user_id: USER_ID,
+      grupos_estrutura: JSON.stringify(window._gruposEstrutura)
+    }, { onConflict: 'user_id' });
+  } catch(e) {}
+}
+
+function getGruposDaCategoria(cat) {
+  if (!window._gruposEstrutura) window._gruposEstrutura = getGruposEstruturaPadrao();
+  return window._gruposEstrutura[cat] || [];
+}
+
+function getSubgruposDoGrupo(cat, grupoNome) {
+  var lista = getGruposDaCategoria(cat);
+  var g = lista.find(function(x){ return x.nome === grupoNome; });
+  return g ? (g.subgrupos || []) : [];
+}
+
+// Preenche o <select id="fgrp"> do formulário de receita com os grupos da categoria
+// escolhida (mantendo o valor atual selecionado quando possível), e atualiza o campo
+// de Subgrupo de acordo.
+function updateGrupoSelects() {
+  var cat = document.getElementById('fcat') ? document.getElementById('fcat').value : 'doce';
+  var elGrp = document.getElementById('fgrp');
+  if (!elGrp) return;
+  var valorAtual = elGrp.value;
+  var grupos = getGruposDaCategoria(cat);
+  var html = '<option value="">Sem grupo</option>';
+  grupos.forEach(function(g){
+    html += '<option value="' + g.nome.replace(/"/g,'&quot;') + '">' + g.nome + '</option>';
+  });
+  elGrp.innerHTML = html;
+  // tenta manter o grupo selecionado se ele ainda existir nessa categoria
+  if (grupos.some(function(g){ return g.nome === valorAtual; })) elGrp.value = valorAtual;
+  updateSubgrupoSelect();
+}
+
+// Preenche o <select id="fsubgrp"> com os subgrupos do grupo atualmente selecionado.
+// Esconde o campo inteiro quando o grupo não tiver nenhum subgrupo cadastrado.
+function updateSubgrupoSelect() {
+  var cat = document.getElementById('fcat') ? document.getElementById('fcat').value : 'doce';
+  var grpNome = document.getElementById('fgrp') ? document.getElementById('fgrp').value : '';
+  var elSubBox = document.getElementById('fsubgrp-box');
+  var elSub = document.getElementById('fsubgrp');
+  if (!elSubBox || !elSub) return;
+  var subgrupos = grpNome ? getSubgruposDoGrupo(cat, grpNome) : [];
+  if (!subgrupos.length) {
+    elSubBox.style.display = 'none';
+    elSub.innerHTML = '<option value="">Sem subgrupo</option>';
+    return;
+  }
+  var valorAtual = elSub.value;
+  var html = '<option value="">Sem subgrupo</option>';
+  subgrupos.forEach(function(s){
+    html += '<option value="' + s.replace(/"/g,'&quot;') + '">' + s + '</option>';
+  });
+  elSub.innerHTML = html;
+  if (subgrupos.indexOf(valorAtual) !== -1) elSub.value = valorAtual;
+  elSubBox.style.display = 'block';
+}
+
+// ═══════ MODAL: GERENCIAR GRUPOS E SUBGRUPOS ═══════
+window._gerenciarGruposCatAtiva = 'doce';
+
+function abrirModalGerenciarGrupos() {
+  window._gerenciarGruposCatAtiva = window._currentCat || 'doce';
+  renderModalGerenciarGrupos();
+  document.getElementById('modal-grupos').style.display = 'flex';
+}
+
+function fecharModalGerenciarGrupos() {
+  document.getElementById('modal-grupos').style.display = 'none';
+  // Reaplica os filtros da tela de Receitas, já refletindo qualquer alteração feita
+  var catAtual = document.getElementById('fc') ? document.getElementById('fc').value : '';
+  buildSubAbas(catAtual);
+  renderRecipes();
+}
+
+function setGerenciarGruposCat(cat) {
+  window._gerenciarGruposCatAtiva = cat;
+  renderModalGerenciarGrupos();
+}
+
+function renderModalGerenciarGrupos() {
+  var cat = window._gerenciarGruposCatAtiva;
+  var grupos = getGruposDaCategoria(cat);
+  var body = document.getElementById('modal-grupos-body');
+  if (!body) return;
+
+  var html = '<div style="display:flex;gap:8px;margin-bottom:14px">';
+  ['doce','salgada'].forEach(function(c){
+    var ativo = c === cat;
+    html += '<button onclick="setGerenciarGruposCat(\'' + c + '\')" style="flex:1;padding:10px;border-radius:8px;border:2px solid ' + (ativo?'var(--gold)':'var(--border)') + ';background:' + (ativo?'var(--gold)':'var(--bg)') + ';color:' + (ativo?'#020B18':'var(--text2)') + ';font-weight:700;font-family:inherit;cursor:pointer">' + (c==='doce'?'🍰 Doce':'🥩 Salgada') + '</button>';
+  });
+  html += '</div>';
+
+  html += '<div style="margin-bottom:14px">'
+    + '<input type="text" id="novo-grupo-nome" placeholder="Nome do novo grupo (ex: Compotas)" style="width:100%;padding:11px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px;margin-bottom:8px">'
+    + '<button onclick="criarGrupoNovo()" class="btnp full"><i class="ti ti-plus"></i> Criar grupo</button>'
+    + '</div>';
+
+  if (!grupos.length) {
+    html += '<div style="font-size:13px;color:var(--text2);text-align:center;padding:16px">Nenhum grupo cadastrado nesta categoria ainda.</div>';
+  } else {
+    grupos.forEach(function(g, gi){
+      html += '<div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:10px">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+      html += '<span style="flex:1;font-weight:700;color:#F5EDD8;font-size:14px">' + g.nome + '</span>';
+      html += '<button onclick="renomearGrupo(' + gi + ')" title="Renomear" style="background:none;border:none;color:var(--text2);font-size:15px;cursor:pointer;padding:4px"><i class="ti ti-pencil"></i></button>';
+      html += '<button onclick="excluirGrupo(' + gi + ')" title="Excluir grupo" style="background:none;border:none;color:#A32D2D;font-size:15px;cursor:pointer;padding:4px"><i class="ti ti-trash"></i></button>';
+      html += '</div>';
+
+      // Subgrupos existentes, como chips
+      if (g.subgrupos && g.subgrupos.length) {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
+        g.subgrupos.forEach(function(s, si){
+          html += '<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(212,162,74,.12);border:1px solid rgba(212,162,74,.3);border-radius:20px;padding:5px 6px 5px 12px;font-size:12px;color:var(--gold)">'
+            + s
+            + '<button onclick="excluirSubgrupo(' + gi + ',' + si + ')" title="Excluir subgrupo" style="background:none;border:none;color:#A32D2D;font-size:12px;cursor:pointer;padding:2px 6px"><i class="ti ti-x"></i></button>'
+            + '</span>';
+        });
+        html += '</div>';
+      }
+
+      // Campo para adicionar subgrupo a este grupo
+      html += '<div style="display:flex;gap:6px">'
+        + '<input type="text" id="novo-subgrupo-' + gi + '" placeholder="Novo subgrupo (ex: Compotas)" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:13px">'
+        + '<button onclick="criarSubgrupoNovo(' + gi + ')" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(212,162,74,.4);background:none;color:var(--gold);font-family:inherit;cursor:pointer;font-size:13px;white-space:nowrap"><i class="ti ti-plus"></i> Subgrupo</button>'
+        + '</div>';
+
+      html += '</div>';
+    });
+  }
+
+  body.innerHTML = html;
+}
+
+function criarGrupoNovo() {
+  var input = document.getElementById('novo-grupo-nome');
+  var nome = (input.value || '').trim();
+  if (!nome) { toast('⚠️ Informe o nome do grupo'); return; }
+  var cat = window._gerenciarGruposCatAtiva;
+  var grupos = getGruposDaCategoria(cat);
+  if (grupos.some(function(g){ return g.nome.toLowerCase() === nome.toLowerCase(); })) {
+    toast('⚠️ Já existe um grupo com esse nome'); return;
+  }
+  grupos.push({ nome: nome, subgrupos: [] });
+  window._gruposEstrutura[cat] = grupos;
+  saveGruposEstruturaToCloud();
+  input.value = '';
+  renderModalGerenciarGrupos();
+  toast('✅ Grupo "' + nome + '" criado!');
+}
+
+function criarSubgrupoNovo(gi) {
+  var input = document.getElementById('novo-subgrupo-' + gi);
+  var nome = (input.value || '').trim();
+  if (!nome) { toast('⚠️ Informe o nome do subgrupo'); return; }
+  var cat = window._gerenciarGruposCatAtiva;
+  var grupos = getGruposDaCategoria(cat);
+  var g = grupos[gi];
+  if (!g) return;
+  if (!g.subgrupos) g.subgrupos = [];
+  if (g.subgrupos.some(function(s){ return s.toLowerCase() === nome.toLowerCase(); })) {
+    toast('⚠️ Já existe um subgrupo com esse nome neste grupo'); return;
+  }
+  g.subgrupos.push(nome);
+  saveGruposEstruturaToCloud();
+  renderModalGerenciarGrupos();
+  toast('✅ Subgrupo "' + nome + '" criado em "' + g.nome + '"!');
+}
+
+function renomearGrupo(gi) {
+  var cat = window._gerenciarGruposCatAtiva;
+  var grupos = getGruposDaCategoria(cat);
+  var g = grupos[gi];
+  if (!g) return;
+  var novoNome = prompt('Novo nome para o grupo "' + g.nome + '":', g.nome);
+  if (!novoNome || !novoNome.trim() || novoNome.trim() === g.nome) return;
+  novoNome = novoNome.trim();
+  var nomeAntigo = g.nome;
+  g.nome = novoNome;
+  saveGruposEstruturaToCloud();
+  // Atualiza todas as receitas que já usavam o nome antigo, para não ficarem "soltas"
+  var afetadas = recipes.filter(function(r){ return r.cat === cat && r.group === nomeAntigo; });
+  if (afetadas.length) {
+    afetadas.forEach(function(r){ r.group = novoNome; });
+    Promise.all(afetadas.map(function(r){ return saveToCloud(r); })).then(function(){
+      toast('✅ Grupo renomeado e ' + afetadas.length + ' receita(s) atualizada(s)!');
+    });
+  } else {
+    toast('✅ Grupo renomeado!');
+  }
+  renderModalGerenciarGrupos();
+}
+
+function excluirGrupo(gi) {
+  var cat = window._gerenciarGruposCatAtiva;
+  var grupos = getGruposDaCategoria(cat);
+  var g = grupos[gi];
+  if (!g) return;
+  var qtdReceitas = recipes.filter(function(r){ return r.cat === cat && r.group === g.nome; }).length;
+  var msg = 'Excluir o grupo "' + g.nome + '"?';
+  if (qtdReceitas > 0) msg += ' ' + qtdReceitas + ' receita(s) ficarão sem grupo (não serão excluídas).';
+  if (!confirm(msg)) return;
+  grupos.splice(gi, 1);
+  saveGruposEstruturaToCloud();
+  var afetadas = recipes.filter(function(r){ return r.cat === cat && r.group === g.nome; });
+  if (afetadas.length) {
+    afetadas.forEach(function(r){ r.group = ''; r.subgrupo = ''; });
+    Promise.all(afetadas.map(function(r){ return saveToCloud(r); }));
+  }
+  renderModalGerenciarGrupos();
+  toast('Grupo excluído.');
+}
+
+function excluirSubgrupo(gi, si) {
+  var cat = window._gerenciarGruposCatAtiva;
+  var grupos = getGruposDaCategoria(cat);
+  var g = grupos[gi];
+  if (!g || !g.subgrupos) return;
+  var nomeSub = g.subgrupos[si];
+  if (!confirm('Excluir o subgrupo "' + nomeSub + '"?')) return;
+  g.subgrupos.splice(si, 1);
+  saveGruposEstruturaToCloud();
+  var afetadas = recipes.filter(function(r){ return r.cat === cat && r.group === g.nome && r.subgrupo === nomeSub; });
+  if (afetadas.length) {
+    afetadas.forEach(function(r){ r.subgrupo = ''; });
+    Promise.all(afetadas.map(function(r){ return saveToCloud(r); }));
+  }
+  renderModalGerenciarGrupos();
+  toast('Subgrupo excluído.');
+}
+
 // ═══════ RENDER RECIPES COM SUB-ABAS ═══════
 function setCatFilter(val) {
   window._currentCat = val || '';
@@ -533,15 +815,22 @@ function setCatFilter(val) {
   buildSubAbas(val);
   // Reset sub-group filter
   window._currentSubGrp = '';
+  window._currentSubSubGrp = '';
   renderRecipes();
 }
 
+// Constrói as sub-abas de Grupo (1º nível). Mostra apenas grupos que têm pelo menos uma
+// receita na categoria ativa OU que foram cadastrados manualmente no gerenciador (para o
+// usuário poder cadastrar a primeira receita dentro de um grupo recém-criado, mesmo vazio).
 function buildSubAbas(cat) {
   var container = document.getElementById('sub-abas-container');
   if (!container) return;
-  if (!cat) { container.style.display = 'none'; container.innerHTML = ''; return; }
+  if (!cat) { container.style.display = 'none'; container.innerHTML = ''; document.getElementById('sub-subabas-container') && (document.getElementById('sub-subabas-container').style.display = 'none'); return; }
+
+  var gruposCadastrados = getGruposDaCategoria(cat).map(function(g){ return g.nome; });
   var seen = {};
   var groups = [];
+  gruposCadastrados.forEach(function(nome){ if (!seen[nome]) { seen[nome] = true; groups.push(nome); } });
   for (var i = 0; i < recipes.length; i++) {
     var r = recipes[i];
     if (r.cat === cat && r.group && !seen[r.group]) {
@@ -549,7 +838,6 @@ function buildSubAbas(cat) {
       groups.push(r.group);
     }
   }
-  groups.sort();
   if (!groups.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
   container.style.display = 'flex';
   var parts = ['<button class="sub-aba act" id="sub-all" data-grp="" onclick="setSubAba(this.dataset.grp)">Todas</button>'];
@@ -559,15 +847,45 @@ function buildSubAbas(cat) {
     parts.push('<button class="sub-aba" id="sub-' + sid + '" data-grp="' + g + '" onclick="setSubAba(this.dataset.grp)">' + g + '</button>');
   }
   container.innerHTML = parts.join('');
+  buildSubSubAbas(cat, ''); // sem grupo selecionado ainda
 }
+
+// Constrói as sub-sub-abas de Subgrupo (2º nível), exibidas só quando o grupo escolhido
+// tiver pelo menos um subgrupo cadastrado.
+function buildSubSubAbas(cat, grupoNome) {
+  var container = document.getElementById('sub-subabas-container');
+  if (!container) return;
+  var subgrupos = grupoNome ? getSubgruposDoGrupo(cat, grupoNome) : [];
+  if (!grupoNome || !subgrupos.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
+  container.style.display = 'flex';
+  var parts = ['<button class="sub-aba act" id="subsub-all" data-sgrp="" onclick="setSubSubAba(this.dataset.sgrp)">Todos</button>'];
+  subgrupos.forEach(function(s){
+    var sid = s.replace(/[^a-zA-Z0-9]/g, '_');
+    parts.push('<button class="sub-aba" id="subsub-' + sid + '" data-sgrp="' + s.replace(/"/g,'&quot;') + '" onclick="setSubSubAba(this.dataset.sgrp)">' + s + '</button>');
+  });
+  container.innerHTML = parts.join('');
+}
+
 function setSubAba(grp) {
   window._currentSubGrp = grp || '';
-  document.querySelectorAll('.sub-aba').forEach(function(b){ b.classList.remove('act'); });
+  window._currentSubSubGrp = '';
+  document.querySelectorAll('#sub-abas-container .sub-aba').forEach(function(b){ b.classList.remove('act'); });
   var safeId = grp ? grp.replace(/[^a-zA-Z0-9]/g,'_') : 'all';
   var btn = document.getElementById('sub-' + safeId);
   if(btn) btn.classList.add('act');
+  buildSubSubAbas(window._currentCat || '', grp);
   renderRecipes();
 }
+
+function setSubSubAba(sgrp) {
+  window._currentSubSubGrp = sgrp || '';
+  document.querySelectorAll('#sub-subabas-container .sub-aba').forEach(function(b){ b.classList.remove('act'); });
+  var safeId = sgrp ? sgrp.replace(/[^a-zA-Z0-9]/g,'_') : 'all';
+  var btn = document.getElementById('subsub-' + safeId);
+  if(btn) btn.classList.add('act');
+  renderRecipes();
+}
+
 // Atualiza os números (Receitas/Bolos/Recheios) exibidos no card "Plano Premium" da sidebar.
 function atualizarStatsSidebarPremium() {
   var elR = document.getElementById('sidebar-stat-receitas');
@@ -582,18 +900,21 @@ function atualizarStatsSidebarPremium() {
   elC.textContent = recheiosCount;
 }
 
+
 function renderRecipes() {
   atualizarStatsSidebarPremium();
   var q   = (document.getElementById('si').value || '').toLowerCase();
   var cat = window._currentCat || '';
   var grp = window._currentSubGrp || '';
+  var sgrp = window._currentSubSubGrp || '';
   var el  = document.getElementById('recipes-list');
   var guest = isGuest();
 
   var list = recipes.filter(function(r) {
     return (!q || (r.name||'').toLowerCase().includes(q))
         && (!cat || r.cat === cat)
-        && (!grp || r.group === grp);
+        && (!grp || r.group === grp)
+        && (!sgrp || r.subgrupo === sgrp);
   });
   if (guest) list = list.filter(function(r){ return shareConfig.sharedIds.includes(r.id); });
 
@@ -959,6 +1280,8 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(pre?.recheiosVinculados);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
+  const elSub = document.getElementById('fsubgrp');
+  if (elSub) elSub.value = pre?.subgrupo || '';
   document.getElementById('modal-edit').style.display = 'flex';
 }
 
@@ -991,6 +1314,8 @@ function openEdit(id) {
   atualizarMultiplicadorAroPreview();
   renderRecheiosVinculadosChecklist(r.recheiosVinculados);
   if(typeof updateGrupoSelects==='function') updateGrupoSelects();
+  const elSub = document.getElementById('fsubgrp');
+  if (elSub) elSub.value = r.subgrupo || '';
   document.getElementById('modal-edit').style.display = 'flex';
 }
 
@@ -998,6 +1323,7 @@ function checkFormaTab() {
   const grp = document.getElementById('fgrp').value;
   document.getElementById('tab-forma').style.display = ['Bolos', 'Pães'].includes(grp) ? 'inline-block' : 'none';
 }
+
 
 function st2(n) {
   [0,1,2,3,4,5,6].forEach(i => { const el = document.getElementById('et'+i); if(el) el.style.display = i===n?'block':'none'; });
@@ -1318,6 +1644,7 @@ async function saveRecipeFinal() {
     id: editId||genId(), name,
     cat: document.getElementById('fcat').value,
     group: document.getElementById('fgrp').value,
+    subgrupo: document.getElementById('fsubgrp') ? document.getElementById('fsubgrp').value : '',
     unit: document.getElementById('funit').value,
     yield_qty: parseFloat(document.getElementById('fyld').value)||6,
     yield: parseFloat(document.getElementById('fyld').value)||6,
@@ -1759,6 +2086,7 @@ async function loadPedidosFromCloud() {
   document.getElementById('loading-text').textContent='Conectando à nuvem...';
   if(typeof loadConfigFromCloud==='function') await loadConfigFromCloud();
   const ok=await loadFromCloud();
+  await loadGruposEstruturaFromCloud(); // depende de "recipes" já carregado, para detectar grupos avulsos
   document.getElementById('loading-overlay').style.display='none';
   renderHome();renderRecipes();
   if(!ok)toast('Modo offline',3000);
@@ -1779,6 +2107,7 @@ async function loadPedidosFromCloud() {
     if(typeof _renderConfeitariaUI==='function')_renderConfeitariaUI();
   }
 })();
+
 
 // ═══════════════════════════════════════════
 // GERADOR DE DECORAÇÃO DE BOLO (IA)
