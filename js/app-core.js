@@ -911,10 +911,19 @@ function renderRecipes() {
   var guest = isGuest();
 
   var list = recipes.filter(function(r) {
-    return (!q || (r.name||'').toLowerCase().includes(q))
-        && (!cat || r.cat === cat)
-        && (!grp || r.group === grp)
-        && (!sgrp || r.subgrupo === sgrp);
+    if (!(!q || (r.name||'').toLowerCase().includes(q))) return false;
+    if (!(!cat || r.cat === cat)) return false;
+    if (!(!grp || r.group === grp)) return false;
+    if (sgrp) {
+      // Subgrupo específico selecionado: mostra só quem tem exatamente esse subgrupo.
+      return r.subgrupo === sgrp;
+    }
+    if (grp) {
+      // Aba "Todos" dentro de um grupo: esconde receitas que já têm subgrupo definido,
+      // para não repetir a mesma receita aqui e também dentro da aba do subgrupo dela.
+      return !r.subgrupo;
+    }
+    return true;
   });
   if (guest) list = list.filter(function(r){ return shareConfig.sharedIds.includes(r.id); });
 
