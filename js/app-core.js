@@ -4037,7 +4037,23 @@ function abrirModalItemCardapio(tipo, idx) {
       campos += '<div style="font-size:11px;color:#e74c3c;margin-bottom:8px;line-height:1.4">⚠️ Nenhuma receita cadastrada no grupo "Recheios" ainda. Cadastre a receita primeiro em Receitas → Nova receita.</div>';
     }
     campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
-    campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
+
+    // Categoria também passa a ser um select, alimentado pelas categorias já em uso
+    // entre os recheios cadastrados — evita criar "Frutas Nobres" e "frutas nobres"
+    // como categorias tecnicamente diferentes só por erro de digitação. A opção
+    // "+ Nova categoria" revela um campo de texto para criar uma categoria que ainda
+    // não existe.
+    var categoriasExistentes = Array.from(new Set(
+      (cfg.recheios || []).map(function(r){ return (r.categoria || '').trim(); }).filter(Boolean)
+    )).sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
+    var categoriaAtual = (item.categoria || '').trim();
+    var ehCategoriaNova = categoriaAtual && categoriasExistentes.indexOf(categoriaAtual) === -1;
+    var optsCategoria = categoriasExistentes.map(function(c){ return {value:c, label:c}; });
+    optsCategoria.push({value:'__nova__', label:'+ Nova categoria...'});
+    campos += selectField('Categoria', 'mi-categoria-select', optsCategoria, ehCategoriaNova ? '__nova__' : categoriaAtual);
+    campos += '<div id="mi-categoria-nova-box" style="margin-bottom:12px;display:' + (ehCategoriaNova ? 'block' : 'none') + '">'
+      + field('Nome da nova categoria', 'mi-categoria-nova', ehCategoriaNova ? categoriaAtual : '', 'ex: Frutas Tropicais')
+      + '</div>';
     campos += '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">💡 O nome vem direto da receita cadastrada — assim o custo no Detalhamento de Custo do pedido sempre encontra a receita certa. Categoria e Tipo são só para organizar a vitrine do cardápio.</div>';
 
   } else {
@@ -4065,6 +4081,13 @@ function abrirModalItemCardapio(tipo, idx) {
       }
     });
   }
+  var elCategoriaSelect = document.getElementById('mi-categoria-select');
+  if (elCategoriaSelect) {
+    elCategoriaSelect.addEventListener('change', function() {
+      var box = document.getElementById('mi-categoria-nova-box');
+      if (box) box.style.display = (elCategoriaSelect.value === '__nova__') ? 'block' : 'none';
+    });
+  }
   document.getElementById('modal-item-cardapio').style.display = 'flex';
 }
 
@@ -4090,8 +4113,14 @@ function salvarModalItemCardapio() {
   } else if (tipo === 'recheios') {
     var nome = g('mi-nome').trim() || itemAntigo.nome;
     if (!nome) { toast('⚠️ Selecione a receita do recheio'); return; }
+    // Categoria: se o select estiver em "+ Nova categoria...", usa o texto digitado no
+    // campo de texto que aparece embaixo; senão, usa direto o valor escolhido no select.
+    var categoriaSelecionada = g('mi-categoria-select');
+    var categoriaFinal = (categoriaSelecionada === '__nova__')
+      ? (g('mi-categoria-nova').trim() || 'Outros')
+      : (categoriaSelecionada || 'Outros');
     var nomeAntigo = itemAntigo.nome;
-    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros' };
+    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: categoriaFinal };
     if (idx != null) {
       cfg.recheios[idx] = novoRecheio;
       if (nomeAntigo && nomeAntigo !== nome && cfg.combinacoes) {
