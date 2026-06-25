@@ -178,6 +178,8 @@ function localToDb(r) {
     multiplicador_aro: r.multiplicadorAro ? JSON.stringify(r.multiplicadorAro) : null,
     recheios_vinculados: (r.recheiosVinculados && r.recheiosVinculados.length) ? JSON.stringify(r.recheiosVinculados) : null,
     calda_vinculada: r.caldaVinculada || null,
+    embalagem: r.embalagem || null,
+    conservacao: r.conservacao || null,
     time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
     preparo: r.preparo || '', comment: r.comment || '',
     usa_panela_mexedora: r.usaPanelaMexedora || false,
@@ -200,6 +202,8 @@ function dbToLocal(row) {
     multiplicadorAro: (function(){ try { return row.multiplicador_aro ? JSON.parse(row.multiplicador_aro) : null; } catch(e) { return null; } })(),
     recheiosVinculados: (function(){ try { return row.recheios_vinculados ? JSON.parse(row.recheios_vinculados) : []; } catch(e) { return []; } })(),
     caldaVinculada: row.calda_vinculada || '',
+    embalagem: row.embalagem || '',
+    conservacao: row.conservacao || '',
     time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
     preparo: row.preparo || '', comment: row.comment || '',
     usaPanelaMexedora: row.usa_panela_mexedora || false,
@@ -1100,10 +1104,94 @@ async function lerFoto() {
   } catch (err) { dot.className = 'ai-dot err'; msg.textContent = 'Erro: ' + err.message; btn.disabled = false; }
 }
 
+// Sincroniza visibilidade dos dois botões "Duplicar" (header + footer) — ambos chamam a
+// mesma ação, e o app agora tem dois lugares onde o botão pode aparecer no layout novo.
+function mostrarBotaoDuplicar(visivel) {
+  const btnHeader = document.getElementById('btn-duplicar-receita');
+  const btnFooter = document.getElementById('btn-duplicar-receita-footer');
+  if (btnHeader) btnHeader.style.display = visivel ? '' : 'none';
+  if (btnFooter) btnFooter.style.display = visivel ? '' : 'none';
+}
+
 // ═══════ EDIT FORM ═══════
 function togglePanelaMexedora() {
   const checked = document.getElementById('fpanela').checked;
   document.getElementById('panela-mexedora-box').style.display = checked ? 'block' : 'none';
+}
+
+// Atualiza o nome e os chips (Categoria/Grupo/Rendimento) no header do modal de edição,
+// em tempo real conforme o usuário digita/escolhe — só estética, não afeta nada salvo.
+function atualizarHeaderReceita() {
+  const elNome = document.getElementById('edit-title-nome');
+  const elChipCat = document.getElementById('chip-cat');
+  const elChipGrp = document.getElementById('chip-grp');
+  const elChipYld = document.getElementById('chip-yld');
+  if (elNome) {
+    const nome = document.getElementById('fn')?.value?.trim();
+    elNome.textContent = nome || 'Sem nome';
+  }
+  if (elChipCat) {
+    const cat = document.getElementById('fcat')?.value;
+    elChipCat.innerHTML = '<i class="ti ti-tag"></i> ' + (cat === 'doce' ? 'Doce' : cat === 'salgada' ? 'Salgada' : '—');
+  }
+  if (elChipGrp) {
+    const grp = document.getElementById('fgrp')?.value;
+    elChipGrp.innerHTML = '<i class="ti ti-folder"></i> ' + (grp || 'Sem grupo');
+  }
+  if (elChipYld) {
+    const yld = document.getElementById('fyld')?.value;
+    const unit = document.getElementById('funit')?.value || '';
+    elChipYld.innerHTML = '<i class="ti ti-scale"></i> ' + (yld || '—') + (unit ? ' ' + unit : '');
+  }
+  // Sincroniza o botão "Duplicar" duplicado (header + footer) — ambos chamam a mesma
+  // função, só precisam mostrar/escender juntos.
+  const btnHeader = document.getElementById('btn-duplicar-receita');
+  const btnFooter = document.getElementById('btn-duplicar-receita-footer');
+  if (btnHeader && btnFooter) btnFooter.style.display = btnHeader.style.display;
+}
+
+// Filtro visual rápido na tabela/cards de ingredientes (aba Ingredientes & Preparo) —
+// não remove nada de curIngr, só esconde linhas/cards que não combinam com a busca.
+function filtrarLinhasIngrTabela(termo) {
+  const t = (termo || '').trim().toLowerCase();
+  document.querySelectorAll('#ingr-body tr').forEach(function(tr){
+    const nomeInput = tr.querySelector('input[type="text"]');
+    const nome = nomeInput ? nomeInput.value.toLowerCase() : '';
+    tr.style.display = (!t || nome.includes(t)) ? '' : 'none';
+  });
+  document.querySelectorAll('#ingr-mobile-cards .rcp-edit-ingr-mobile-card').forEach(function(card){
+    const nome = (card.dataset.nome || '').toLowerCase();
+    card.style.display = (!t || nome.includes(t)) ? '' : 'none';
+  });
+}
+
+// Aplica uma marcação simples de formatação de texto no textarea de Preparo, inserindo
+// a sintaxe no cursor (ou ao redor do texto selecionado). É formatação leve em texto
+// puro (sem HTML/rich-text) para não complicar o que é salvo no banco — o texto final
+// continua sendo a mesma string simples que sempre foi salva em r.preparo.
+function aplicarFormatoPreparo(tipo) {
+  const ta = document.getElementById('fprep');
+  if (!ta) return;
+  const inicio = ta.selectionStart, fim = ta.selectionEnd;
+  const selecionado = ta.value.slice(inicio, fim);
+  let novoTrecho = selecionado;
+  if (tipo === 'negrito') novoTrecho = '**' + (selecionado || 'texto') + '**';
+  else if (tipo === 'italico') novoTrecho = '_' + (selecionado || 'texto') + '_';
+  else if (tipo === 'sublinhado') novoTrecho = '__' + (selecionado || 'texto') + '__';
+  else if (tipo === 'numerada') novoTrecho = (selecionado || 'Novo passo').split('\n').map(function(l,i){ return (i+1) + '. ' + l; }).join('\n');
+  else if (tipo === 'lista') novoTrecho = (selecionado || 'Novo item').split('\n').map(function(l){ return '• ' + l; }).join('\n');
+  else if (tipo === 'link') novoTrecho = '[' + (selecionado || 'texto do link') + '](url)';
+  ta.value = ta.value.slice(0, inicio) + novoTrecho + ta.value.slice(fim);
+  ta.focus();
+  ta.selectionStart = inicio;
+  ta.selectionEnd = inicio + novoTrecho.length;
+  atualizarContadorPreparo();
+}
+
+function atualizarContadorPreparo() {
+  const ta = document.getElementById('fprep');
+  const el = document.getElementById('preparo-char-count');
+  if (ta && el) el.textContent = ta.value.length + ' caracteres';
 }
 
 // Renderiza a tabela de "Multiplicador por aro" dentro do formulário de receita,
@@ -1411,16 +1499,14 @@ function duplicarReceitaAtual() {
   const elNome = document.getElementById('fn');
   if (elNome) elNome.value = (elNome.value || 'Receita') + ' (cópia)';
   document.getElementById('edit-title').textContent = 'Nova receita (duplicada)';
-  const btnDup = document.getElementById('btn-duplicar-receita');
-  if (btnDup) btnDup.style.display = 'none';
+  mostrarBotaoDuplicar(false);
   toast('Receita duplicada — ajuste o que precisar e clique em Salvar.', 4000);
 }
 
 function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   editId = null; curIngr = pre?.ingredients || []; curPhotos = []; curFormas = []; formasEnabled = false;
   document.getElementById('edit-title').textContent = 'Nova receita';
-  const btnDup = document.getElementById('btn-duplicar-receita');
-  if (btnDup) btnDup.style.display = 'none';
+  mostrarBotaoDuplicar(false);
   document.getElementById('fn').value = pre?.name || '';
   document.getElementById('fcat').value = cat;
   document.getElementById('fgrp').value = grp || '';
@@ -1431,6 +1517,8 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   document.getElementById('fmrg').value = 100; document.getElementById('fext').value = 0;
   document.getElementById('fprep').value = pre?.preparo || '';
   document.getElementById('fcomment').value = pre?.comment || '';
+  document.getElementById('fembalagem').value = pre?.embalagem || '';
+  document.getElementById('fconservacao').value = pre?.conservacao || '';
   document.getElementById('fpanela').checked = false;
   document.getElementById('fpanela-tempo').value = '';
   document.getElementById('fpanela-vel').value = '';
@@ -1446,6 +1534,8 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   // Mesma lógica resiliente usada em openEdit — define o subgrupo recebendo cat/grupo
   // diretamente como parâmetros, sem depender do timing de updateGrupoSelects() acima.
   aplicarSubgrupoNoFormulario(cat, grp || '', pre?.subgrupo || '');
+  atualizarHeaderReceita();
+  if (typeof atualizarContadorPreparo === 'function') atualizarContadorPreparo();
   document.getElementById('modal-edit').style.display = 'flex';
 }
 
@@ -1457,8 +1547,7 @@ function openEdit(id) {
   curFormas = r.formas ? JSON.parse(JSON.stringify(r.formas)) : [];
   formasEnabled = r.formasEnabled || false;
   document.getElementById('edit-title').textContent = 'Editar receita';
-  const btnDup = document.getElementById('btn-duplicar-receita');
-  if (btnDup) btnDup.style.display = '';
+  mostrarBotaoDuplicar(true);
   document.getElementById('fn').value = r.name || '';
   document.getElementById('fcat').value = r.cat || 'salgada';
   document.getElementById('fgrp').value = r.group || '';
@@ -1470,6 +1559,8 @@ function openEdit(id) {
   document.getElementById('fext').value = r.extra || 0;
   document.getElementById('fprep').value = r.preparo || '';
   document.getElementById('fcomment').value = r.comment || '';
+  document.getElementById('fembalagem').value = r.embalagem || '';
+  document.getElementById('fconservacao').value = r.conservacao || '';
   document.getElementById('fpanela').checked = !!r.usaPanelaMexedora;
   document.getElementById('fpanela-tempo').value = r.panelaTempo || '';
   document.getElementById('fpanela-vel').value = r.panelaVelocidade || '';
@@ -1485,6 +1576,8 @@ function openEdit(id) {
   // que acabamos de aplicar — não depende do timing de updateGrupoSelects() acima, que em
   // alguns casos rodava antes do <select> de categoria refletir o valor já atribuído.
   aplicarSubgrupoNoFormulario(r.cat || 'salgada', r.group || '', r.subgrupo || '');
+  atualizarHeaderReceita();
+  if (typeof atualizarContadorPreparo === 'function') atualizarContadorPreparo();
   document.getElementById('modal-edit').style.display = 'flex';
 }
 
@@ -1518,9 +1611,18 @@ function checkFormaTab() {
 
 
 function st2(n) {
-  [0,1,2,3,4,5,6].forEach(i => { const el = document.getElementById('et'+i); if(el) el.style.display = i===n?'block':'none'; });
-  document.querySelectorAll('.tb').forEach((t,i) => t.classList.toggle('act', i===n));
+  [0,1,2,3,4,5,6].forEach(i => { const el = document.getElementById('et'+i); if(el) el.classList.toggle('act', i===n); });
+  // Mapeia o índice da aba clicada para a posição visual correta na barra de abas nova
+  // (Dados=0, Ingredientes&Preparo=1, Custos=3, Notas=4, Fotos=5, Formas=6 — o índice 2
+  // não existe mais como aba própria, foi fundido em "1").
+  document.querySelectorAll('.rcp-edit-tab').forEach(function(t){
+    const onclickAttr = t.getAttribute('onclick') || '';
+    const match = onclickAttr.match(/st2\((\d+)\)/);
+    const tabIndex = match ? parseInt(match[1]) : -1;
+    t.classList.toggle('act', tabIndex === n);
+  });
   if(n===3) updCosts();
+  if(n===1 && typeof atualizarContadorPreparo === 'function') atualizarContadorPreparo();
 }
 
 function addIngr() { curIngr.push({ name: '', qty: 100, unit: 'g', isBase: false }); renderIngrTable(); atualizarMultiplicadorAroPreview(); }
@@ -1533,7 +1635,12 @@ function setBase(i) { curIngr.forEach((ig, j) => ig.isBase = (j === i)); renderI
 // preço cadastrado aparecem com "—" e um aviso, em vez de um campo digitável.
 function renderIngrTable() {
   const tb = document.getElementById('ingr-body');
-  if (!curIngr.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</td></tr>`; return; }
+  const mobileWrap = document.getElementById('ingr-mobile-cards');
+  if (!curIngr.length) {
+    tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:12px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</td></tr>`;
+    if (mobileWrap) mobileWrap.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text2);font-size:12px">Toque em "+ Adicionar"</div>`;
+    return;
+  }
   tb.innerHTML = curIngr.map((ig, i) => {
     const preco = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : 0;
     const semPreco = typeof ingredienteSemPreco === 'function' ? ingredienteSemPreco(ig.name) : !preco;
@@ -1559,6 +1666,38 @@ function renderIngrTable() {
       <td><button class="db" onclick="remIngr(${i})"><i class="ti ti-trash"></i></button></td>
     </tr>`;
   }).join('');
+
+  // Cards mobile equivalentes — mesmos campos e eventos da tabela, em layout vertical.
+  // IDs com sufixo "-m" para nunca colidir com os elementos da tabela (ambos existem no
+  // DOM ao mesmo tempo; o CSS decide qual fica visível conforme o tamanho de tela).
+  if (mobileWrap) {
+    mobileWrap.innerHTML = curIngr.map((ig, i) => {
+      const preco = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : 0;
+      const semPreco = typeof ingredienteSemPreco === 'function' ? ingredienteSemPreco(ig.name) : !preco;
+      const sub = (parseFloat(ig.qty||0) * preco).toFixed(2);
+      const precoTxt = (ig.name && semPreco) ? '⚠️ sem preço' : (preco>0 ? 'R$ '+(preco*1000).toFixed(2)+'/kg' : '—');
+      const nomeEscapado = (ig.name||'').replace(/"/g,'&quot;');
+      return `<div class="rcp-edit-ingr-mobile-card" data-nome="${nomeEscapado}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <input type="radio" name="bir-m" ${ig.isBase?'checked':''} onchange="setBase(${i})" style="accent-color:var(--blue);width:18px;height:18px;flex-shrink:0">
+          <input value="${ig.name}" placeholder="Nome do ingrediente" autocomplete="off"
+            oninput="curIngr[${i}].name=this.value"
+            onblur="atualizarPrecoExibidoIngr(${i})"
+            style="flex:1;background:rgba(2,11,24,.5);border:1px solid rgba(248,247,244,.14);color:#F8F7F4;border-radius:7px;padding:8px 10px;font-size:14px;font-family:inherit">
+          <button class="db" onclick="remIngr(${i})" style="flex-shrink:0"><i class="ti ti-trash"></i></button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+          <div class="rcp-edit-ingr-mobile-row"><span>Quantidade</span></div>
+          <div class="rcp-edit-ingr-mobile-row"><span>Unidade</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input type="number" inputmode="decimal" value="${ig.qty}" min="0" step=".1" oninput="curIngr[${i}].qty=parseFloat(this.value)||0;updateIngrSubtotal(${i})" style="background:rgba(2,11,24,.5);border:1px solid rgba(248,247,244,.14);color:#F8F7F4;border-radius:7px;padding:8px 10px;font-size:14px;font-family:inherit">
+          <input value="${ig.unit}" placeholder="g" oninput="curIngr[${i}].unit=this.value" style="background:rgba(2,11,24,.5);border:1px solid rgba(248,247,244,.14);color:#F8F7F4;border-radius:7px;padding:8px 10px;font-size:14px;font-family:inherit">
+        </div>
+        <div class="rcp-edit-ingr-mobile-row"><span>Custo</span><b id="ingr-sub-m-${i}">${precoTxt} · ${fR(sub)}</b></div>
+      </div>`;
+    }).join('');
+  }
 }
 
 // Re-renderiza só a linha de um ingrediente para mostrar o preço atual do Estoque (que
@@ -1573,9 +1712,15 @@ function updateIngrSubtotal(i) {
   const ig = curIngr[i];
   if (!ig) return;
   const preco = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : 0;
+  const semPreco = typeof ingredienteSemPreco === 'function' ? ingredienteSemPreco(ig.name) : !preco;
   const sub = (parseFloat(ig.qty||0) * preco).toFixed(2);
   const el = document.getElementById('ingr-sub-' + i);
   if (el) el.textContent = fR(sub);
+  const elM = document.getElementById('ingr-sub-m-' + i);
+  if (elM) {
+    const precoTxt = (ig.name && semPreco) ? '⚠️ sem preço' : (preco>0 ? 'R$ '+(preco*1000).toFixed(2)+'/kg' : '—');
+    elM.textContent = precoTxt + ' · ' + fR(sub);
+  }
   atualizarMultiplicadorAroPreview();
 }
 
@@ -1844,6 +1989,8 @@ async function saveRecipeFinal() {
     extra: parseFloat(document.getElementById('fext').value)||0,
     preparo: document.getElementById('fprep').value,
     comment: document.getElementById('fcomment').value,
+    embalagem: document.getElementById('fembalagem') ? document.getElementById('fembalagem').value : '',
+    conservacao: document.getElementById('fconservacao') ? document.getElementById('fconservacao').value : '',
     usaPanelaMexedora: document.getElementById('fpanela').checked,
     panelaTempo: document.getElementById('fpanela').checked ? (parseFloat(document.getElementById('fpanela-tempo').value)||0) : null,
     panelaVelocidade: document.getElementById('fpanela').checked ? (document.getElementById('fpanela-vel').value||'') : null,
