@@ -1524,76 +1524,77 @@ function abrirDetalhamentoCusto(id) {
   const tabuaPadrao = ((cfgCustos.tabuaAro||{})[aro] !== undefined ? (cfgCustos.tabuaAro||{})[aro] : (cfgCustos.tabua ?? 3));
   const embalagemPadrao = ((cfgCustos.embalagemAro||{})[aro] !== undefined ? (cfgCustos.embalagemAro||{})[aro] : (cfgCustos.embalagem ?? 15));
 
-  document.getElementById('modal-item-titulo').textContent = 'Detalhamento de custo — ' + (p.cliente||'');
-  function linhaAuto(label, valor) {
-    return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--text2)">'+label+'</span><span style="font-weight:700;color:var(--text)">R$ '+valor.toFixed(2)+'</span></div>';
+  // ── HEADER do modal ──
+  document.getElementById('dc-cliente-nome').textContent = p.cliente || 'Cliente';
+  document.getElementById('dc-meta-aro').textContent = aro || '—';
+  document.getElementById('dc-meta-valor').textContent = 'R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
+
+  function dcRow(label, valor) {
+    return '<div class="dc-row"><span class="dc-row-label">'+label+'</span><span class="dc-row-value">R$ '+valor.toFixed(2)+'</span></div>';
   }
-  function linhaAutoExpandivel(label, valor, nomeReceita, mult, idExpand, camadas) {
-    if (!nomeReceita || !mult) return linhaAuto(label, valor);
+  function dcRowExpandivel(label, valor, nomeReceita, mult, idExpand, camadas) {
+    if (!nomeReceita || !mult) return dcRow(label, valor);
     camadas = camadas || 1;
-    return '<div style="border-bottom:1px solid rgba(255,255,255,.06);padding:8px 0">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">'
-      + '<span style="color:var(--text2)">'+label+'</span>'
-      + '<span style="display:flex;align-items:center;gap:8px">'
-      + '<button onclick="toggleReceitaExpandida(\''+idExpand+'\', \''+nomeReceita.replace(/'/g,"\\'")+'\', '+mult+', '+camadas+')" title="Ver detalhamento" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;padding:2px"><i class="ti ti-search"></i></button>'
-      + '<span style="font-weight:700;color:var(--text)">R$ '+valor.toFixed(2)+'</span>'
+    return '<div class="dc-row" style="flex-direction:column;align-items:stretch;gap:6px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center">'
+      + '<span class="dc-row-label">'+label+'</span>'
+      + '<span style="display:flex;align-items:center">'
+      + '<button class="dc-row-search" onclick="toggleReceitaExpandida(\''+idExpand+'\', \''+nomeReceita.replace(/'/g,"\\'")+'\', '+mult+', '+camadas+')" title="Ver detalhamento"><i class="ti ti-search"></i></button>'
+      + '<span class="dc-row-value">R$ '+valor.toFixed(2)+'</span>'
       + '</span></div>'
       + '<div id="'+idExpand+'" style="display:none"></div>'
       + '</div>';
   }
-  function linhaEditavel(label, id_, valor) {
-    return '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">'+label+'</label>'
-      + '<input type="number" id="'+id_+'" value="'+(valor??'')+'" min="0" step="0.01" placeholder="0,00" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px"></div>';
+  function dcFieldEditavel(label, id_, valor) {
+    return '<div class="dc-field"><label>'+label+'</label>'
+      + '<input type="number" class="dc-input" id="'+id_+'" value="'+(valor??'')+'" min="0" step="0.01" placeholder="0,00"></div>';
   }
 
-  let html = '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Calculado automaticamente (só ingredientes)</div>';
-  html += linhaAutoExpandivel('Massa (' + (p.massa||'—') + ')', custoMassa, massaResolvida.nome, massaResolvida.mult, 'expand-massa-'+id);
+  // ── COLUNA 1: Calculado automaticamente ──
+  let htmlAuto = dcRowExpandivel('Massa (' + (p.massa||'—') + ')', custoMassa, massaResolvida.nome, massaResolvida.mult, 'expand-massa-'+id);
   if (p.recheio1 && p.recheio2) {
-    html += '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Qual sabor repete (3 camadas no total)?</label>'
-      + '<select id="dc-recheio-repetido" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+    htmlAuto += '<div class="dc-field"><label>Qual sabor repete (3 camadas no total)?</label>'
+      + '<select class="dc-select" id="dc-recheio-repetido">'
       + '<option value="recheio1"' + (recheioRepetido==='recheio1'?' selected':'') + '>' + p.recheio1 + ' (2x)</option>'
       + '<option value="recheio2"' + (recheioRepetido==='recheio2'?' selected':'') + '>' + p.recheio2 + ' (2x)</option>'
       + '</select></div>';
   }
-  if (p.recheio1) html += linhaAutoExpandivel('Recheio 1 (' + p.recheio1 + ')', custoRecheio1Camada, recheio1Resolvido.nome, recheio1Resolvido.mult, 'expand-recheio1-'+id, 1);
-  if (p.recheio2) html += linhaAutoExpandivel('Recheio 2 (' + p.recheio2 + ')', custoRecheio2Camada, recheio2Resolvido.nome, recheio2Resolvido.mult, 'expand-recheio2-'+id, 1);
+  if (p.recheio1) htmlAuto += dcRowExpandivel('Recheio 1 (' + p.recheio1 + ')', custoRecheio1Camada, recheio1Resolvido.nome, recheio1Resolvido.mult, 'expand-recheio1-'+id, 1);
+  if (p.recheio2) htmlAuto += dcRowExpandivel('Recheio 2 (' + p.recheio2 + ')', custoRecheio2Camada, recheio2Resolvido.nome, recheio2Resolvido.mult, 'expand-recheio2-'+id, 1);
   if (p.recheio1 || p.recheio2) {
     const nomeRepetidoTxt = recheioRepetido === 'recheio2' ? p.recheio2 : p.recheio1;
     const custoRepetidoTxt = recheioRepetido === 'recheio2' ? custoRecheio2Camada : custoRecheio1Camada;
-    if (nomeRepetidoTxt) html += linhaAuto('Recheio 3 (repete ' + nomeRepetidoTxt + ')', custoRepetidoTxt);
+    if (nomeRepetidoTxt) htmlAuto += dcRow('Recheio 3 (repete ' + nomeRepetidoTxt + ')', custoRepetidoTxt);
   }
   itensVinculados.forEach(function(v){
-    if (v.custo > 0) html += linhaAuto('Adicional: ' + v.nomeReceita + ' (' + v.camadas + 'x)', v.custo * v.camadas);
+    if (v.custo > 0) htmlAuto += dcRow('Adicional: ' + v.nomeReceita + ' (' + v.camadas + 'x)', v.custo * v.camadas);
   });
-  if (caldaVinculada && caldaVinculada.custo > 0) html += linhaAuto('Calda (' + caldaVinculada.nomeReceita + ')', caldaVinculada.custo);
-  if (custoCoberturaAuto) html += linhaAuto('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
+  if (caldaVinculada && caldaVinculada.custo > 0) htmlAuto += dcRow('Calda (' + caldaVinculada.nomeReceita + ')', caldaVinculada.custo);
+  if (custoCoberturaAuto) htmlAuto += dcRow('Cobertura (' + nomeCoberturaAuto + ')', custoCoberturaAuto);
 
   const custoIngredientesTotal = custoMassa + custoRecheio1Camada + custoRecheio2Camada
     + (p.recheio1||p.recheio2 ? (recheioRepetido === 'recheio2' ? custoRecheio2Camada : custoRecheio1Camada) : 0)
     + custoVinculados + custoCalda + custoCoberturaAuto;
 
-  html += '<div style="display:flex;justify-content:space-between;padding:8px 0;margin-top:4px;border-top:1.5px solid rgba(212,162,74,.3);font-size:13px;font-weight:800"><span style="color:var(--gold)">Total ingredientes</span><span style="color:var(--gold)">R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>';
+  htmlAuto += '<div class="dc-row dc-row-total"><span class="dc-row-label">Total ingredientes</span><span class="dc-row-value">R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>';
+  document.getElementById('dc-col-auto').innerHTML = htmlAuto;
 
-  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Descartáveis (Config)</div>';
-  html += linhaAuto('Tábua/Cakeboard', tabuaPadrao);
-  html += linhaAuto('Embalagem', embalagemPadrao);
+  // ── COLUNA 2: Descartáveis + Decoração ──
+  document.getElementById('dc-col-descartaveis').innerHTML =
+    dcRow('Tábua/Cakeboard', tabuaPadrao) + dcRow('Embalagem', embalagemPadrao);
 
-  html += '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 10px">Decoração — informe manualmente</div>';
-  html += linhaEditavel('Diferença no cakeboard/tábua (R$, pode ser negativo — só se diferente do padrão acima)', 'dc-cakeboard', p.custoCakeboard);
-  html += linhaEditavel('Diferença na caixa de papel (R$, pode ser negativo)', 'dc-caixa', p.custoCaixa);
-  if (p.topo) html += linhaEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
-  if (p.flores) html += linhaEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
-  if (p.papelaria) html += linhaEditavel('Custo real da papelaria (cobrado R$ ' + (sucreeConfig.papelariaValor||35).toFixed(2) + ')', 'dc-papelaria', p.custoRealPapelaria);
-  html += '<div style="margin-bottom:10px"><label style="display:block;font-size:12px;color:var(--text2);margin-bottom:5px">Recheio adicional manual (caso especial, além das 3 camadas padrão)</label>'
-    + '<input type="text" id="dc-recheio-extra-nome" value="' + (p.recheioExtraNome||'').replace(/"/g,'&quot;') + '" placeholder="Nome do recheio (deixe em branco se não houver)" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px;margin-bottom:6px">'
-    + '<div style="display:flex;gap:6px">'
-    + '<input type="number" id="dc-recheio-extra-qtd" value="' + (p.recheioExtraQtd??'') + '" min="0" placeholder="Qtd (g)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
-    + '<input type="number" id="dc-recheio-extra-custo" value="' + (p.recheioExtraCusto??'') + '" min="0" step="0.01" placeholder="Custo (R$)" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--gold);background:#0F0A05;color:#F5EDD8;font-family:inherit;font-size:14px">'
+  let htmlDecoracao = dcFieldEditavel('Diferença no cakeboard/tábua (R$, pode ser negativo)', 'dc-cakeboard', p.custoCakeboard)
+    + dcFieldEditavel('Diferença na caixa de papel (R$, pode ser negativo)', 'dc-caixa', p.custoCaixa);
+  if (p.topo) htmlDecoracao += dcFieldEditavel('Custo real do topo (cobrado R$ ' + (sucreeConfig.topoValor||45).toFixed(2) + ')', 'dc-topo', p.custoRealTopo);
+  if (p.flores) htmlDecoracao += dcFieldEditavel('Custo real das flores (cobrado R$ ' + (sucreeConfig.floresValor||50).toFixed(2) + ')', 'dc-flores', p.custoRealFlores);
+  if (p.papelaria) htmlDecoracao += dcFieldEditavel('Custo real da papelaria (cobrado R$ ' + (sucreeConfig.papelariaValor||35).toFixed(2) + ')', 'dc-papelaria', p.custoRealPapelaria);
+  htmlDecoracao += '<div class="dc-field"><label>Recheio adicional manual (caso especial, além das 3 camadas padrão)</label>'
+    + '<input type="text" class="dc-input" id="dc-recheio-extra-nome" value="' + (p.recheioExtraNome||'').replace(/"/g,'&quot;') + '" placeholder="Nome do recheio (deixe em branco se não houver)" style="margin-bottom:8px">'
+    + '<div class="dc-input-row">'
+    + '<input type="number" class="dc-input" id="dc-recheio-extra-qtd" value="' + (p.recheioExtraQtd??'') + '" min="0" placeholder="Qtd (g)">'
+    + '<input type="number" class="dc-input" id="dc-recheio-extra-custo" value="' + (p.recheioExtraCusto??'') + '" min="0" step="0.01" placeholder="Custo (R$)">'
     + '</div></div>';
-
-  html += '<div id="dc-resultado" style="margin-top:18px;padding:14px;border-radius:10px;background:rgba(212,162,74,.1);border:1px solid var(--gold)"></div>';
-
-  document.getElementById('modal-item-campos').innerHTML = html;
+  document.getElementById('dc-col-decoracao').innerHTML = htmlDecoracao;
 
   // Margem ideal Sucrée fixa em 40%: preço sugerido = custo total ÷ 0,60
   const MARGEM_IDEAL = 0.40;
@@ -1613,19 +1614,23 @@ function abrirDetalhamentoCusto(id) {
     const precoSugerido = custoTotal / (1 - MARGEM_IDEAL); // custo ÷ 0,60
     const lucroDesejado = precoSugerido - custoTotal; // = precoSugerido × 40%
 
-    document.getElementById('dc-resultado').innerHTML =
-      '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Resumo</div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Ingredientes</span><span>R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Operacional (18%)</span><span>R$ '+custoOperacional.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Descartáveis</span><span>R$ '+custoDescartaveis.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Custo Decoração</span><span>R$ '+custoDecoracao.toFixed(2)+'</span></div>'
-      + (custoMaoObraExtra ? '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--text2)"><span>Mão de obra extra</span><span>R$ '+custoMaoObraExtra.toFixed(2)+'</span></div>' : '')
-      + '<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;margin-top:4px;border-top:1px solid rgba(212,162,74,.25);font-weight:700"><span style="color:var(--text)">Custo total real</span><span>R$ '+custoTotal.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--teal)"><span>Preço sugerido (margem 40%)</span><span>R$ '+precoSugerido.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--teal)"><span>Valor do Lucro Desejado (40%)</span><span>R$ '+lucroDesejado.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text2)"><span>Valor cobrado do cliente</span><span style="font-weight:700">R$ '+valorTotal.toFixed(2)+'</span></div>'
-      + '<div style="display:flex;justify-content:space-between;font-size:16px;padding-top:8px;margin-top:4px;border-top:1px solid rgba(212,162,74,.3)"><span style="font-weight:800;color:var(--gold-dark, var(--gold))">Valor do Lucro Obtido</span><span style="font-weight:800;color:'+(lucroObtido>=0?'#5DCAA5':'#E07A7A')+'">R$ '+lucroObtido.toFixed(2)+'</span></div>'
-      + (lucroObtido < lucroDesejado ? '<div style="font-size:11px;color:#FF8080;margin-top:6px">⚠️ Abaixo da margem ideal de 40%. Preço sugerido: R$ '+precoSugerido.toFixed(2)+'</div>' : '<div style="font-size:11px;color:var(--teal);margin-top:4px">✅ Dentro ou acima da margem ideal de 40%</div>');
+    document.getElementById('dc-col-resumo').innerHTML =
+      '<div class="dc-summary-row"><span>Custo Ingredientes</span><span>R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>'
+      + '<div class="dc-summary-row"><span>Custo Operacional (18%)</span><span>R$ '+custoOperacional.toFixed(2)+'</span></div>'
+      + '<div class="dc-summary-row"><span>Custo Descartáveis</span><span>R$ '+custoDescartaveis.toFixed(2)+'</span></div>'
+      + '<div class="dc-summary-row"><span>Custo Decoração</span><span>R$ '+custoDecoracao.toFixed(2)+'</span></div>'
+      + (custoMaoObraExtra ? '<div class="dc-summary-row"><span>Mão de obra extra</span><span>R$ '+custoMaoObraExtra.toFixed(2)+'</span></div>' : '')
+      + '<div class="dc-summary-row strong"><span>Custo total real</span><span>R$ '+custoTotal.toFixed(2)+'</span></div>'
+      + '<div class="dc-summary-row good"><span>Preço sugerido (margem 40%)</span><span>R$ '+precoSugerido.toFixed(2)+'</span></div>'
+      + '<div class="dc-summary-row good"><span>Valor do Lucro Desejado (40%)</span><span>R$ '+lucroDesejado.toFixed(2)+'</span></div>'
+      + '<div class="dc-summary-row"><span>Valor cobrado do cliente</span><span style="font-weight:700;color:#F8F7F4">R$ '+valorTotal.toFixed(2)+'</span></div>'
+      + '<div class="dc-profit-box">'
+      + '<div class="dc-profit-label">Valor do Lucro Obtido</div>'
+      + '<div class="dc-profit-value ' + (lucroObtido>=0?'pos':'neg') + '">R$ ' + Math.abs(lucroObtido).toFixed(2) + '</div>'
+      + (lucroObtido < lucroDesejado
+          ? '<div class="dc-profit-note warn">⚠️ Abaixo da margem ideal de 40%. Preço sugerido: R$ '+precoSugerido.toFixed(2)+'</div>'
+          : '<div class="dc-profit-note ok">✅ Dentro ou acima da margem ideal de 40%</div>')
+      + '</div>';
   }
   setTimeout(function(){
     ['dc-cakeboard','dc-caixa','dc-topo','dc-flores','dc-papelaria','dc-recheio-extra-qtd','dc-recheio-extra-custo','dc-maoobra'].forEach(function(idc){
@@ -1641,8 +1646,7 @@ function abrirDetalhamentoCusto(id) {
     recalcular();
   }, 0);
 
-  document.getElementById('modal-item-btn-confirmar').textContent = 'Salvar custos';
-  document.getElementById('modal-item-btn-confirmar').onclick = function() {
+  document.getElementById('dc-btn-salvar').onclick = function() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
     p.recheioRepetido = document.getElementById('dc-recheio-repetido')?.value || p.recheioRepetido || 'recheio1';
     p.custoCakeboard = g('dc-cakeboard');
@@ -1666,9 +1670,13 @@ function abrirDetalhamentoCusto(id) {
       }).eq('id', id).then(function(){});
     } catch(e) {}
     toast('✅ Custos salvos!');
-    fecharModalItemCardapio();
+    fecharDetalhamentoCusto();
   };
-  document.getElementById('modal-item-cardapio').style.display = 'flex';
+  document.getElementById('modal-detalhamento-custo').style.display = 'flex';
+}
+
+function fecharDetalhamentoCusto() {
+  document.getElementById('modal-detalhamento-custo').style.display = 'none';
 }
 
 function uploadFotoPedido(id, campo, inputEl, remover) {
