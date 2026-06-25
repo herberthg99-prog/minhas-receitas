@@ -1703,9 +1703,41 @@ function renderIngrTable() {
 // Re-renderiza só a linha de um ingrediente para mostrar o preço atual do Estoque (que
 // agora é a única fonte de preço) assim que o nome é digitado/confirmado — não "copia"
 // mais nada para dentro da receita, só atualiza a exibição em tela.
+//
+// Também corrige automaticamente diferenças de capitalização/acento contra um nome já
+// existente no Estoque (ex: digitou "Creme de leite" mas já existe "Creme de Leite"
+// cadastrado) — evita criar duas entradas separadas no Estoque para o mesmo ingrediente
+// só por causa de letra maiúscula/minúscula ou acentuação diferente.
 function atualizarPrecoExibidoIngr(i) {
+  const ig = curIngr[i];
+  if (ig && ig.name && ig.name.trim()) {
+    const nomeCorrigido = encontrarGrafiaExistente(ig.name.trim());
+    if (nomeCorrigido && nomeCorrigido !== ig.name.trim()) {
+      ig.name = nomeCorrigido;
+    }
+  }
   renderIngrTable();
   atualizarMultiplicadorAroPreview();
+}
+
+// Procura, entre os ingredientes já cadastrados no Estoque, um nome que seja IDÊNTICO ao
+// informado uma vez removidos acentos e diferenças de maiúscula/minúscula — e retorna a
+// grafia já existente (a "oficial"), para padronizar automaticamente. Retorna null se não
+// encontrar nenhum igual (nomes diferentes de verdade não são tocados).
+function encontrarGrafiaExistente(nome) {
+  if (typeof estoque === 'undefined' || !nome) return null;
+  const normalizar = function(s) {
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  };
+  const alvo = normalizar(nome);
+  const keys = Object.keys(estoque);
+  for (let k = 0; k < keys.length; k++) {
+    const item = estoque[keys[k]];
+    if (item && item.name && normalizar(item.name) === alvo && item.name !== nome) {
+      return item.name;
+    }
+  }
+  return null;
 }
 
 function updateIngrSubtotal(i) {
@@ -1972,6 +2004,15 @@ async function confirmarIngredientesNovos(novos) {
 async function saveRecipeFinal() {
   const name = document.getElementById('fn').value.trim();
   if(!name){toast('Informe o nome da receita');st2(0);return;}
+  // Última correção de grafia antes de salvar: garante que nenhum ingrediente fique
+  // duplicado no Estoque só por diferença de maiúscula/acento em relação a um nome já
+  // cadastrado (mesma lógica aplicada ao sair do campo, repetida aqui como segurança caso
+  // o usuário clique em Salvar sem antes tirar o foco do último campo editado).
+  curIngr.forEach(function(ig){
+    if (!ig.name || !ig.name.trim()) return;
+    const corrigido = encontrarGrafiaExistente(ig.name.trim());
+    if (corrigido) ig.name = corrigido;
+  });
   const data = {
     id: editId||genId(), name,
     cat: document.getElementById('fcat').value,
@@ -3978,10 +4019,26 @@ function abrirModalItemCardapio(tipo, idx) {
     campos += field('Aro (cm)', 'mi-aro', item.aro, 'ex: 18');
     campos += field('Descrição de fatias', 'mi-fatias', item.fatias, 'ex: até 15 fatias');
   } else if (tipo === 'recheios') {
-    campos += field('Nome do recheio', 'mi-nome', item.nome, 'ex: Pistache');
+    // O nome do recheio agora vem de um SELECT com as receitas reais já cadastradas em
+    // Receitas (grupo "Recheios") — não é mais texto livre. Isso evita o problema de
+    // digitar um nome que não corresponde exatamente a nenhuma receita cadastrada
+    // (ex: "Chocolate Meio Amargo" no cardápio quando a receita real se chama
+    // "Brigadeiro Meio Amargo"), que fazia o custo no Detalhamento de Custo do pedido
+    // vir zerado por não encontrar correspondência.
+    var receitasRecheio = (typeof recipes !== 'undefined' ? recipes : [])
+      .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group||'').trim().toLowerCase() === 'recheios'; })
+      .map(function(r){ return r.name; })
+      .sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
+    var optsRecheio = [{value:'', label:'— Selecione a receita —'}].concat(
+      receitasRecheio.map(function(n){ return {value:n, label:n}; })
+    );
+    campos += selectField('Receita do recheio', 'mi-nome', optsRecheio, item.nome || '');
+    if (!receitasRecheio.length) {
+      campos += '<div style="font-size:11px;color:#e74c3c;margin-bottom:8px;line-height:1.4">⚠️ Nenhuma receita cadastrada no grupo "Recheios" ainda. Cadastre a receita primeiro em Receitas → Nova receita.</div>';
+    }
     campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
     campos += field('Categoria', 'mi-categoria', item.categoria, 'ex: Chocolates, Frutas, Oleaginosas...');
-    campos += '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">💡 Estes três campos são só para a vitrine do cardápio do cliente. Quantidade por aro e custos ficam na receita correspondente, em Receitas → ' + (item.nome||'este recheio') + '.</div>';
+    campos += '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">💡 O nome vem direto da receita cadastrada — assim o custo no Detalhamento de Custo do pedido sempre encontra a receita certa. Categoria e Tipo são só para organizar a vitrine do cardápio.</div>';
 
   } else {
     campos += field('Nome', 'mi-nome', item.nome, 'ex: Massa Fofinha');
@@ -4032,7 +4089,7 @@ function salvarModalItemCardapio() {
     cfg.tamanhos.sort(function(a,b){ return a.aro - b.aro; });
   } else if (tipo === 'recheios') {
     var nome = g('mi-nome').trim() || itemAntigo.nome;
-    if (!nome) { toast('⚠️ Informe o nome do recheio'); return; }
+    if (!nome) { toast('⚠️ Selecione a receita do recheio'); return; }
     var nomeAntigo = itemAntigo.nome;
     var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: g('mi-categoria')||'Outros' };
     if (idx != null) {
