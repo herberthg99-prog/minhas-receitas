@@ -178,6 +178,8 @@ function localToDb(r) {
     multiplicador_aro: r.multiplicadorAro ? JSON.stringify(r.multiplicadorAro) : null,
     recheios_vinculados: (r.recheiosVinculados && r.recheiosVinculados.length) ? JSON.stringify(r.recheiosVinculados) : null,
     calda_vinculada: r.caldaVinculada || null,
+    tipo_cardapio: r.tipoCardapio || null,
+    subgrupo_cardapio: r.subgrupoCardapio || null,
     embalagem: r.embalagem || null,
     conservacao: r.conservacao || null,
     time_min: r.time || 0, margin: r.margin || 100, extra: r.extra || 0,
@@ -202,6 +204,8 @@ function dbToLocal(row) {
     multiplicadorAro: (function(){ try { return row.multiplicador_aro ? JSON.parse(row.multiplicador_aro) : null; } catch(e) { return null; } })(),
     recheiosVinculados: (function(){ try { return row.recheios_vinculados ? JSON.parse(row.recheios_vinculados) : []; } catch(e) { return []; } })(),
     caldaVinculada: row.calda_vinculada || '',
+    tipoCardapio: row.tipo_cardapio || '',
+    subgrupoCardapio: row.subgrupo_cardapio || '',
     embalagem: row.embalagem || '',
     conservacao: row.conservacao || '',
     time: row.time_min || 0, margin: row.margin || 100, extra: row.extra || 0,
@@ -1294,11 +1298,70 @@ function atualizarBlocosCaldaPorGrupo() {
   const grpValor = document.getElementById('fgrp')?.value || '';
   const ehMassa = typeof isGrupoMassa === 'function' ? isGrupoMassa(grpValor) : ['bolos','massas'].includes(grpValor.trim().toLowerCase());
   const ehCalda = typeof isGrupoCalda === 'function' ? isGrupoCalda(grpValor) : grpValor.trim().toLowerCase() === 'caldas';
+  const ehRecheio = typeof isGrupoRecheio === 'function' ? isGrupoRecheio(grpValor) : grpValor.trim().toLowerCase() === 'recheios';
   const boxSelect = document.getElementById('fcaldavinc-box');
   const boxChecklist = document.getElementById('massas-vinculadas-box');
+  const boxClassificacao = document.getElementById('classificacao-recheio-box');
   if (boxSelect) boxSelect.style.display = ehMassa ? 'block' : 'none';
   if (boxChecklist) boxChecklist.style.display = ehCalda ? 'block' : 'none';
+  if (boxClassificacao) boxClassificacao.style.display = ehRecheio ? 'block' : 'none';
   if (ehCalda) renderMassasVinculadasChecklist();
+}
+
+// Coleta todos os subgrupos de cardápio já usados entre as receitas de Recheio
+// cadastradas (campo subgrupoCardapio) — alimenta o <select id="fsubgrupocardapio">
+// do bloco "Classificação do Recheio". Funciona como fonte única para a tela de
+// Configurar Cardápio mais tarde apenas LER esses valores, sem duplicar cadastro.
+function getSubgruposCardapioExistentes() {
+  const vistos = new Set();
+  const lista = [];
+  (typeof recipes !== 'undefined' ? recipes : []).forEach(function(r){
+    const sg = (r.subgrupoCardapio || '').trim();
+    if (sg && !vistos.has(sg.toLowerCase())) { vistos.add(sg.toLowerCase()); lista.push(sg); }
+  });
+  return lista.sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
+}
+
+// Preenche o select de Subgrupo no cardápio com os já existentes + opção de criar novo,
+// e marca o valor atual da receita (selecionando "+ Novo subgrupo..." automaticamente se
+// o valor salvo ainda não estiver na lista, por exemplo logo após ser digitado).
+function renderSubgrupoCardapioSelect(subgrupoAtual) {
+  const el = document.getElementById('fsubgrupocardapio');
+  if (!el) return;
+  const existentes = getSubgruposCardapioExistentes();
+  const atual = (subgrupoAtual || '').trim();
+  const ehNovo = atual && existentes.indexOf(atual) === -1;
+  let html = '<option value="">Sem subgrupo</option>';
+  existentes.forEach(function(s){
+    html += '<option value="' + s.replace(/"/g,'&quot;') + '">' + s + '</option>';
+  });
+  html += '<option value="__novo__">+ Novo subgrupo...</option>';
+  el.innerHTML = html;
+  el.value = ehNovo ? '__novo__' : atual;
+  const boxNovo = document.getElementById('fsubgrupocardapio-novo-box');
+  const inputNovo = document.getElementById('fsubgrupocardapio-novo');
+  if (boxNovo) boxNovo.style.display = ehNovo ? 'block' : 'none';
+  if (inputNovo) inputNovo.value = ehNovo ? atual : '';
+}
+
+// Mostra/escode o campo de texto "Nome do novo subgrupo" conforme a opção escolhida
+// no select — mesmo padrão usado na Categoria do cardápio.
+function onSubgrupoCardapioChange() {
+  const el = document.getElementById('fsubgrupocardapio');
+  const box = document.getElementById('fsubgrupocardapio-novo-box');
+  if (box) box.style.display = (el && el.value === '__novo__') ? 'block' : 'none';
+}
+
+// Lê o valor final do subgrupo de cardápio a partir do formulário, considerando se o
+// usuário escolheu "+ Novo subgrupo..." e digitou um nome no campo de texto.
+function getSubgrupoCardapioDoFormulario() {
+  const el = document.getElementById('fsubgrupocardapio');
+  if (!el) return '';
+  if (el.value === '__novo__') {
+    const inputNovo = document.getElementById('fsubgrupocardapio-novo');
+    return inputNovo ? inputNovo.value.trim() : '';
+  }
+  return el.value || '';
 }
 
 // Dentro do cadastro de uma receita de CALDA: lista todas as Massas, marcando como
@@ -1523,6 +1586,8 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   document.getElementById('fpanela-tempo').value = '';
   document.getElementById('fpanela-vel').value = '';
   document.getElementById('panela-mexedora-box').style.display = 'none';
+  document.getElementById('ftipocardapio').value = pre?.tipoCardapio || 'trad';
+  renderSubgrupoCardapioSelect(pre?.subgrupoCardapio || '');
   document.getElementById('recipe-photos-grid').innerHTML = '';
   curMultiplicadorAro = pre?.multiplicadorAro ? {...pre.multiplicadorAro} : {};
   renderIngrTable(); renderFormas(); updateFormaToggle(); checkFormaTab(); st2(0);
@@ -1565,6 +1630,8 @@ function openEdit(id) {
   document.getElementById('fpanela-tempo').value = r.panelaTempo || '';
   document.getElementById('fpanela-vel').value = r.panelaVelocidade || '';
   document.getElementById('panela-mexedora-box').style.display = r.usaPanelaMexedora ? 'block' : 'none';
+  document.getElementById('ftipocardapio').value = r.tipoCardapio || 'trad';
+  renderSubgrupoCardapioSelect(r.subgrupoCardapio || '');
   curMultiplicadorAro = r.multiplicadorAro ? {...r.multiplicadorAro} : {};
   renderIngrTable(); renderFormas(); renderRecipePhotosGrid(); updateFormaToggle(); checkFormaTab(); st2(0);
   atualizarMultiplicadorAroPreview();
@@ -2025,6 +2092,8 @@ async function saveRecipeFinal() {
     multiplicadorAro: Object.keys(curMultiplicadorAro).length ? {...curMultiplicadorAro} : null,
     recheiosVinculados: getRecheiosVinculadosSelecionados(),
     caldaVinculada: document.getElementById('fcaldavinc') ? (document.getElementById('fcaldavinc').value || null) : null,
+    tipoCardapio: document.getElementById('ftipocardapio') ? (document.getElementById('ftipocardapio').value || 'trad') : 'trad',
+    subgrupoCardapio: (typeof getSubgrupoCardapioDoFormulario === 'function') ? getSubgrupoCardapioDoFormulario() : '',
     time: parseFloat(document.getElementById('ftm').value)||60,
     margin: parseFloat(document.getElementById('fmrg').value)||100,
     extra: parseFloat(document.getElementById('fext').value)||0,
@@ -4019,16 +4088,16 @@ function abrirModalItemCardapio(tipo, idx) {
     campos += field('Aro (cm)', 'mi-aro', item.aro, 'ex: 18');
     campos += field('Descrição de fatias', 'mi-fatias', item.fatias, 'ex: até 15 fatias');
   } else if (tipo === 'recheios') {
-    // O nome do recheio agora vem de um SELECT com as receitas reais já cadastradas em
+    // O nome do recheio vem de um SELECT com as receitas reais já cadastradas em
     // Receitas (grupo "Recheios") — não é mais texto livre. Isso evita o problema de
     // digitar um nome que não corresponde exatamente a nenhuma receita cadastrada
     // (ex: "Chocolate Meio Amargo" no cardápio quando a receita real se chama
     // "Brigadeiro Meio Amargo"), que fazia o custo no Detalhamento de Custo do pedido
     // vir zerado por não encontrar correspondência.
-    var receitasRecheio = (typeof recipes !== 'undefined' ? recipes : [])
+    var receitasRecheioObjs = (typeof recipes !== 'undefined' ? recipes : [])
       .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group||'').trim().toLowerCase() === 'recheios'; })
-      .map(function(r){ return r.name; })
-      .sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
+      .sort(function(a,b){ return a.name.localeCompare(b.name, 'pt-BR'); });
+    var receitasRecheio = receitasRecheioObjs.map(function(r){ return r.name; });
     var optsRecheio = [{value:'', label:'— Selecione a receita —'}].concat(
       receitasRecheio.map(function(n){ return {value:n, label:n}; })
     );
@@ -4036,23 +4105,21 @@ function abrirModalItemCardapio(tipo, idx) {
     if (!receitasRecheio.length) {
       campos += '<div style="font-size:11px;color:#e74c3c;margin-bottom:8px;line-height:1.4">⚠️ Nenhuma receita cadastrada no grupo "Recheios" ainda. Cadastre a receita primeiro em Receitas → Nova receita.</div>';
     }
-    campos += selectField('Tipo', 'mi-tipo', [{value:'trad',label:'Tradicional'},{value:'prem',label:'Premium'}], item.tipo||'trad');
 
-    // Categoria também passa a ser um select, alimentado pelas categorias já em uso
-    // entre os recheios cadastrados — evita criar "Frutas Nobres" e "frutas nobres"
-    // como categorias tecnicamente diferentes só por erro de digitação. A opção
-    // "+ Nova categoria" revela um campo de texto para criar uma categoria que ainda
-    // não existe.
-    var categoriasExistentes = Array.from(new Set(
-      (cfg.recheios || []).map(function(r){ return (r.categoria || '').trim(); }).filter(Boolean)
-    )).sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
-    var categoriaAtual = (item.categoria || '').trim();
-    var ehCategoriaNova = categoriaAtual && categoriasExistentes.indexOf(categoriaAtual) === -1;
-    var optsCategoria = categoriasExistentes.map(function(c){ return {value:c, label:c}; });
-    optsCategoria.push({value:'__nova__', label:'+ Nova categoria...'});
-    campos += selectField('Categoria', 'mi-categoria-select', optsCategoria, ehCategoriaNova ? '__nova__' : categoriaAtual);
-    campos += '<div id="mi-categoria-nova-box" style="margin-bottom:12px;display:' + (ehCategoriaNova ? 'block' : 'none') + '">'
-      + field('Nome da nova categoria', 'mi-categoria-nova', ehCategoriaNova ? categoriaAtual : '', 'ex: Frutas Tropicais')
+    // Tipo e Subgrupo deixaram de ser editáveis aqui — vêm direto do bloco "Classificação
+    // do Recheio" cadastrado na própria receita (Receitas → editar receita → aba Dados).
+    // Isso evita ter o mesmo dado guardado em dois lugares que podem ficar
+    // desincronizados; aqui é só uma exibição de conferência.
+    var recheioSelecionadoObj = receitasRecheioObjs.find(function(r){ return r.name === (item.nome || ''); });
+    var tipoExibicao = recheioSelecionadoObj ? (recheioSelecionadoObj.tipoCardapio === 'prem' ? 'Premium' : 'Tradicional') : '—';
+    var subgrupoExibicao = (recheioSelecionadoObj && recheioSelecionadoObj.subgrupoCardapio) ? recheioSelecionadoObj.subgrupoCardapio : 'Sem subgrupo';
+    campos += '<div id="mi-recheio-classificacao-preview" style="margin-bottom:12px;background:rgba(255,255,255,.03);border:1px solid rgba(212,162,74,.2);border-radius:8px;padding:10px 12px">'
+      + '<div style="font-size:11px;color:var(--text2);margin-bottom:6px">Classificação (definida na receita)</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<span style="font-size:12px;font-weight:700;color:var(--gold);background:rgba(212,162,74,.12);border-radius:20px;padding:4px 11px" id="mi-recheio-tipo-preview">' + tipoExibicao + '</span>'
+      + '<span style="font-size:12px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border-radius:20px;padding:4px 11px" id="mi-recheio-subgrupo-preview">' + subgrupoExibicao + '</span>'
+      + '</div>'
+      + '<div style="font-size:10.5px;color:var(--text3);margin-top:6px">Para mudar, edite a receita em Receitas → "' + (item.nome || 'esta receita') + '" → Classificação do Recheio.</div>'
       + '</div>';
     campos += '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.4">💡 O nome vem direto da receita cadastrada — assim o custo no Detalhamento de Custo do pedido sempre encontra a receita certa. Categoria e Tipo são só para organizar a vitrine do cardápio.</div>';
 
@@ -4088,6 +4155,20 @@ function abrirModalItemCardapio(tipo, idx) {
       if (box) box.style.display = (elCategoriaSelect.value === '__nova__') ? 'block' : 'none';
     });
   }
+  // Quando o usuário troca a receita escolhida no select de recheio, atualiza a preview
+  // de Tipo/Subgrupo em tempo real, lendo direto dos dados já carregados em `recipes`.
+  if (tipo === 'recheios') {
+    var elNomeRecheio = document.getElementById('mi-nome');
+    if (elNomeRecheio) {
+      elNomeRecheio.addEventListener('change', function() {
+        var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === elNomeRecheio.value; });
+        var elTipoPreview = document.getElementById('mi-recheio-tipo-preview');
+        var elSubgrupoPreview = document.getElementById('mi-recheio-subgrupo-preview');
+        if (elTipoPreview) elTipoPreview.textContent = rec ? (rec.tipoCardapio === 'prem' ? 'Premium' : 'Tradicional') : '—';
+        if (elSubgrupoPreview) elSubgrupoPreview.textContent = (rec && rec.subgrupoCardapio) ? rec.subgrupoCardapio : 'Sem subgrupo';
+      });
+    }
+  }
   document.getElementById('modal-item-cardapio').style.display = 'flex';
 }
 
@@ -4113,14 +4194,14 @@ function salvarModalItemCardapio() {
   } else if (tipo === 'recheios') {
     var nome = g('mi-nome').trim() || itemAntigo.nome;
     if (!nome) { toast('⚠️ Selecione a receita do recheio'); return; }
-    // Categoria: se o select estiver em "+ Nova categoria...", usa o texto digitado no
-    // campo de texto que aparece embaixo; senão, usa direto o valor escolhido no select.
-    var categoriaSelecionada = g('mi-categoria-select');
-    var categoriaFinal = (categoriaSelecionada === '__nova__')
-      ? (g('mi-categoria-nova').trim() || 'Outros')
-      : (categoriaSelecionada || 'Outros');
+    // Tipo e Categoria não são mais digitados aqui — vêm direto do bloco "Classificação
+    // do Recheio" cadastrado na própria receita (campos tipoCardapio/subgrupoCardapio).
+    // Isso garante uma única fonte de verdade: editar a receita já reflete aqui também.
+    var recSelecionada = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nome; });
+    var categoriaFinal = (recSelecionada && recSelecionada.subgrupoCardapio) ? recSelecionada.subgrupoCardapio : 'Outros';
+    var tipoFinal = (recSelecionada && recSelecionada.tipoCardapio) ? recSelecionada.tipoCardapio : 'trad';
     var nomeAntigo = itemAntigo.nome;
-    var novoRecheio = { nome: nome, tipo: g('mi-tipo')||'trad', categoria: categoriaFinal };
+    var novoRecheio = { nome: nome, tipo: tipoFinal, categoria: categoriaFinal };
     if (idx != null) {
       cfg.recheios[idx] = novoRecheio;
       if (nomeAntigo && nomeAntigo !== nome && cfg.combinacoes) {
