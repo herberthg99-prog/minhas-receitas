@@ -1154,6 +1154,32 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
         <div id="massas-vinculadas-checklist"></div>
       </div>
 
+      <div class="rcp-edit-card" id="classificacao-recheio-box" style="display:none">
+        <div class="rcp-edit-card-title"><i class="ti ti-tags"></i> Classificação do Recheio</div>
+        <div style="font-size:11.5px;color:var(--text2);margin-bottom:12px;line-height:1.5">Define como este recheio aparece organizado na vitrine do Cardápio do cliente — não precisa recadastrar isso na tela de Configurar Cardápio, ela já lê direto daqui.</div>
+        <div class="rcp-edit-grid2">
+          <div class="rcp-edit-field">
+            <label>Tipo</label>
+            <select class="rcp-edit-select" id="ftipocardapio">
+              <option value="trad">Tradicional</option>
+              <option value="prem">Premium</option>
+            </select>
+          </div>
+          <div class="rcp-edit-field">
+            <label>Subgrupo no cardápio</label>
+            <select class="rcp-edit-select" id="fsubgrupocardapio" onchange="onSubgrupoCardapioChange()">
+              <option value="">Sem subgrupo</option>
+            </select>
+          </div>
+        </div>
+        <div id="fsubgrupocardapio-novo-box" style="display:none;margin-top:12px">
+          <div class="rcp-edit-field">
+            <label>Nome do novo subgrupo</label>
+            <input class="rcp-edit-input" type="text" id="fsubgrupocardapio-novo" placeholder="Ex: Frutas Tropicais">
+          </div>
+        </div>
+      </div>
+
       <div class="rcp-edit-card">
         <div class="rcp-edit-card-title"><i class="ti ti-tool"></i> Equipamento</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
@@ -1535,7 +1561,7 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=71"></script>
+<script src="js/app-core.js?v=72"></script>
 <script src="js/app-features.js?v=44"></script>
 <script src="js/version.js?v=19"></script>
 
