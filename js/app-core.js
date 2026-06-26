@@ -3937,9 +3937,15 @@ function renderCardapioConfig() {
 
     <!-- RECHEIOS -->
     <div class="card" style="margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div class="st" style="margin-bottom:0"><i class="ti ti-cherry"></i> Recheios</div>
-        <button onclick="addItemCardapio('recheios')" class="btnp" style="padding:7px 12px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
+      <div class="rch-section-header">
+        <div class="rch-section-title">
+          <div class="rch-section-icon"><i class="ti ti-cherry"></i></div>
+          <div>
+            <div class="rch-section-eyebrow">Recheios no cardápio</div>
+            <div class="rch-section-subtitle">${cfg.recheios.length} recheio(s) — classificação vem da receita</div>
+          </div>
+        </div>
+        <button onclick="addItemCardapio('recheios')" class="btnp" style="padding:8px 14px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
       </div>
       ${(function(){
         var porTipo = {trad:{}, prem:{}};
@@ -3949,27 +3955,37 @@ function renderCardapioConfig() {
           if (!porTipo[t][c]) porTipo[t][c] = [];
           porTipo[t][c].push({r:r, idx:i});
         });
-        function renderGrupo(label, tipoKey, cor) {
+        function renderColuna(tipoKey, label, badgeClass) {
           var cats = porTipo[tipoKey];
           var catKeys = Object.keys(cats);
-          if (!catKeys.length) return '';
-          var html = '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:' + cor + ';margin:14px 0 8px">' + label + '</div>';
-          catKeys.forEach(function(catName){
-            html += '<div style="font-size:11px;font-weight:700;color:var(--text2);margin:8px 0 5px">' + catName + '</div>';
-            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">';
-            cats[catName].forEach(function(entry){
-              html += '<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg);border-radius:20px;padding:6px 6px 6px 12px;font-size:12px">'
-                + entry.r.nome
-                + '<button onclick="editarItemCardapio(\'recheios\',' + entry.idx + ')" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;padding:2px"><i class="ti ti-pencil"></i></button>'
-                + '<button onclick="removerItemCardapio(\'recheios\',' + entry.idx + ')" style="background:none;border:none;color:#A32D2D;font-size:13px;cursor:pointer;padding:2px 6px"><i class="ti ti-trash"></i></button>'
-                + '</span>';
-            });
-            html += '</div>';
-          });
-          return html;
+          var totalNaColuna = catKeys.reduce(function(a,k){ return a + cats[k].length; }, 0);
+          var corpo;
+          if (!catKeys.length) {
+            corpo = '<div class="rch-empty"><i class="ti ti-cherry"></i>Nenhum recheio ' + label.toLowerCase() + ' ainda.</div>';
+          } else {
+            corpo = catKeys.map(function(catName){
+              var itens = cats[catName].map(function(entry){
+                return '<div class="rch-card">'
+                  + '<span class="rch-card-name">' + entry.r.nome + '</span>'
+                  + '<div class="rch-card-actions">'
+                  + '<button class="rch-card-btn" onclick="editarItemCardapio(\'recheios\',' + entry.idx + ')" title="Ver / trocar receita"><i class="ti ti-pencil"></i></button>'
+                  + '<button class="rch-card-btn danger" onclick="removerItemCardapio(\'recheios\',' + entry.idx + ')" title="Remover do cardápio"><i class="ti ti-trash"></i></button>'
+                  + '</div></div>';
+              }).join('');
+              return '<div class="rch-group-label">' + catName + '</div>' + itens;
+            }).join('');
+          }
+          return '<div class="rch-type-card">'
+            + '<div class="rch-type-header">'
+            + '<span class="rch-type-badge ' + badgeClass + '">' + label + '</span>'
+            + '<span class="rch-type-count">' + totalNaColuna + ' recheio(s)</span>'
+            + '</div>'
+            + corpo
+            + '</div>';
         }
-        return renderGrupo('Tradicional', 'trad', 'var(--teal)') + renderGrupo('Premium', 'prem', 'var(--gold)');
+        return '<div class="rch-cols">' + renderColuna('trad', 'Tradicional', 'trad') + renderColuna('prem', 'Premium', 'prem') + '</div>';
       })()}
+      <div style="font-size:11px;color:var(--text3);margin-top:14px;line-height:1.5"><i class="ti ti-info-circle"></i> Tipo e subgrupo de cada recheio vêm do cadastro em Receitas → "Classificação do Recheio". Para reclassificar, edite a receita correspondente.</div>
     </div>
 
     <!-- COMBINAÇÕES DE RECHEIO -->
