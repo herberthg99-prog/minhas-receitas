@@ -1308,17 +1308,27 @@ function atualizarBlocosCaldaPorGrupo() {
   if (ehCalda) renderMassasVinculadasChecklist();
 }
 
-// Coleta todos os subgrupos de cardápio já usados entre as receitas de Recheio
-// cadastradas (campo subgrupoCardapio) — alimenta o <select id="fsubgrupocardapio">
-// do bloco "Classificação do Recheio". Funciona como fonte única para a tela de
-// Configurar Cardápio mais tarde apenas LER esses valores, sem duplicar cadastro.
+// Coleta todos os subgrupos de cardápio já em uso — tanto das receitas já migradas
+// (campo subgrupoCardapio) quanto das categorias antigas cadastradas em
+// Configurar Cardápio (cfg.recheios[].categoria), de antes desta mudança. Isso evita que
+// subgrupos já usados (ex: "Leites", "Chocolates", "Frutas Nobres") fiquem "perdidos" e
+// precisem ser recriados manualmente só porque a receita correspondente ainda não foi
+// reaberta e salva com o campo novo. Alimenta o <select id="fsubgrupocardapio"> do bloco
+// "Classificação do Recheio".
 function getSubgruposCardapioExistentes() {
   const vistos = new Set();
   const lista = [];
-  (typeof recipes !== 'undefined' ? recipes : []).forEach(function(r){
-    const sg = (r.subgrupoCardapio || '').trim();
-    if (sg && !vistos.has(sg.toLowerCase())) { vistos.add(sg.toLowerCase()); lista.push(sg); }
-  });
+  function adicionar(sg) {
+    const limpo = (sg || '').trim();
+    if (limpo && !vistos.has(limpo.toLowerCase())) { vistos.add(limpo.toLowerCase()); lista.push(limpo); }
+  }
+  (typeof recipes !== 'undefined' ? recipes : []).forEach(function(r){ adicionar(r.subgrupoCardapio); });
+  try {
+    const cfgCardapio = (typeof getCardapioConfig === 'function') ? getCardapioConfig() : null;
+    if (cfgCardapio && cfgCardapio.recheios) {
+      cfgCardapio.recheios.forEach(function(r){ adicionar(r.categoria); });
+    }
+  } catch(e) {}
   return lista.sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
 }
 
