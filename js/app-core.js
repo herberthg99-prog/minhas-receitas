@@ -3891,13 +3891,28 @@ function getCardapioConfig() {
   };
   try {
     var saved = JSON.parse(localStorage.getItem('mr_cardapio_config') || 'null');
-    if (saved) {
-      if (!saved.combinacoes) saved.combinacoes = def.combinacoes;
-      if (!saved.recheios || !saved.recheios.length || !saved.recheios[0].categoria) saved.recheios = def.recheios;
-      return saved;
-    }
-    return def;
+    var resultado = saved || def;
+    if (saved && !saved.combinacoes) resultado.combinacoes = def.combinacoes;
+    // cfg.recheios SEMPRE é derivado das receitas classificadas (grupo Recheios com
+    // Tipo + Subgrupo preenchidos), nunca mais lido do array salvo manualmente — isso
+    // elimina por completo a possibilidade de duplicidade entre "o que está classificado
+    // na receita" e "o que está cadastrado aqui". Funções que dependem de cfg.recheios
+    // (Combinações sugeridas, cardápio do cliente) sempre recebem a lista atualizada.
+    resultado.recheios = (typeof getRecheiosCardapioDerivados === 'function') ? getRecheiosCardapioDerivados() : (saved ? saved.recheios : def.recheios);
+    return resultado;
   } catch(e) { return def; }
+}
+
+// Gera a lista de recheios do cardápio a partir das receitas reais do grupo "Recheios"
+// que já têm Tipo + Subgrupo preenchidos (Classificação do Recheio). Substitui por
+// completo o antigo array editado manualmente em cfg.recheios.
+function getRecheiosCardapioDerivados() {
+  if (typeof recipes === 'undefined' || !recipes.length) return [];
+  return recipes
+    .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group||'').trim().toLowerCase() === 'recheios'; })
+    .filter(function(r){ return r.tipoCardapio && r.subgrupoCardapio; })
+    .map(function(r){ return { nome: r.name, tipo: r.tipoCardapio, categoria: r.subgrupoCardapio }; })
+    .sort(function(a,b){ return a.nome.localeCompare(b.nome, 'pt-BR'); });
 }
 
 function saveCardapioConfig(cfg) {
@@ -3947,39 +3962,36 @@ function renderCardapioConfig() {
 
     <!-- RECHEIOS -->
     <div class="card" style="margin-bottom:12px">
-      <div class="rch-section-header">
-        <div class="rch-section-title">
-          <div class="rch-section-icon"><i class="ti ti-cherry"></i></div>
-          <div>
-            <div class="rch-section-eyebrow">Recheios no cardápio</div>
-            <div class="rch-section-subtitle">${cfg.recheios.length} recheio(s) — classificação vem da receita</div>
-          </div>
-        </div>
-        <button onclick="addItemCardapio('recheios')" class="btnp" style="padding:8px 14px;font-size:12px"><i class="ti ti-plus"></i> Adicionar</button>
-      </div>
       ${(function(){
+        // cfg.recheios já vem derivado das receitas classificadas (ver
+        // getRecheiosCardapioDerivados) — esta função só monta o visual a partir dele.
+        var pendentes = (typeof recipes !== 'undefined' ? recipes : [])
+          .filter(function(r){ return typeof isGrupoRecheio === 'function' ? isGrupoRecheio(r.group) : (r.group||'').trim().toLowerCase() === 'recheios'; })
+          .filter(function(r){ return !r.tipoCardapio || !r.subgrupoCardapio; });
+
         var porTipo = {trad:{}, prem:{}};
-        cfg.recheios.forEach(function(r,i){
+        cfg.recheios.forEach(function(r){
           var t = r.tipo || 'trad';
           var c = r.categoria || 'Outros';
           if (!porTipo[t][c]) porTipo[t][c] = [];
-          porTipo[t][c].push({r:r, idx:i});
+          porTipo[t][c].push(r);
         });
+
         function renderColuna(tipoKey, label, badgeClass) {
           var cats = porTipo[tipoKey];
-          var catKeys = Object.keys(cats);
+          var catKeys = Object.keys(cats).sort(function(a,b){ return a.localeCompare(b, 'pt-BR'); });
           var totalNaColuna = catKeys.reduce(function(a,k){ return a + cats[k].length; }, 0);
           var corpo;
           if (!catKeys.length) {
-            corpo = '<div class="rch-empty"><i class="ti ti-cherry"></i>Nenhum recheio ' + label.toLowerCase() + ' ainda.</div>';
+            corpo = '<div class="rch-empty"><i class="ti ti-cherry"></i>Nenhum recheio ' + label.toLowerCase() + ' classificado ainda.</div>';
           } else {
             corpo = catKeys.map(function(catName){
-              var itens = cats[catName].map(function(entry){
+              var itens = cats[catName].sort(function(a,b){ return a.nome.localeCompare(b.nome, 'pt-BR'); }).map(function(r){
+                var receitaReal = (typeof recipes !== 'undefined' ? recipes : []).find(function(rec){ return rec.name === r.nome; });
                 return '<div class="rch-card">'
-                  + '<span class="rch-card-name">' + entry.r.nome + '</span>'
+                  + '<span class="rch-card-name">' + r.nome + '</span>'
                   + '<div class="rch-card-actions">'
-                  + '<button class="rch-card-btn" onclick="editarItemCardapio(\'recheios\',' + entry.idx + ')" title="Ver / trocar receita"><i class="ti ti-pencil"></i></button>'
-                  + '<button class="rch-card-btn danger" onclick="removerItemCardapio(\'recheios\',' + entry.idx + ')" title="Remover do cardápio"><i class="ti ti-trash"></i></button>'
+                  + (receitaReal ? '<button class="rch-card-btn" onclick="openEdit(\'' + receitaReal.id + '\')" title="Editar receita"><i class="ti ti-pencil"></i></button>' : '')
                   + '</div></div>';
               }).join('');
               return '<div class="rch-group-label">' + catName + '</div>' + itens;
@@ -3993,9 +4005,28 @@ function renderCardapioConfig() {
             + corpo
             + '</div>';
         }
-        return '<div class="rch-cols">' + renderColuna('trad', 'Tradicional', 'trad') + renderColuna('prem', 'Premium', 'prem') + '</div>';
+
+        var pendentesHtml = pendentes.length ? (
+          '<div style="margin-top:14px;background:rgba(212,162,74,.08);border:1px solid rgba(212,162,74,.3);border-radius:12px;padding:12px 14px">'
+          + '<div style="font-size:11.5px;font-weight:700;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-alert-circle"></i> ' + pendentes.length + ' recheio(s) ainda sem classificação (não aparecem na vitrine)</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+          + pendentes.map(function(r){
+              return '<span onclick="openEdit(\'' + r.id + '\')" style="cursor:pointer;font-size:12px;color:var(--text2);background:rgba(255,255,255,.05);border-radius:20px;padding:5px 12px" title="Classificar esta receita">' + r.name + '</span>';
+            }).join('')
+          + '</div></div>'
+        ) : '';
+
+        return '<div class="rch-section-header">'
+          + '<div class="rch-section-title">'
+          + '<div class="rch-section-icon"><i class="ti ti-cherry"></i></div>'
+          + '<div>'
+          + '<div class="rch-section-eyebrow">Recheios no cardápio</div>'
+          + '<div class="rch-section-subtitle">' + cfg.recheios.length + ' recheio(s) classificado(s) — gerado automaticamente das receitas</div>'
+          + '</div></div></div>'
+          + '<div class="rch-cols">' + renderColuna('trad', 'Tradicional', 'trad') + renderColuna('prem', 'Premium', 'prem') + '</div>'
+          + pendentesHtml;
       })()}
-      <div style="font-size:11px;color:var(--text3);margin-top:14px;line-height:1.5"><i class="ti ti-info-circle"></i> Tipo e subgrupo de cada recheio vêm do cadastro em Receitas → "Classificação do Recheio". Para reclassificar, edite a receita correspondente.</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:14px;line-height:1.5"><i class="ti ti-info-circle"></i> Para adicionar um recheio novo na vitrine, cadastre a receita em Receitas (grupo Recheios) e preencha "Classificação do Recheio". Para remover da vitrine, apague o Tipo/Subgrupo na receita.</div>
     </div>
 
     <!-- COMBINAÇÕES DE RECHEIO -->
