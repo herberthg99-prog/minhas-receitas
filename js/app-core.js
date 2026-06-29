@@ -1,4 +1,4 @@
-// app-core.js v3 — Sucrée Confeitaria
+// app-core.js v4 — Sucrée Confeitaria (navegação Anterior/Próxima receita)
 // ═══════════════════════════════════════════
 
 const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
@@ -967,6 +967,11 @@ function renderRecipes() {
 
   list = list.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','pt-BR'); });
 
+  // Disponibiliza a lista (já filtrada e na mesma ordem exibida) para a navegação
+  // Anterior/Próxima do modal de edição — sem isso, abrir o modal não saberia quais são
+  // os vizinhos da receita atual dentro do recorte de filtro em uso.
+  window._listaReceitasFiltradaAtual = list.map(function(r){ return r.id; });
+
   var html = '<div class="recipes-grid">';
   var lastLetra = '';
 
@@ -1115,6 +1120,68 @@ function mostrarBotaoDuplicar(visivel) {
   const btnFooter = document.getElementById('btn-duplicar-receita-footer');
   if (btnHeader) btnHeader.style.display = visivel ? '' : 'none';
   if (btnFooter) btnFooter.style.display = visivel ? '' : 'none';
+}
+
+// ═══════ NAVEGAÇÃO ANTERIOR/PRÓXIMA NO MODAL DE EDIÇÃO ═══════
+// Compara o estado atual do formulário com o snapshot tirado quando o modal foi aberto
+// (em openEdit/openNewRecipe), para decidir se há alterações não salvas. Cobre os campos
+// editáveis mais comuns; ingredientes/fotos/formas entram via JSON.stringify para detectar
+// qualquer alteração nessas listas sem precisar comparar campo a campo.
+function capturarSnapshotFormularioReceita() {
+  function v(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+  function checked(id) { var el = document.getElementById(id); return el ? el.checked : false; }
+  return JSON.stringify({
+    nome: v('fn'), cat: v('fcat'), grp: v('fgrp'), subgrp: v('fsubgrp'),
+    yld: v('fyld'), pesoTotal: v('fpesoTotal'), tempo: v('ftm'), unit: v('funit'),
+    embalagem: v('fembalagem'), conservacao: v('fconservacao'),
+    panela: checked('fpanela'), panelaTempo: v('fpanela-tempo'), panelaVel: v('fpanela-vel'),
+    margem: v('fmrg'), extra: v('fext'), preparo: v('fprep'), comment: v('fcomment'),
+    tipoCardapio: v('ftipocardapio'),
+    ingredientes: curIngr, fotos: curPhotos, formas: curFormas, formasEnabled: formasEnabled,
+    multiplicadorAro: curMultiplicadorAro, recheiosVinculados: curRecheiosVinculados
+  });
+}
+
+// Retorna true se o formulário do modal de edição tiver alterações não salvas em relação
+// ao snapshot tirado na abertura. Se o modal não estiver aberto (sem snapshot), retorna false.
+function formularioReceitaTemAlteracoes() {
+  if (!window._editSnapshotInicial) return false;
+  return capturarSnapshotFormularioReceita() !== window._editSnapshotInicial;
+}
+
+// Navega para a receita anterior/próxima dentro da MESMA lista filtrada que estava sendo
+// exibida em Receitas (mesmo grupo/sub-aba/busca ativos) quando o modal foi aberto. Se
+// houver alterações não salvas, pergunta antes de descartar — e se a resposta for "salvar",
+// tenta salvar primeiro (respeitando a validação de nome obrigatório) e só então navega.
+async function navegarReceitaAdjacente(direcao) {
+  var lista = window._listaReceitasFiltradaAtual || [];
+  if (!lista.length || !editId) return;
+  var idxAtual = lista.indexOf(editId);
+  if (idxAtual === -1) return;
+  var idxAlvo = idxAtual + direcao;
+  if (idxAlvo < 0 || idxAlvo >= lista.length) {
+    toast(direcao < 0 ? 'Esta já é a primeira receita da lista' : 'Esta já é a última receita da lista');
+    return;
+  }
+  var idAlvo = lista[idxAlvo];
+
+  if (formularioReceitaTemAlteracoes()) {
+    var quer = confirm('Você tem alterações não salvas nesta receita. Salvar antes de continuar?\n\nOK = Salvar e continuar\nCancelar = Permanecer aqui');
+    if (!quer) return; // permanece no formulário atual, sem navegar
+    var nomeAtual = (document.getElementById('fn').value || '').trim();
+    if (!nomeAtual) {
+      toast('Informe o nome da receita antes de salvar');
+      st2(0);
+      document.getElementById('fn').focus();
+      return; // cancela a navegação e mantém o foco no formulário atual
+    }
+    await saveRecipe();
+    // Se saveRecipe não conseguiu seguir adiante (ex: ingrediente novo pendindo de preço
+    // no modal intermediário), o usuário ainda está no formulário — não navega.
+    if (formularioReceitaTemAlteracoes()) return;
+  }
+
+  openEdit(idAlvo);
 }
 
 // ═══════ EDIT FORM ═══════
@@ -1611,7 +1678,9 @@ function openNewRecipe(cat = 'salgada', grp = '', pre = null) {
   aplicarSubgrupoNoFormulario(cat, grp || '', pre?.subgrupo || '');
   atualizarHeaderReceita();
   if (typeof atualizarContadorPreparo === 'function') atualizarContadorPreparo();
+  atualizarBotoesNavegacaoReceita();
   document.getElementById('modal-edit').style.display = 'flex';
+  window._editSnapshotInicial = capturarSnapshotFormularioReceita();
 }
 
 
@@ -1655,7 +1724,28 @@ function openEdit(id) {
   aplicarSubgrupoNoFormulario(r.cat || 'salgada', r.group || '', r.subgrupo || '');
   atualizarHeaderReceita();
   if (typeof atualizarContadorPreparo === 'function') atualizarContadorPreparo();
+  atualizarBotoesNavegacaoReceita();
   document.getElementById('modal-edit').style.display = 'flex';
+  window._editSnapshotInicial = capturarSnapshotFormularioReceita();
+}
+
+// Mostra/esconde e habilita/desabilita os botões "Receita anterior"/"Próxima receita" do
+// rodapé do modal de edição, de acordo com a posição da receita atual dentro da lista
+// filtrada (window._listaReceitasFiltradaAtual). Em receita nova (editId nulo) os botões
+// ficam escondidos, já que não há uma posição na lista para navegar a partir dela.
+function atualizarBotoesNavegacaoReceita() {
+  const btnAnt = document.getElementById('btn-receita-anterior');
+  const btnProx = document.getElementById('btn-receita-proxima');
+  if (!btnAnt || !btnProx) return;
+  const lista = window._listaReceitasFiltradaAtual || [];
+  const idx = editId ? lista.indexOf(editId) : -1;
+  const mostrar = idx !== -1 && lista.length > 1;
+  btnAnt.style.display = mostrar ? '' : 'none';
+  btnProx.style.display = mostrar ? '' : 'none';
+  if (mostrar) {
+    btnAnt.disabled = idx <= 0;
+    btnProx.disabled = idx >= lista.length - 1;
+  }
 }
 
 // Garante que o campo Subgrupo do formulário fique corretamente populado e com o valor
@@ -2126,6 +2216,8 @@ async function saveRecipeFinal() {
   const resultado = await saveToCloud(data);
   if (resultado.ok) {
     editId = data.id; // garante que próximos cliques em Salvar continuem editando esta mesma receita
+    window._editSnapshotInicial = capturarSnapshotFormularioReceita(); // recaptura o snapshot pós-salvamento, para não acusar alterações pendentes indevidamente
+    atualizarBotoesNavegacaoReceita();
     toast('Receita salva na nuvem! ✅');
   } else {
     toast('⚠️ Salvo só localmente (erro: ' + (resultado.error?.message || 'sem conexão') + '). Tente Salvar de novo.', 6000);
