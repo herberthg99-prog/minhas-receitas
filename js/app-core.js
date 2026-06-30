@@ -1,4 +1,4 @@
-// app-core.js v5 — Sucrée Confeitaria (navegação Anterior/Próxima receita — corrige escopo da lista)
+// app-core.js v6 — Sucrée Confeitaria (navegação Anterior/Próxima também na Visualização)
 // ═══════════════════════════════════════════
 
 const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
@@ -2279,7 +2279,63 @@ function viewRecipe(id) {
   const veb = document.getElementById('veb');
   if(veb) veb.style.display = isGuest() ? 'none' : '';
   renderViewBody(r);
+  atualizarBotoesNavegacaoReceitaView(id);
   document.getElementById('modal-view').style.display='flex';
+}
+
+// Calcula a lista de navegação para o modal de Visualização — mesma lógica usada na edição
+// (getListaNavegacaoReceita), mas referenciando o id passado como parâmetro em vez de editId,
+// já que o modal de visualização não usa a variável global editId do formulário de edição.
+function getListaNavegacaoReceitaView(id) {
+  var listaAtual = window._listaReceitasFiltradaAtual || [];
+  if (id && listaAtual.indexOf(id) !== -1) return listaAtual;
+
+  var atual = recipes.find(function(r){ return r.id === id; });
+  if (!atual) return listaAtual;
+
+  var guest = (typeof isGuest === 'function') ? isGuest() : false;
+  var lista = recipes.filter(function(r){
+    if (r.cat !== atual.cat) return false;
+    if ((r.group || '') !== (atual.group || '')) return false;
+    if (atual.subgrupo) return r.subgrupo === atual.subgrupo;
+    return !r.subgrupo;
+  });
+  if (guest) lista = lista.filter(function(r){ return shareConfig.sharedIds.includes(r.id); });
+  lista = lista.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','pt-BR'); });
+  return lista.map(function(r){ return r.id; });
+}
+
+// Mostra/esconde e habilita/desabilita os botões "‹"/"›" do cabeçalho do modal de
+// Visualização, de acordo com a posição da receita atual dentro da lista de navegação.
+function atualizarBotoesNavegacaoReceitaView(id) {
+  const btnAnt = document.getElementById('btn-receita-view-anterior');
+  const btnProx = document.getElementById('btn-receita-view-proxima');
+  if (!btnAnt || !btnProx) return;
+  const lista = getListaNavegacaoReceitaView(id);
+  const idx = id ? lista.indexOf(id) : -1;
+  const mostrar = idx !== -1 && lista.length > 1;
+  btnAnt.style.display = mostrar ? '' : 'none';
+  btnProx.style.display = mostrar ? '' : 'none';
+  if (mostrar) {
+    btnAnt.disabled = idx <= 0;
+    btnProx.disabled = idx >= lista.length - 1;
+  }
+}
+
+// Navega para a receita anterior/próxima no modal de Visualização. Diferente da edição, aqui
+// não há formulário/alterações pendentes para checar — é só trocar de receita exibida.
+function navegarReceitaAdjacenteView(direcao) {
+  const idAtual = document.getElementById('vt')?.dataset.rid;
+  if (!idAtual) return;
+  const lista = getListaNavegacaoReceitaView(idAtual);
+  const idxAtual = lista.indexOf(idAtual);
+  if (idxAtual === -1) return;
+  const idxAlvo = idxAtual + direcao;
+  if (idxAlvo < 0 || idxAlvo >= lista.length) {
+    toast(direcao < 0 ? 'Esta já é a primeira receita da lista' : 'Esta já é a última receita da lista');
+    return;
+  }
+  viewRecipe(lista[idxAlvo]);
 }
 
 function vs(id,key,val){
