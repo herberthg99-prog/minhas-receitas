@@ -119,6 +119,7 @@ button{font-family:inherit;cursor:pointer}
 .rm{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;color:rgba(212,162,74,.7)}
 .racts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .rb{background:rgba(212,162,74,.1);border:1px solid rgba(212,162,74,.3);color:#D4A24A;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.rb:disabled{opacity:.35;cursor:default}
 .rb.share-active{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);font-weight:600}
 .rb.rb-active{background:var(--gold);color:#020B18;border-color:var(--gold);font-weight:800}
 .tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700}
@@ -1348,6 +1349,8 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
   <div class="sheet-header">
     <h2 id="vt">Receita</h2>
     <div class="flex-row">
+      <button class="rb" id="btn-receita-view-anterior" onclick="navegarReceitaAdjacenteView(-1)" style="font-size:12px;padding:7px 9px" title="Receita anterior"><i class="ti ti-chevron-left"></i></button>
+      <button class="rb" id="btn-receita-view-proxima" onclick="navegarReceitaAdjacenteView(1)" style="font-size:12px;padding:7px 9px" title="Próxima receita"><i class="ti ti-chevron-right"></i></button>
       <button class="rb" id="veb" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
       <button class="rb" onclick="imprimirReceita()" style="font-size:12px;color:#0F6E56"><i class="ti ti-printer"></i> Imprimir</button>
       <button class="rb" onclick="toggleFullReceita()" style="font-size:12px;color:#D4A24A;background:rgba(212,162,74,.1);border-color:rgba(212,162,74,.4)"><i class="ti ti-maximize" id="ico-full"></i></button>
@@ -1606,7 +1609,7 @@ if("serviceWorker" in navigator){
 </div>
 
 <!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=77"></script>
+<script src="js/app-core.js?v=78"></script>
 <script src="js/app-features.js?v=44"></script>
 <script src="js/version.js?v=19"></script>
 
