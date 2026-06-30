@@ -772,7 +772,10 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 .ped-card-del { position: absolute; top: 8px; left: 8px; background: rgba(2,11,24,.7); border: none; color: #FF8080; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 2; }
 .ped-card-premium:hover .ped-card-del { display: flex; }
 
-/* Tabs do modal único de pedido reaproveitam .rcp-edit-tab via id ped-tabbtn-* */
+/* Modal de pedido sem abas: seções empilhadas com divisor .ped-section-divider */
+.ped-section-divider { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin: 28px 0 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(212,162,74,.2); }
+.ped-section-divider:first-of-type { margin-top: 0; }
+.ped-section-divider i { font-size: 15px; }
 .dc-cols { display: grid; grid-template-columns: 1fr 1fr 360px; gap: 20px; align-items: start; }
 .dc-col { background: linear-gradient(180deg, rgba(13,45,90,.5), rgba(2,11,24,.75)); border: 1px solid rgba(212,162,74,.2); border-radius: 16px; padding: 18px; }
 .dc-col-title { color: var(--gold); font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 12px; }
@@ -1449,19 +1452,10 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     </div>
   </div>
 
-  <!-- TABS -->
-  <div class="rcp-edit-tabs">
-    <button class="rcp-edit-tab act" id="ped-tabbtn-cliente" onclick="stPedidoTab('cliente')"><i class="ti ti-user"></i> Cliente</button>
-    <button class="rcp-edit-tab" id="ped-tabbtn-bolo" onclick="stPedidoTab('bolo')"><i class="ti ti-cake"></i> Bolo &amp; Recheio</button>
-    <button class="rcp-edit-tab" id="ped-tabbtn-decoracao" onclick="stPedidoTab('decoracao')"><i class="ti ti-palette"></i> Decoração &amp; Fotos</button>
-    <button class="rcp-edit-tab" id="ped-tabbtn-financeiro" onclick="stPedidoTab('financeiro')"><i class="ti ti-currency-dollar"></i> Financeiro</button>
-    <button class="rcp-edit-tab" id="ped-tabbtn-custo" onclick="stPedidoTab('custo')"><i class="ti ti-calculator"></i> Detalhamento de Custo</button>
-  </div>
-
-  <!-- BODY -->
+  <!-- BODY (tudo em uma página com scroll, sem abas) -->
   <div class="rcp-edit-body">
 
-    <!-- ABA: CLIENTE -->
+    <!-- SEÇÃO: CLIENTE -->
     <div id="ped-tab-cliente">
       <div class="rcp-edit-card">
         <div class="rcp-edit-card-title"><i class="ti ti-user"></i> Dados do cliente</div>
@@ -1486,7 +1480,8 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
     </div>
 
     <!-- ABA: BOLO & RECHEIO -->
-    <div id="ped-tab-bolo" style="display:none">
+    <div class="ped-section-divider"><i class="ti ti-cake"></i> Bolo &amp; Recheio</div>
+    <div id="ped-tab-bolo">
       <div class="rcp-edit-card">
         <div class="rcp-edit-card-title"><i class="ti ti-cake"></i> Tamanho e massa</div>
         <div class="fg">
@@ -1520,8 +1515,8 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       </div>
     </div>
 
-    <!-- ABA: DECORAÇÃO & FOTOS -->
-    <div id="ped-tab-decoracao" style="display:none">
+    <div class="ped-section-divider"><i class="ti ti-palette"></i> Decoração &amp; Fotos</div>
+    <div id="ped-tab-decoracao">
       <div class="rcp-edit-card">
         <div class="rcp-edit-card-title"><i class="ti ti-palette"></i> Tema e adicionais</div>
         <div class="fg"><label>Tema do bolo</label><input type="text" id="p-tema" placeholder="Ex: Frozen, Safari, Floral..."></div>
@@ -1561,8 +1556,8 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       </div>
     </div>
 
-    <!-- ABA: FINANCEIRO -->
-    <div id="ped-tab-financeiro" style="display:none">
+    <div class="ped-section-divider"><i class="ti ti-currency-dollar"></i> Financeiro</div>
+    <div id="ped-tab-financeiro">
       <div class="rcp-edit-card">
         <div id="pedido-total-box"></div>
         <div class="fg" style="margin-top:12px"><label>Custo estimado (R$) — deixe vazio para auto 35%</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
@@ -1590,8 +1585,8 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
       <button class="btns" style="width:100%;justify-content:center;margin-top:4px" onclick="if(editPedidoId)imprimirPedidoCozinha(editPedidoId);else toast('Salve o pedido primeiro')"><i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha</button>
     </div>
 
-    <!-- ABA: DETALHAMENTO DE CUSTO -->
-    <div id="ped-tab-custo" style="display:none"></div>
+    <div class="ped-section-divider"><i class="ti ti-calculator"></i> Detalhamento de Custo</div>
+    <div id="ped-tab-custo"></div>
 
   </div>
 
@@ -1645,8 +1640,8 @@ if("serviceWorker" in navigator){
 
 
 <script src="js/app-core.js?v=79"></script>
-<script src="js/app-features.js?v=45"></script>
-<script src="js/version.js?v=20"></script>
+<script src="js/app-features.js?v=46"></script>
+<script src="js/version.js?v=21"></script>
 
 </body>
 </html>
