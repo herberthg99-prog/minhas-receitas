@@ -736,6 +736,57 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 }
 
 /* ══════════════════════════════════════════════════════
+   REDESIGN PREMIUM — Confeitaria / Pedidos
+   Prefixo .ped- em tudo. Listagem em cards + modal único (.rcp-edit-* reaproveitado).
+   ══════════════════════════════════════════════════════ */
+.ped-header { background: linear-gradient(180deg, rgba(13,45,90,.5), rgba(2,11,24,.7)); border: 1px solid rgba(212,162,74,.2); border-radius: 18px; padding: 20px 22px; margin-bottom: 16px; }
+.ped-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.ped-header-title { font-family: Georgia, 'Playfair Display', serif; font-size: 21px; font-weight: 700; color: #F8F7F4; display: flex; align-items: center; gap: 9px; }
+.ped-header-title i { color: var(--gold); }
+.ped-header-sub { font-size: 12.5px; color: var(--text2); margin-top: 4px; }
+.ped-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.ped-metric { background: rgba(2,11,24,.5); border: 1px solid rgba(212,162,74,.15); border-radius: 12px; padding: 10px 12px; }
+.ped-metric-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); margin-bottom: 4px; }
+.ped-metric-value { font-size: 16px; font-weight: 800; color: #F8F7F4; }
+.ped-metric-value.coral { color: var(--coral); }
+.ped-metric-value.green { color: var(--teal); }
+.ped-metric-value.gold { color: var(--gold); }
+.ped-filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.ped-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.ped-card-premium { position: relative; background: linear-gradient(180deg, rgba(13,45,90,.55), rgba(2,11,24,.85)); border: 1px solid rgba(212,162,74,.2); border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.ped-card-premium:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.35); border-color: rgba(212,162,74,.4); }
+.ped-card-thumb { position: relative; width: 100%; aspect-ratio: 16/10; background: rgba(255,255,255,.04); }
+.ped-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ped-card-thumb-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 30px; opacity: .35; }
+.ped-card-status { position: absolute; bottom: 8px; left: 8px; font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 20px; backdrop-filter: blur(6px); }
+.ped-card-urgent { position: absolute; top: 8px; right: 8px; background: var(--gold); color: #020B18; font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 20px; z-index: 2; }
+.ped-card-body { padding: 13px 14px; }
+.ped-card-name { font-size: 14.5px; font-weight: 700; color: #F8F7F4; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ped-card-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; color: var(--text2); margin-bottom: 6px; }
+.ped-card-meta i { font-size: 11px; margin-right: 2px; }
+.ped-card-recheios { font-size: 11.5px; color: var(--text3); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ped-card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid rgba(248,247,244,.08); }
+.ped-card-valor { font-size: 15px; font-weight: 800; color: var(--gold); }
+.ped-card-sinal { font-size: 11px; font-weight: 700; color: var(--teal); }
+.ped-card-del { position: absolute; top: 8px; left: 8px; background: rgba(2,11,24,.7); border: none; color: #FF8080; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 2; }
+.ped-card-premium:hover .ped-card-del { display: flex; }
+
+/* Tabs do modal único de pedido reaproveitam .rcp-edit-tab via id ped-tabbtn-* */
+.dc-cols { display: grid; grid-template-columns: 1fr 1fr 360px; gap: 20px; align-items: start; }
+.dc-col { background: linear-gradient(180deg, rgba(13,45,90,.5), rgba(2,11,24,.75)); border: 1px solid rgba(212,162,74,.2); border-radius: 16px; padding: 18px; }
+.dc-col-title { color: var(--gold); font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 12px; }
+@media (max-width: 1199px) {
+  .dc-cols { grid-template-columns: 1fr 1fr; }
+  .dc-cols .dc-col:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 767px) {
+  .ped-metrics { grid-template-columns: repeat(2, 1fr); }
+  .ped-grid { grid-template-columns: 1fr; }
+  .dc-cols { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════
    REDESIGN PREMIUM — Seção Recheios em Configurar Cardápio
    Prefixo .rch- em tudo.
    ══════════════════════════════════════════════════════ */
@@ -1374,149 +1425,192 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 </div>
 
 <!-- CONFEITARIA PEDIDO SHEET -->
-<div class="overlay" id="modal-pedido" style="display:none">
-<div class="sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <h2 id="pedido-title">Novo Pedido</h2>
-    <button class="xb" onclick="cm('modal-pedido')"><i class="ti ti-x"></i></button>
+<div class="rcp-edit-overlay" id="modal-pedido" style="display:none">
+<div class="rcp-edit-modal">
+
+  <!-- HEADER -->
+  <div class="rcp-edit-header">
+    <div class="rcp-edit-header-left">
+      <div class="rcp-edit-header-icon"><i class="ti ti-cake"></i></div>
+      <div style="min-width:0">
+        <div class="rcp-edit-eyebrow" id="pedido-eyebrow">Pedido</div>
+        <div class="rcp-edit-title" id="pedido-title">Novo Pedido</div>
+        <div class="rcp-edit-chips">
+          <span class="rcp-edit-chip" id="ped-chip-status"><i class="ti ti-clock"></i> Pendente</span>
+          <span class="rcp-edit-chip" id="ped-chip-data"><i class="ti ti-calendar"></i> —</span>
+          <span class="rcp-edit-chip" id="ped-chip-aro"><i class="ti ti-ruler"></i> —</span>
+        </div>
+      </div>
+    </div>
+    <div class="rcp-edit-header-actions">
+      <button class="rcp-edit-btn rcp-edit-btn-dark" onclick="cm('modal-pedido')"><i class="ti ti-x"></i> <span class="rcp-edit-btn-txt">Cancelar</span></button>
+      <button class="rcp-edit-btn rcp-edit-btn-gold" onclick="savePedido()"><i class="ti ti-device-floppy"></i> Salvar pedido</button>
+      <button class="rcp-edit-close" onclick="cm('modal-pedido')"><i class="ti ti-x"></i></button>
+    </div>
   </div>
-  <div class="sheet-body">
-    <div class="tg">
-      <button class="tb act" onclick="stPedido(0)"><i class="ti ti-user"></i> Cliente</button>
-      <button class="tb" onclick="stPedido(1)"><i class="ti ti-cake"></i> Bolo</button>
-      <button class="tb" onclick="stPedido(2)"><i class="ti ti-palette"></i> Decoração</button>
-      <button class="tb" onclick="stPedido(3)"><i class="ti ti-currency-dollar"></i> Total</button>
-    </div>
-    <div id="pt0">
-      <div class="fg"><label>Nome do cliente</label><input type="text" id="p-cliente" placeholder="Ex: Maria Silva"></div>
-      <div class="fr">
-        <div class="fg"><label>Data de entrega</label><input type="date" id="p-data"></div>
-        <div class="fg"><label>Horário de entrega</label><input type="time" id="p-hora"></div>
-      </div>
-      <div class="fg">
-        <label>Cliente retira?</label>
-        <div style="display:flex;gap:10px;margin-top:4px">
-          <button id="btn-retira-sim" onclick="setPedidoRetira(true)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">✅ Sim, retira</button>
-          <button id="btn-retira-nao" onclick="setPedidoRetira(false)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🚗 Não, entrego</button>
+
+  <!-- TABS -->
+  <div class="rcp-edit-tabs">
+    <button class="rcp-edit-tab act" id="ped-tabbtn-cliente" onclick="stPedidoTab('cliente')"><i class="ti ti-user"></i> Cliente</button>
+    <button class="rcp-edit-tab" id="ped-tabbtn-bolo" onclick="stPedidoTab('bolo')"><i class="ti ti-cake"></i> Bolo &amp; Recheio</button>
+    <button class="rcp-edit-tab" id="ped-tabbtn-decoracao" onclick="stPedidoTab('decoracao')"><i class="ti ti-palette"></i> Decoração &amp; Fotos</button>
+    <button class="rcp-edit-tab" id="ped-tabbtn-financeiro" onclick="stPedidoTab('financeiro')"><i class="ti ti-currency-dollar"></i> Financeiro</button>
+    <button class="rcp-edit-tab" id="ped-tabbtn-custo" onclick="stPedidoTab('custo')"><i class="ti ti-calculator"></i> Detalhamento de Custo</button>
+  </div>
+
+  <!-- BODY -->
+  <div class="rcp-edit-body">
+
+    <!-- ABA: CLIENTE -->
+    <div id="ped-tab-cliente">
+      <div class="rcp-edit-card">
+        <div class="rcp-edit-card-title"><i class="ti ti-user"></i> Dados do cliente</div>
+        <div class="fg"><label>Nome do cliente</label><input type="text" id="p-cliente" placeholder="Ex: Maria Silva"></div>
+        <div class="fr">
+          <div class="fg"><label>Data de entrega</label><input type="date" id="p-data"></div>
+          <div class="fg"><label>Horário de entrega</label><input type="time" id="p-hora"></div>
         </div>
-      </div>
-      <div id="entrega-addr-box" style="display:none">
-        <div class="fg"><label>Endereço de entrega</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro..."></div>
-      </div>
-      <div class="fg"><label>Telefone / WhatsApp</label><input type="tel" id="p-telefone" placeholder="(27) 99999-9999"></div>
-      <div class="fg"><label>Observações do cliente</label><textarea id="p-obs-cliente" placeholder="Alergias, preferências, informações extras..." style="min-height:60px"></textarea></div>
-    </div>
-    <div id="pt1" style="display:none">
-      <div class="fg">
-        <label>Tamanho do bolo (Aro)</label>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px">
-          <button class="aro-btn" onclick="setAro(10)" id="aro-10">Aro 10</button>
-          <button class="aro-btn" onclick="setAro(15)" id="aro-15">Aro 15</button>
-          <button class="aro-btn" onclick="setAro(20)" id="aro-20">Aro 20</button>
-          <button class="aro-btn" onclick="setAro(25)" id="aro-25">Aro 25</button>
-          <button class="aro-btn" onclick="setAro(30)" id="aro-30">Aro 30</button>
-        </div>
-      </div>
-      <div id="aro-info-box" style="display:none" class="info-box"></div>
-      <div class="fg">
-        <label>Tipo de massa</label>
-        <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="massa-btn" onclick="setMassa('amanteigada')" id="massa-amanteigada" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧈 Amanteigada</button>
-          <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Pão de Ló</button>
-        </div>
-      </div>
-      <div class="fg"><label>Recheio 1</label><select id="p-recheio1" onchange="calcPedidoTotal()"><option value="">Selecione o recheio...</option></select></div>
-      <div class="fg"><label>Recheio 2 (opcional)</label><select id="p-recheio2" onchange="calcPedidoTotal()"><option value="">Nenhum / mesmo recheio</option></select></div>
-      <div class="fg">
-        <label>Tipo de cobertura</label>
-        <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="cob-btn" onclick="setCobertura('chantininho')" id="cob-chantininho" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍦 Chantininho</button>
-          <button class="cob-btn" onclick="setCobertura('buttercream')" id="cob-buttercream" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧁 Buttercream</button>
-        </div>
-      </div>
-      <div class="fg"><label>Valor do bolo (R$)</label><input type="number" id="p-valor-bolo" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
-    </div>
-    <div id="pt2" style="display:none">
-      <div class="fg"><label>Tema do bolo</label><input type="text" id="p-tema" placeholder="Ex: Frozen, Safari, Floral..."></div>
-      <div class="fg">
-        <label>Foto de inspiração</label>
-        <div class="photo-zone" onclick="document.getElementById('p-inspi-input').click()" style="padding:16px">
-          <i class="ti ti-photo-search" style="font-size:28px;color:var(--gold);display:block;margin-bottom:6px"></i>
-          <p style="font-size:13px;color:var(--text2);font-weight:600">Toque para adicionar foto de inspiração</p>
-        </div>
-        <input type="file" id="p-inspi-input" accept="image/*" capture="environment" style="display:none" onchange="addInspiPhoto(event)">
-        <div id="p-inspi-preview" style="margin-top:8px"></div>
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:8px">Adicionais</label>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
-            <div><div style="font-size:14px;font-weight:700">💐 Flores</div><div style="font-size:12px;color:var(--text2)" id="txt-flores-valor">R$ 50,00</div></div>
-            <div style="display:flex;gap:8px">
-              <button id="btn-flores-sim" onclick="setFlores(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
-              <button id="btn-flores-nao" onclick="setFlores(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
-            <div><div style="font-size:14px;font-weight:700">🎨 Papelaria</div><div style="font-size:12px;color:var(--text2)" id="txt-papelaria-valor">R$ 35,00</div></div>
-            <div style="display:flex;gap:8px">
-              <button id="btn-papel-sim" onclick="setPapelaria(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
-              <button id="btn-papel-nao" onclick="setPapelaria(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
-            </div>
+        <div class="fg">
+          <label>Cliente retira?</label>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button id="btn-retira-sim" onclick="setPedidoRetira(true)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">✅ Sim, retira</button>
+            <button id="btn-retira-nao" onclick="setPedidoRetira(false)" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🚗 Não, entrego</button>
           </div>
         </div>
-      </div>
-      <div class="fg"><label>Observações da decoração</label><textarea id="p-obs-deco" placeholder="Cores, detalhes especiais..." style="min-height:60px"></textarea></div>
-    </div>
-    <div id="pt3" style="display:none">
-      <div id="pedido-total-box"></div>
-      <div class="fg" style="margin-top:12px"><label>Custo estimado (R$) — deixe vazio para auto 35%</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
-      <div class="fg"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
-      <div class="fg"><label>Forma de pagamento</label>
-        <select id="p-pagamento">
-          <option value="">Selecione...</option>
-          <option value="pix">PIX</option>
-          <option value="dinheiro">Dinheiro</option>
-          <option value="cartao_credito">Cartão de Crédito</option>
-          <option value="cartao_debito">Cartão de Débito</option>
-        </select>
-      </div>
-      <div class="fg"><label>Status do pedido</label>
-        <select id="p-status">
-          <option value="pendente">⏳ Pendente</option>
-          <option value="confirmado">✅ Confirmado</option>
-          <option value="producao">🎂 Em produção</option>
-          <option value="pronto">🎉 Pronto</option>
-          <option value="entregue">✔️ Entregue</option>
-          <option value="cancelado">❌ Cancelado</option>
-        </select>
+        <div id="entrega-addr-box" style="display:none">
+          <div class="fg"><label>Endereço de entrega</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro..."></div>
+        </div>
+        <div class="fg"><label>Telefone / WhatsApp</label><input type="tel" id="p-telefone" placeholder="(27) 99999-9999"></div>
+        <div class="fg" style="margin-bottom:0"><label>Observações do cliente</label><textarea id="p-obs-cliente" placeholder="Alergias, preferências, informações extras..." style="min-height:60px"></textarea></div>
       </div>
     </div>
+
+    <!-- ABA: BOLO & RECHEIO -->
+    <div id="ped-tab-bolo" style="display:none">
+      <div class="rcp-edit-card">
+        <div class="rcp-edit-card-title"><i class="ti ti-cake"></i> Tamanho e massa</div>
+        <div class="fg">
+          <label>Tamanho do bolo (Aro)</label>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px">
+            <button class="aro-btn" onclick="setAro(10)" id="aro-10">Aro 10</button>
+            <button class="aro-btn" onclick="setAro(15)" id="aro-15">Aro 15</button>
+            <button class="aro-btn" onclick="setAro(20)" id="aro-20">Aro 20</button>
+            <button class="aro-btn" onclick="setAro(25)" id="aro-25">Aro 25</button>
+            <button class="aro-btn" onclick="setAro(30)" id="aro-30">Aro 30</button>
+          </div>
+        </div>
+        <div id="aro-info-box" style="display:none" class="info-box"></div>
+        <div class="fg">
+          <label>Tipo de massa</label>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="massa-btn" onclick="setMassa('amanteigada')" id="massa-amanteigada" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧈 Amanteigada</button>
+            <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Pão de Ló</button>
+          </div>
+        </div>
+        <div class="fg"><label>Recheio 1</label><select id="p-recheio1" onchange="calcPedidoTotal()"><option value="">Selecione o recheio...</option></select></div>
+        <div class="fg"><label>Recheio 2 (opcional)</label><select id="p-recheio2" onchange="calcPedidoTotal()"><option value="">Nenhum / mesmo recheio</option></select></div>
+        <div class="fg">
+          <label>Tipo de cobertura</label>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="cob-btn" onclick="setCobertura('chantininho')" id="cob-chantininho" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍦 Chantininho</button>
+            <button class="cob-btn" onclick="setCobertura('buttercream')" id="cob-buttercream" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🧁 Buttercream</button>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:0"><label>Valor do bolo (R$)</label><input type="number" id="p-valor-bolo" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+      </div>
+    </div>
+
+    <!-- ABA: DECORAÇÃO & FOTOS -->
+    <div id="ped-tab-decoracao" style="display:none">
+      <div class="rcp-edit-card">
+        <div class="rcp-edit-card-title"><i class="ti ti-palette"></i> Tema e adicionais</div>
+        <div class="fg"><label>Tema do bolo</label><input type="text" id="p-tema" placeholder="Ex: Frozen, Safari, Floral..."></div>
+        <div class="fg">
+          <label>Foto de inspiração</label>
+          <div class="photo-zone" onclick="document.getElementById('p-inspi-input').click()" style="padding:16px">
+            <i class="ti ti-photo-search" style="font-size:28px;color:var(--gold);display:block;margin-bottom:6px"></i>
+            <p style="font-size:13px;color:var(--text2);font-weight:600">Toque para adicionar foto de inspiração</p>
+          </div>
+          <input type="file" id="p-inspi-input" accept="image/*" capture="environment" style="display:none" onchange="addInspiPhoto(event)">
+          <div id="p-inspi-preview" style="margin-top:8px"></div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:8px">Adicionais</label>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div><div style="font-size:14px;font-weight:700">💐 Flores</div><div style="font-size:12px;color:var(--text2)" id="txt-flores-valor">R$ 50,00</div></div>
+              <div style="display:flex;gap:8px">
+                <button id="btn-flores-sim" onclick="setFlores(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
+                <button id="btn-flores-nao" onclick="setFlores(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <div><div style="font-size:14px;font-weight:700">🎨 Papelaria</div><div style="font-size:12px;color:var(--text2)" id="txt-papelaria-valor">R$ 35,00</div></div>
+              <div style="display:flex;gap:8px">
+                <button id="btn-papel-sim" onclick="setPapelaria(true)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Sim</button>
+                <button id="btn-papel-nao" onclick="setPapelaria(false)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--coral);background:var(--gold-light);color:var(--gold-dark);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">Não</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:0"><label>Observações da decoração</label><textarea id="p-obs-deco" placeholder="Cores, detalhes especiais..." style="min-height:60px"></textarea></div>
+      </div>
+      <div class="rcp-edit-card">
+        <div class="rcp-edit-card-title"><i class="ti ti-photo"></i> Fotos do pedido</div>
+        <div id="ped-fotos-grid"></div>
+      </div>
+    </div>
+
+    <!-- ABA: FINANCEIRO -->
+    <div id="ped-tab-financeiro" style="display:none">
+      <div class="rcp-edit-card">
+        <div id="pedido-total-box"></div>
+        <div class="fg" style="margin-top:12px"><label>Custo estimado (R$) — deixe vazio para auto 35%</label><input type="number" id="p-custo" placeholder="Automático: 35% do valor" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+        <div class="fg"><label>Sinal / Entrada recebido (R$)</label><input type="number" id="p-sinal" placeholder="0.00" min="0" step="0.01" oninput="calcPedidoTotal()"></div>
+        <div class="fg"><label>Forma de pagamento</label>
+          <select id="p-pagamento">
+            <option value="">Selecione...</option>
+            <option value="pix">PIX</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="cartao_credito">Cartão de Crédito</option>
+            <option value="cartao_debito">Cartão de Débito</option>
+          </select>
+        </div>
+        <div class="fg" style="margin-bottom:0"><label>Status do pedido</label>
+          <select id="p-status" onchange="if(editPedidoId)updatePedidoStatus(editPedidoId,this.value)">
+            <option value="pendente">⏳ Pendente</option>
+            <option value="confirmado">✅ Confirmado</option>
+            <option value="producao">🎂 Em produção</option>
+            <option value="pronto">🎉 Pronto</option>
+            <option value="entregue">✔️ Entregue</option>
+            <option value="cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <button class="btns" style="width:100%;justify-content:center;margin-top:4px" onclick="if(editPedidoId)imprimirPedidoCozinha(editPedidoId);else toast('Salve o pedido primeiro')"><i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha</button>
+    </div>
+
+    <!-- ABA: DETALHAMENTO DE CUSTO -->
+    <div id="ped-tab-custo" style="display:none"></div>
+
   </div>
-  <div class="sheet-footer">
-    <button class="btns" onclick="cm('modal-pedido')">Cancelar</button>
-    <button class="btnp" onclick="savePedido()"><i class="ti ti-device-floppy"></i> Salvar pedido</button>
+
+  <!-- FOOTER -->
+  <div class="rcp-edit-footer">
+    <div class="rcp-edit-footer-nav">
+      <button class="rcp-edit-btn rcp-edit-btn-dark" id="ped-btn-anterior" onclick="navegarPedidoAdjacente(-1)"><i class="ti ti-chevron-left"></i> <span class="rcp-edit-btn-txt">Anterior</span></button>
+      <button class="rcp-edit-btn rcp-edit-btn-dark" id="ped-btn-proxima" onclick="navegarPedidoAdjacente(1)"><span class="rcp-edit-btn-txt">Próxima</span> <i class="ti ti-chevron-right"></i></button>
+    </div>
+    <button class="rcp-edit-btn rcp-edit-btn-dark" onclick="cm('modal-pedido')">Cancelar</button>
+    <button class="rcp-edit-btn rcp-edit-btn-dark" id="ped-btn-excluir" style="display:none;color:#FF8080" onclick="if(editPedidoId){cm('modal-pedido');delPedido(editPedidoId);}"><i class="ti ti-trash"></i> Excluir</button>
+    <button class="rcp-edit-btn rcp-edit-btn-gold" onclick="savePedido()"><i class="ti ti-device-floppy"></i> Salvar pedido</button>
   </div>
+
 </div>
 </div>
 
 <!-- PEDIDO VIEW SHEET -->
-<div class="overlay" id="modal-pedido-view" style="display:none">
-<div class="sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <h2 id="pv-title">Pedido</h2>
-    <div class="flex-row">
-      <button class="rb" id="pv-edit-btn" style="font-size:12px"><i class="ti ti-edit"></i> Editar</button>
-      <button class="xb" onclick="cm('modal-pedido-view')"><i class="ti ti-x"></i></button>
-    </div>
-  </div>
-  <div class="sheet-body" id="pv-body"></div>
-</div>
-</div>
 
-<script>
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>{
     navigator.serviceWorker.register("sw.js")
@@ -1549,69 +1643,10 @@ if("serviceWorker" in navigator){
   </div>
 </div>
 
-<!-- MODAL: Detalhamento de Custo do pedido (premium, dedicado) -->
-<div class="dc-overlay" id="modal-detalhamento-custo" style="display:none">
-<div class="dc-modal">
 
-  <div class="dc-header">
-    <div class="dc-header-left">
-      <div class="dc-header-icon"><i class="ti ti-calculator"></i></div>
-      <div style="min-width:0">
-        <div class="dc-eyebrow">Detalhamento de custo</div>
-        <div class="dc-title" id="dc-cliente-nome">Cliente</div>
-        <div class="dc-meta-row">
-          <div class="dc-meta-item"><i class="ti ti-ruler"></i> Aro <b id="dc-meta-aro">—</b></div>
-          <div class="dc-meta-item"><i class="ti ti-cash"></i> Valor cobrado <b id="dc-meta-valor">—</b></div>
-        </div>
-      </div>
-    </div>
-    <button class="dc-close" onclick="fecharDetalhamentoCusto()"><i class="ti ti-x"></i></button>
-  </div>
-
-  <div class="dc-body">
-    <div class="dc-layout">
-      <!-- COLUNA 1: Calculado automaticamente -->
-      <div>
-        <div class="dc-card">
-          <div class="dc-card-title"><i class="ti ti-cake"></i> Ingredientes calculados automaticamente</div>
-          <div id="dc-col-auto"></div>
-        </div>
-      </div>
-
-      <!-- COLUNA 2: Ajustes manuais -->
-      <div>
-        <div class="dc-card">
-          <div class="dc-card-title"><i class="ti ti-box"></i> Descartáveis</div>
-          <div id="dc-col-descartaveis"></div>
-        </div>
-        <div class="dc-card">
-          <div class="dc-card-title"><i class="ti ti-palette"></i> Decoração — informe manualmente</div>
-          <div id="dc-col-decoracao"></div>
-        </div>
-      </div>
-
-      <!-- COLUNA 3: Resumo fixo -->
-      <div class="dc-summary-card">
-        <div class="dc-card">
-          <div class="dc-card-title"><i class="ti ti-report-money"></i> Resumo do custo</div>
-          <div id="dc-col-resumo"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="dc-footer">
-    <button class="dc-btn dc-btn-dark" onclick="fecharDetalhamentoCusto()">Cancelar</button>
-    <button class="dc-btn dc-btn-gold" id="dc-btn-salvar"><i class="ti ti-device-floppy"></i> Salvar custos</button>
-  </div>
-
-</div>
-</div>
-
-<!-- ⛔ ZONA CRÍTICA: não reordenar estes scripts -->
-<script src="js/app-core.js?v=78"></script>
-<script src="js/app-features.js?v=44"></script>
-<script src="js/version.js?v=19"></script>
+<script src="js/app-core.js?v=79"></script>
+<script src="js/app-features.js?v=45"></script>
+<script src="js/version.js?v=20"></script>
 
 </body>
 </html>
