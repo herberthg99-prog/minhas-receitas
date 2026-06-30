@@ -1,4 +1,4 @@
-// app-core.js v4 — Sucrée Confeitaria (navegação Anterior/Próxima receita)
+// app-core.js v5 — Sucrée Confeitaria (navegação Anterior/Próxima receita — corrige escopo da lista)
 // ═══════════════════════════════════════════
 
 const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
@@ -1149,12 +1149,41 @@ function formularioReceitaTemAlteracoes() {
   return capturarSnapshotFormularioReceita() !== window._editSnapshotInicial;
 }
 
-// Navega para a receita anterior/próxima dentro da MESMA lista filtrada que estava sendo
-// exibida em Receitas (mesmo grupo/sub-aba/busca ativos) quando o modal foi aberto. Se
-// houver alterações não salvas, pergunta antes de descartar — e se a resposta for "salvar",
-// tenta salvar primeiro (respeitando a validação de nome obrigatório) e só então navega.
+// Calcula a lista de navegação (IDs ordenados, mesma ordenação alfabética usada em
+// renderRecipes) para os botões Anterior/Próxima do modal de edição.
+//
+// Primeiro tenta usar a lista já exibida na tela de Receitas (window._listaReceitasFiltradaAtual,
+// preenchida por renderRecipes()) — útil porque respeita filtros de busca por texto que não dá
+// para inferir a partir da receita sozinha. Mas se a receita que está sendo editada não pertence
+// a essa lista (ex: o usuário abriu por outro caminho — Ver Receita, Configurar Cardápio, etc. —
+// enquanto a tela de Receitas estava com um filtro de grupo diferente), reconstrói a lista do
+// zero com base no próprio recorte (categoria + grupo + subgrupo) da receita aberta, garantindo
+// que a navegação sempre funcione dentro do conjunto de receitas "irmãs" dela.
+function getListaNavegacaoReceita() {
+  var listaAtual = window._listaReceitasFiltradaAtual || [];
+  if (editId && listaAtual.indexOf(editId) !== -1) return listaAtual;
+
+  var atual = recipes.find(function(r){ return r.id === editId; });
+  if (!atual) return listaAtual; // sem receita de referência (ex: receita nova), nada a fazer
+
+  var guest = (typeof isGuest === 'function') ? isGuest() : false;
+  var lista = recipes.filter(function(r){
+    if (r.cat !== atual.cat) return false;
+    if ((r.group || '') !== (atual.group || '')) return false;
+    if (atual.subgrupo) return r.subgrupo === atual.subgrupo;
+    return !r.subgrupo;
+  });
+  if (guest) lista = lista.filter(function(r){ return shareConfig.sharedIds.includes(r.id); });
+  lista = lista.slice().sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','pt-BR'); });
+  return lista.map(function(r){ return r.id; });
+}
+
+// Navega para a receita anterior/próxima dentro do mesmo recorte (grupo/subgrupo/categoria)
+// da receita atual. Se houver alterações não salvas, pergunta antes de descartar — e se a
+// resposta for "salvar", tenta salvar primeiro (respeitando a validação de nome obrigatório)
+// e só então navega.
 async function navegarReceitaAdjacente(direcao) {
-  var lista = window._listaReceitasFiltradaAtual || [];
+  var lista = getListaNavegacaoReceita();
   if (!lista.length || !editId) return;
   var idxAtual = lista.indexOf(editId);
   if (idxAtual === -1) return;
@@ -1730,14 +1759,16 @@ function openEdit(id) {
 }
 
 // Mostra/esconde e habilita/desabilita os botões "Receita anterior"/"Próxima receita" do
-// rodapé do modal de edição, de acordo com a posição da receita atual dentro da lista
-// filtrada (window._listaReceitasFiltradaAtual). Em receita nova (editId nulo) os botões
-// ficam escondidos, já que não há uma posição na lista para navegar a partir dela.
+// rodapé do modal de edição, de acordo com a posição da receita atual dentro da lista de
+// navegação (ver getListaNavegacaoReceita — usa a listagem filtrada quando a receita está
+// nela, ou reconstrói pelo recorte categoria+grupo+subgrupo da própria receita quando não).
+// Em receita nova (editId nulo) os botões ficam escondidos, já que não há uma posição na
+// lista para navegar a partir dela.
 function atualizarBotoesNavegacaoReceita() {
   const btnAnt = document.getElementById('btn-receita-anterior');
   const btnProx = document.getElementById('btn-receita-proxima');
   if (!btnAnt || !btnProx) return;
-  const lista = window._listaReceitasFiltradaAtual || [];
+  const lista = editId ? getListaNavegacaoReceita() : [];
   const idx = editId ? lista.indexOf(editId) : -1;
   const mostrar = idx !== -1 && lista.length > 1;
   btnAnt.style.display = mostrar ? '' : 'none';
