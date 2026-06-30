@@ -1134,7 +1134,7 @@ function resetPedidoForm() {
 
 function savePedido() {
   const cliente = document.getElementById('p-cliente').value.trim();
-  if(!cliente) { toast('Informe o nome do cliente'); stPedidoTab('cliente'); return; }
+  if(!cliente) { toast('Informe o nome do cliente'); document.getElementById('p-cliente')?.scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('p-cliente')?.focus(); return; }
   const valorBolo = parseFloat(document.getElementById('p-valor-bolo').value||0);
   const flores = curPedido.flores ? (sucreeConfig.floresValor||50) : 0;
   const papelaria = curPedido.papelaria ? (sucreeConfig.papelariaValor||35) : 0;
@@ -1322,7 +1322,7 @@ function openNovoPedido() {
   document.getElementById('pedido-title').textContent = 'Novo Pedido';
   resetPedidoForm();
   populateRecheioSelects();
-  stPedidoTab('cliente');
+  stPedidoTab(null);
   var btnAnt = document.getElementById('ped-btn-anterior');
   var btnProx = document.getElementById('ped-btn-proxima');
   if (btnAnt) btnAnt.disabled = true;
@@ -1360,22 +1360,22 @@ function openEditPedido(id) {
   setFlores(p.flores === true);
   setPapelaria(p.papelaria === true);
   renderFotosPedidoTab(p);
-  stPedidoTab('cliente');
+  stPedidoTab(null);
   atualizarBotoesNavegacaoPedido(id);
   document.getElementById('modal-pedido').style.display = 'flex';
 }
 
 // Troca de abas do modal único (Cliente / Bolo & Recheio / Decoração & Fotos / Financeiro / Detalhamento de Custo)
+// Agora todas as seções ficam sempre visíveis (sem abas, com scroll único).
+// Esta função só garante que o Financeiro está calculado e o Detalhamento de
+// Custo está montado, e opcionalmente rola até a seção pedida.
 function stPedidoTab(tab) {
-  var tabs = ['cliente','bolo','decoracao','financeiro','custo'];
-  tabs.forEach(function(t){
-    var pane = document.getElementById('ped-tab-' + t);
-    var btn = document.getElementById('ped-tabbtn-' + t);
-    if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
-    if (btn) btn.classList.toggle('act', t === tab);
-  });
-  if (tab === 'financeiro') calcPedidoTotal();
-  if (tab === 'custo' && editPedidoId) montarAbaDetalhamentoCusto(editPedidoId);
+  calcPedidoTotal();
+  if (editPedidoId) montarAbaDetalhamentoCusto(editPedidoId);
+  if (tab) {
+    var pane = document.getElementById('ped-tab-' + tab);
+    if (pane) pane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 // Renderiza os 3 slots de foto dentro da aba Decoração & Fotos do modal único.
