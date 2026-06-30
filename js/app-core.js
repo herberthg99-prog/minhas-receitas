@@ -3570,7 +3570,7 @@ function renderAgenda() {
         var dtFmt = new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
         return '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px;text-transform:capitalize">📅 ' + dtFmt + '</div>'
           + peds.map(function(p) {
-              return '<div onclick="viewPedido(\'' + p.id + '\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border-radius:8px;margin-bottom:4px;cursor:pointer;border-left:3px solid var(--teal)">'
+              return '<div onclick="openEditPedido(\'' + p.id + '\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface);border-radius:8px;margin-bottom:4px;cursor:pointer;border-left:3px solid var(--teal)">'
                 + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#F5EDD8">' + (p.cliente||'?') + '</div>'
                 + '<div style="font-size:11px;color:var(--text2)">Aro ' + (p.aro||'?') + ' · R$ ' + parseFloat(p.valorTotal||0).toFixed(2) + '</div></div>'
                 + '<span class="status-badge sb-' + p.status + '" style="font-size:9px">' + p.status + '</span>'
@@ -3594,7 +3594,7 @@ function mudarMesAgenda(delta) {
 function verDiaAgenda(dateStr) {
   var pedsDia = (typeof pedidos !== 'undefined' ? pedidos : []).filter(function(p){ return p.data === dateStr; });
   if (!pedsDia.length) return;
-  if (pedsDia.length === 1) { viewPedido(pedsDia[0].id); return; }
+  if (pedsDia.length === 1) { openEditPedido(pedsDia[0].id); return; }
   // Multiple — show list
   var dtFmt = new Date(dateStr+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
   toast(pedsDia.length + ' pedidos em ' + dtFmt);
