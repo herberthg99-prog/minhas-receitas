@@ -737,39 +737,6 @@ function calcMetricasConf() {
   return {totalVendas,custoEst,lucroEst,recebido,aReceber};
 }
 
-function _renderConfeitariaUI() {
-  const el = document.getElementById('page-confeitaria');
-  const m = calcMetricasConf();
-  const pendentes = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado');
-
-  el.innerHTML = `
-    <div class="g4" style="margin-bottom:6px">
-      <div class="met"><div class="ml">Pedidos ativos</div><div class="mv blue">${pendentes.length}</div></div>
-      <div class="met"><div class="ml">Total do mês</div><div class="mv coral">R$${m.totalVendas.toFixed(0)}</div></div>
-      <div class="met"><div class="ml">Entregues</div><div class="mv green">${pedidos.filter(p=>p.status==='entregue').length}</div></div>
-      <div class="met"><div class="ml">Cancelados</div><div class="mv">${pedidos.filter(p=>p.status==='cancelado').length}</div></div>
-    </div>
-    <div class="g4" style="margin-bottom:14px">
-      <div class="met" style="border-top:2px solid #C8503A44"><div class="ml" style="font-size:10px">💸 Custo est.</div><div class="mv" style="font-size:13px;color:#FF8080">R$${m.custoEst.toFixed(0)}</div></div>
-      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">📈 Lucro est.</div><div class="mv green" style="font-size:13px">R$${m.lucroEst.toFixed(0)}</div></div>
-      <div class="met" style="border-top:2px solid #0F6E5644"><div class="ml" style="font-size:10px">✅ Recebido</div><div class="mv green" style="font-size:13px">R$${m.recebido.toFixed(0)}</div></div>
-      <div class="met" style="border-top:2px solid #C8A35B44"><div class="ml" style="font-size:10px">⏳ A receber</div><div class="mv coral" style="font-size:13px">R$${m.aReceber.toFixed(0)}</div></div>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div class="st" style="margin-bottom:0"><i class="ti ti-calendar"></i> Agenda de pedidos</div>
-      <button class="btnp" onclick="openNovoPedido()" style="padding:8px 14px;font-size:13px"><i class="ti ti-plus"></i> Novo pedido</button>
-    </div>
-    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-      <button class="pm act" id="filter-todos" onclick="filterPedidos('todos')">Todos</button>
-      <button class="pm" id="filter-pendente" onclick="filterPedidos('pendente')">⏳ Pendente</button>
-      <button class="pm" id="filter-confirmado" onclick="filterPedidos('confirmado')">✅ Confirmado</button>
-      <button class="pm" id="filter-producao" onclick="filterPedidos('producao')">🎂 Produção</button>
-      <button class="pm" id="filter-pronto" onclick="filterPedidos('pronto')">🎉 Pronto</button>
-      <button class="pm" id="filter-entregue" onclick="filterPedidos('entregue')">✔️ Entregue</button>
-    </div>
-    <div id="pedidos-list">${renderPedidosList('todos')}</div>`;
-}
-
 function renderPedidosList(filter) {
   let list = [...pedidos].sort((a,b) => new Date(a.data) - new Date(b.data));
   if (filter !== 'todos') list = list.filter(p => p.status === filter);
@@ -781,47 +748,6 @@ function filterPedidos(f) {
   document.querySelectorAll('[id^="filter-"]').forEach(b => b.classList.remove('act'));
   document.getElementById('filter-' + f)?.classList.add('act');
   document.getElementById('pedidos-list').innerHTML = renderPedidosList(f);
-}
-
-function renderPedidoCard(p) {
-  const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
-  const statusLabel = {pendente:'⏳ Pendente',confirmado:'✅ Confirmado',producao:'🎂 Em produção',pronto:'🎉 Pronto',entregue:'✔️ Entregue',cancelado:'❌ Cancelado'}[p.status] || p.status;
-  const diasRestantes = p.data ? Math.ceil((new Date(p.data + 'T12:00:00') - new Date()) / (1000*60*60*24)) : null;
-  const urgente = diasRestantes !== null && diasRestantes <= 2 && p.status !== 'entregue' && p.status !== 'cancelado';
-  return `<div class="pedido-card status-${p.status}" onclick="viewPedido('${p.id}')" style="${urgente?'border:2px solid #C8A35B;':''}">
-    ${urgente ? `<div style="position:absolute;top:8px;right:8px;background:var(--gold);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">🔥 ${diasRestantes<=0?'HOJE!':diasRestantes+'d'}</div>` : ''}
-    <div style="font-size:15px;font-weight:700;margin-bottom:5px;padding-right:${urgente?60:0}px">${p.cliente || 'Sem nome'}</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
-      <span class="status-badge sb-${p.status}">${statusLabel}</span>
-      <span style="font-size:12px;color:var(--text2)"><i class="ti ti-calendar" style="font-size:11px"></i> ${dataFmt} ${p.hora ? '· ' + p.hora : ''}</span>
-      ${p.retira ? '<span style="font-size:11px;background:var(--teal-light);color:var(--teal);padding:1px 7px;border-radius:20px;font-weight:700">Retira</span>' : '<span style="font-size:11px;background:var(--blue-light);color:var(--blue);padding:1px 7px;border-radius:20px;font-weight:700">Entrego</span>'}
-    </div>
-    <div style="font-size:12px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap">
-      ${p.aro ? `<span>Aro ${p.aro}</span>` : ''}
-      ${p.recheio1 ? `<span>🎂 ${p.recheio1}</span>` : ''}
-      ${p.recheio2 ? `<span>+ ${p.recheio2}</span>` : ''}
-      ${p.cobertura ? `<span>${p.cobertura==='chantininho'?'🍦 Chantininho':p.cobertura==='buttercream'?'🧁 Buttercream':'✨ '+p.cobertura}</span>` : ''}
-      ${p.tema ? `<span>🎨 ${p.tema}</span>` : ''}
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
-      <div style="font-size:15px;font-weight:700;color:var(--gold)">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</div>
-      <div style="font-size:12px;color:var(--teal);font-weight:700">${p.sinal > 0 ? 'Sinal: R$ '+parseFloat(p.sinal).toFixed(2) : ''}</div>
-      <div style="display:flex;gap:5px">
-        <button class="rb" onclick="event.stopPropagation();openEditPedido('${p.id}')" style="font-size:11px;padding:4px 8px"><i class="ti ti-edit"></i></button>
-        <button class="rb" style="font-size:11px;padding:4px 8px;color:#A32D2D" onclick="event.stopPropagation();delPedido('${p.id}')"><i class="ti ti-trash"></i></button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function stPedido(n) {
-  [0,1,2,3].forEach(i => {
-    const el = document.getElementById('pt'+i);
-    if(el) el.style.display = i===n?'block':'none';
-    const tb = document.querySelectorAll('#modal-pedido .tb')[i];
-    if(tb) tb.classList.toggle('act', i===n);
-  });
-  if(n===3) calcPedidoTotal();
 }
 
 function setPedidoRetira(val) {
@@ -920,13 +846,6 @@ function calcCustoOperacionalDetalhado(aro) {
   return { embalagem: emb, tabua: tab, acessorios: acessorios, limpeza: limpeza, maoDeObra: mdo, total: total };
 }
 
-// Custo TOTAL de uma receita (ingredientes + indireto + mão de obra do tempo de preparo
-// daquela receita específica) — a mesma fórmula usada no card "Custo & Precificação" da
-// tela de visualização da receita. Usado no Detalhamento de Custo do pedido para Massa,
-// Recheio e Calda, em vez de considerar só o custo de ingredientes.
-// Monta o HTML de uma receita "expandida" para um multiplicador específico (ex: 0,818 do
-// aro 20), mostrando cada ingrediente já escalado (qtd × multiplicador) com seu custo
-// individual, e o fechamento com indireto + mão de obra, batendo com getCustoTotalReceita.
 function gerarHtmlReceitaExpandida(rec, mult, camadas) {
   camadas = camadas || 1;
   if (!rec) return '<div style="font-size:12px;color:var(--text3)">Receita não encontrada.</div>';
@@ -973,7 +892,6 @@ function gerarHtmlReceitaExpandida(rec, mult, camadas) {
     + '</div>';
 }
 
-// Abre/fecha o painel expandido de uma receita dentro do Detalhamento de Custo.
 function toggleReceitaExpandida(idElemento, nomeReceita, mult, camadas) {
   var el = document.getElementById(idElemento);
   if (!el) return;
@@ -1000,10 +918,6 @@ function getCustoTotalReceita(rec) {
   return custoIngr + custoIndireto + custoMdo;
 }
 
-// Função genérica de custo por aro, usada por Massa/Recheio/Calda/Cobertura: lê o
-// multiplicador cadastrado dentro da própria receita (rec.multiplicadorAro[aro]) e aplica
-// sobre o custo TOTAL da receita (ingredientes + indireto + mão de obra do tempo de preparo).
-// Substitui as tabelas genéricas antigas de Config (Quantidades reais por aro).
 function getCustoReceitaPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
@@ -1015,10 +929,6 @@ function getCustoReceitaPorAro(receitaNome, aro) {
   return custoTotalReceita * mult;
 }
 
-// Peso (g) necessário de um recheio/receita por aro, usado na Ficha Técnica de produção
-// (multiplicador × pesoTotal da receita), com o mesmo vínculo de nome usado no custo.
-// Peso (g) necessário de uma receita específica por aro (pesoTotal × multiplicador),
-// usado na Ficha Técnica de produção para Calda, Cobertura e outras receitas vinculadas.
 function getQtdAroDaReceita(receitaNome, aro) {
   if (!receitaNome) return null;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
@@ -1036,9 +946,6 @@ function getQtdAroDoRecheio(nomeRecheio, aro) {
   return getQtdAroDaReceita(receitaNome, aro);
 }
 
-// Custo de SÓ INGREDIENTES de uma receita, escalado pelo multiplicador do aro — sem
-// indireto e sem mão de obra (que na tela de Detalhamento de Custo do pedido passaram a
-// ser calculados uma única vez sobre o total do pedido, não por receita individual).
 function getCustoIngredientesPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
@@ -1057,9 +964,6 @@ function getCustoMassaAro(nomeMassa, aro) {
   return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
-// Busca todas as receitas que se aplicam automaticamente a um recheio específico (campo
-// recheiosVinculados), por exemplo "Chocolate Nobre Meio Amargo Picado" vinculado ao
-// recheio "Brigadeiro Meio Amargo". Pode haver mais de uma receita vinculada ao mesmo recheio.
 function getReceitasVinculadasAoRecheio(nomeRecheio) {
   if (!nomeRecheio) return [];
   return (typeof recipes !== 'undefined' ? recipes : []).filter(function(r){
@@ -1067,9 +971,6 @@ function getReceitasVinculadasAoRecheio(nomeRecheio) {
   });
 }
 
-// Custo de TODAS as receitas vinculadas a um recheio específico, para 1 camada, no aro
-// dado — só ingredientes (mesma regra acima: indireto/mão de obra saíram da conta por
-// receita e passaram a ser únicos, sobre o total do pedido).
 function getCustosVinculadosAro(nomeRecheio, aro) {
   return getReceitasVinculadasAoRecheio(nomeRecheio).map(function(rec){
     var custoIngr = (typeof totIC === 'function') ? totIC(rec.ingredients || []) : 0;
@@ -1088,10 +989,6 @@ function getCustoRecheioAro(nomeRecheio, aro) {
   return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
-// Retorna a receita de Calda vinculada a uma Massa específica (campo caldaVinculada,
-// cadastrado dentro da receita de Massa) — relação 1:1, diferente dos recheiosVinculados
-// (que podem ter vários itens por recheio). A calda nunca é escolhida pelo cliente; é
-// 100% automática a partir do que foi cadastrado na receita de Massa.
 function getCaldaVinculadaDaMassa(nomeMassa) {
   if (!nomeMassa) return null;
   var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeMassa; });
@@ -1099,9 +996,6 @@ function getCaldaVinculadaDaMassa(nomeMassa) {
   return (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === rec.caldaVinculada; }) || null;
 }
 
-// Custo da calda vinculada a uma massa, para o aro do pedido — mesmo formato de retorno
-// de getCustosVinculadosAro ({custo, qtd, nomeReceita}), para reaproveitar a mesma forma
-// de exibição na tela de Detalhamento de Custo e na Ficha Técnica de produção.
 function getCustoCaldaVinculadaAro(nomeMassa, aro) {
   var caldaRec = getCaldaVinculadaDaMassa(nomeMassa);
   if (!caldaRec) return null;
@@ -1141,8 +1035,6 @@ function calcPedidoTotal() {
   var nomeR2 = document.getElementById('p-recheio2')?.value || '';
   var custoRecheio1  = getCustoRecheioAro(nomeR1, aro);
   var custoRecheio2  = getCustoRecheioAro(nomeR2, aro);
-  // Calda 100% automática, vinda do vínculo cadastrado na receita de Massa — não há mais
-  // escolha manual de calda em lugar nenhum do app.
   var caldaVincPedido = typeof getCustoCaldaVinculadaAro === 'function' ? getCustoCaldaVinculadaAro(curPedido.massa, aro) : null;
   var custoCalda     = caldaVincPedido ? caldaVincPedido.custo : 0;
   var custoChantilly = getCustoChantillyAro(aro);
@@ -1187,8 +1079,6 @@ function isGrupoRecheio(g) {
   return norm === 'recheio' || norm === 'recheios';
 }
 
-// Identifica receitas de Massa por nome de grupo (aceita tanto "Bolos" quanto "Massas",
-// já que o app foi cadastrando massas embaixo de "Bolos" historicamente).
 function isGrupoMassa(g) {
   if (!g) return false;
   var norm = g.toString().trim().toLowerCase();
@@ -1208,7 +1098,6 @@ function getRecheios() {
 
 function populateRecheioSelects() {
   const recheios = getRecheios();
-  // Garante que o recheio já salvo no pedido sempre apareça como opção, mesmo que ainda não tenha sido cadastrado em Receitas
   const extras = [curPedido.recheio1, curPedido.recheio2].filter(function(n){ return n && !recheios.includes(n); });
   const todasOpcoes = [...recheios, ...extras];
   const opts = todasOpcoes.map(r => `<option value="${r.replace(/"/g,'&quot;')}">${r}</option>`).join('');
@@ -1218,16 +1107,6 @@ function populateRecheioSelects() {
   if(sel2) sel2.innerHTML = '<option value="">Nenhum / mesmo recheio</option>' + opts;
   if(curPedido.recheio1 && sel1) sel1.value = curPedido.recheio1;
   if(curPedido.recheio2 && sel2) sel2.value = curPedido.recheio2;
-}
-
-function openNovoPedido() {
-  editPedidoId = null;
-  curPedido = { retira: true, flores: false, papelaria: false };
-  document.getElementById('pedido-title').textContent = 'Novo Pedido';
-  resetPedidoForm();
-  populateRecheioSelects();
-  stPedido(0);
-  document.getElementById('modal-pedido').style.display = 'flex';
 }
 
 function resetPedidoForm() {
@@ -1253,42 +1132,9 @@ function resetPedidoForm() {
   setPapelaria(false);
 }
 
-function openEditPedido(id) {
-  const p = pedidos.find(x=>x.id===id);if(!p)return;
-  editPedidoId = id;
-  curPedido = {...p};
-  document.getElementById('pedido-title').textContent = 'Editar Pedido';
-  resetPedidoForm();
-  populateRecheioSelects();
-  if(p.cliente) document.getElementById('p-cliente').value = p.cliente;
-  if(p.data) document.getElementById('p-data').value = p.data;
-  if(p.hora) document.getElementById('p-hora').value = p.hora;
-  if(p.endereco) document.getElementById('p-endereco').value = p.endereco;
-  if(p.telefone) document.getElementById('p-telefone').value = p.telefone;
-  if(p.obsCliente) document.getElementById('p-obs-cliente').value = p.obsCliente;
-  if(p.tema) document.getElementById('p-tema').value = p.tema;
-  if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
-  if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
-  if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
-  if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
-  if(p.status) document.getElementById('p-status').value = p.status;
-  if(p.inspiPhoto) {
-    curPedido.inspiPhoto = p.inspiPhoto;
-    document.getElementById('p-inspi-preview').innerHTML = `<img src="${p.inspiPhoto}" style="width:100%;border-radius:var(--radius-sm);max-height:200px;object-fit:cover;margin-top:4px">`;
-  }
-  if(p.aro) setAro(p.aro);
-  if(p.massa) setMassa(p.massa);
-  if(p.cobertura) setCobertura(p.cobertura);
-  setPedidoRetira(p.retira !== false);
-  setFlores(p.flores === true);
-  setPapelaria(p.papelaria === true);
-  stPedido(0);
-  document.getElementById('modal-pedido').style.display = 'flex';
-}
-
 function savePedido() {
   const cliente = document.getElementById('p-cliente').value.trim();
-  if(!cliente) { toast('Informe o nome do cliente'); stPedido(0); return; }
+  if(!cliente) { toast('Informe o nome do cliente'); stPedidoTab('cliente'); return; }
   const valorBolo = parseFloat(document.getElementById('p-valor-bolo').value||0);
   const flores = curPedido.flores ? (sucreeConfig.floresValor||50) : 0;
   const papelaria = curPedido.papelaria ? (sucreeConfig.papelariaValor||35) : 0;
@@ -1368,99 +1214,231 @@ async function delPedido(id) {
   toast('Pedido excluído!');
 }
 
-function viewPedido(id) {
-  const p = pedidos.find(x=>x.id===id);if(!p)return;
-  document.getElementById('pv-title').textContent = p.cliente || 'Pedido';
-  document.getElementById('pv-edit-btn').onclick = ()=>{cm('modal-pedido-view');openEditPedido(id)};
-  const dataFmt = p.data ? new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR') : '—';
-  const statusLabel = {pendente:'⏳ Pendente',confirmado:'✅ Confirmado',producao:'🎂 Em produção',pronto:'🎉 Pronto',entregue:'✔️ Entregue',cancelado:'❌ Cancelado'}[p.status]||p.status;
+// ═══════════════════════════════════════════
+// CONFEITARIA — REDESIGN PREMIUM (listagem + modal único)
+// ═══════════════════════════════════════════
 
-  document.getElementById('pv-body').innerHTML = `
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <span class="status-badge sb-${p.status}">${statusLabel}</span>
-      <span style="font-size:13px;color:var(--text2)"><i class="ti ti-calendar"></i> ${dataFmt} ${p.hora?'· '+p.hora:''}</span>
-      ${p.retira?'<span style="background:var(--teal-light);color:var(--teal);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">✅ Cliente retira</span>':'<span style="background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">🚗 Entrego</span>'}
-    </div>
-    ${p.telefone?`<div style="font-size:13px;margin-bottom:8px"><i class="ti ti-phone" style="font-size:12px"></i> ${p.telefone}</div>`:''}
-    ${p.endereco?`<div style="font-size:13px;margin-bottom:8px;color:var(--text2)"><i class="ti ti-map-pin" style="font-size:12px"></i> ${p.endereco}</div>`:''}
-    <div class="st" style="margin-top:8px"><i class="ti ti-cake"></i> Detalhes do bolo</div>
-    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
-      ${p.aro?`<div class="total-row"><span>Tamanho</span><span><b>Aro ${p.aro}</b></span></div>`:''}
-      ${p.massa?`<div class="total-row"><span>Massa</span><span>${p.massa}</span></div>`:''}
-      ${p.recheio1?`<div class="total-row"><span>Recheio 1</span><span>${p.recheio1}</span></div>`:''}
-      ${p.recheio2?`<div class="total-row"><span>Recheio 2</span><span>${p.recheio2}</span></div>`:''}
-      ${p.cobertura?`<div class="total-row"><span>Cobertura</span><span>${p.cobertura==='chantininho'?'🍦 Chantininho':'🧁 Buttercream'}</span></div>`:''}
-      ${p.tema?`<div class="total-row"><span>Tema</span><span>${p.tema}</span></div>`:''}
-    </div>
-    <div class="st"><i class="ti ti-photo"></i> Fotos do pedido</div>
-    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+function _renderConfeitariaUI() {
+  const el = document.getElementById('page-confeitaria');
+  const m = calcMetricasConf();
+  const pendentes = pedidos.filter(p => p.status !== 'entregue' && p.status !== 'cancelado');
+
+  el.innerHTML = `
+    <div class="ped-header">
+      <div class="ped-header-top">
         <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Sugerida pela cliente</div>
-          ${p.inspiPhoto
-            ? `<img src="${p.inspiPhoto}" onclick="abrirFotoZoom('${p.inspiPhoto.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
-            : `<div style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:10px;text-align:center;padding:6px">Nenhuma foto enviada</div>`}
+          <div class="ped-header-title"><i class="ti ti-cake"></i> Confeitaria</div>
+          <div class="ped-header-sub">${pendentes.length} pedido(s) ativo(s)</div>
         </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Confirmada com cliente</div>
-          ${p.fotoConfirmada
-            ? `<img src="${p.fotoConfirmada}" onclick="abrirFotoZoom('${p.fotoConfirmada.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
-            : `<label style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold-dark, var(--gold));font-size:10px;text-align:center;cursor:pointer;gap:4px"><i class="ti ti-upload" style="font-size:18px"></i>Adicionar<input type="file" accept="image/*" style="display:none" onchange="uploadFotoPedido('${p.id}','fotoConfirmada',this)"></label>`}
-          ${p.fotoConfirmada ? `<button onclick="uploadFotoPedido('${p.id}','fotoConfirmada',null,true)" style="width:100%;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:3px"><i class="ti ti-trash"></i> Remover</button>` : ''}
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Bolo pronto</div>
-          ${p.fotoPronto
-            ? `<img src="${p.fotoPronto}" onclick="abrirFotoZoom('${p.fotoPronto.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
-            : `<label style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold-dark, var(--gold));font-size:10px;text-align:center;cursor:pointer;gap:4px"><i class="ti ti-upload" style="font-size:18px"></i>Adicionar<input type="file" accept="image/*" style="display:none" onchange="uploadFotoPedido('${p.id}','fotoPronto',this)"></label>`}
-          ${p.fotoPronto ? `<button onclick="uploadFotoPedido('${p.id}','fotoPronto',null,true)" style="width:100%;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:3px"><i class="ti ti-trash"></i> Remover</button>` : ''}
-        </div>
+        <button class="btnp" onclick="openNovoPedido()" style="padding:10px 16px;font-size:13px"><i class="ti ti-plus"></i> Novo pedido</button>
+      </div>
+      <div class="ped-metrics">
+        <div class="ped-metric"><span class="ped-metric-label">Total do mês</span><span class="ped-metric-value coral">R$ ${m.totalVendas.toFixed(0)}</span></div>
+        <div class="ped-metric"><span class="ped-metric-label">Custo est.</span><span class="ped-metric-value" style="color:#FF8080">R$ ${m.custoEst.toFixed(0)}</span></div>
+        <div class="ped-metric"><span class="ped-metric-label">Lucro est.</span><span class="ped-metric-value green">R$ ${m.lucroEst.toFixed(0)}</span></div>
+        <div class="ped-metric"><span class="ped-metric-label">A receber</span><span class="ped-metric-value gold">R$ ${m.aReceber.toFixed(0)}</span></div>
       </div>
     </div>
-    <div class="st"><i class="ti ti-currency-dollar"></i> Financeiro</div>
-    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
-      <div class="total-row grand"><span>TOTAL</span><span>R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</span></div>
-      ${p.sinal>0?`<div class="total-row saldo"><span>✅ Sinal pago</span><span>R$ ${parseFloat(p.sinal).toFixed(2)}</span></div>`:''}
-      ${p.sinal>0?`<div class="total-row" style="color:var(--gold);font-weight:700"><span>💳 Restante</span><span>R$ ${(parseFloat(p.valorTotal||0)-parseFloat(p.sinal||0)).toFixed(2)}</span></div>`:''}
+    <div class="ped-filters">
+      <button class="pm act" id="filter-todos" onclick="filterPedidos('todos')">Todos</button>
+      <button class="pm" id="filter-pendente" onclick="filterPedidos('pendente')">⏳ Pendente</button>
+      <button class="pm" id="filter-confirmado" onclick="filterPedidos('confirmado')">✅ Confirmado</button>
+      <button class="pm" id="filter-producao" onclick="filterPedidos('producao')">🎂 Produção</button>
+      <button class="pm" id="filter-pronto" onclick="filterPedidos('pronto')">🎉 Pronto</button>
+      <button class="pm" id="filter-entregue" onclick="filterPedidos('entregue')">✔️ Entregue</button>
     </div>
-    ${(p.topo || p.flores || p.papelaria) ? `
-    <div class="st"><i class="ti ti-receipt"></i> Custo real (topo/flores/papelaria)</div>
-    <div style="background:rgba(200,163,91,.08);border:1px solid rgba(200,163,91,.25);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
-      <p style="font-size:11px;color:var(--text2);margin-bottom:10px">Você cobra um valor fixo do cliente, mas o custo real varia. Informe quanto gastou de fato, para o lucro do pedido ficar correto.</p>
-      ${p.topo ? `
-      <div class="fg" style="margin-bottom:8px">
-        <label>🪄 Custo real do Topo (cobrado R$ ${(sucreeConfig.topoValor||45).toFixed(2)})</label>
-        <input type="number" id="custo-real-topo" value="${p.custoRealTopo ?? ''}" min="0" step="0.01" placeholder="Ex: 38.50" onchange="atualizarCustoRealPedido('${p.id}','custoRealTopo',this.value)">
-      </div>` : ''}
-      ${p.flores ? `
-      <div class="fg" style="margin-bottom:${p.papelaria?'8px':'0'}">
-        <label>💐 Custo real das Flores (cobrado R$ ${(sucreeConfig.floresValor||50).toFixed(2)})</label>
-        <input type="number" id="custo-real-flores" value="${p.custoRealFlores ?? ''}" min="0" step="0.01" placeholder="Ex: 65.00" onchange="atualizarCustoRealPedido('${p.id}','custoRealFlores',this.value)">
-      </div>` : ''}
-      ${p.papelaria ? `
-      <div class="fg" style="margin-bottom:0">
-        <label>🎨 Custo real da Papelaria (cobrado R$ ${(sucreeConfig.papelariaValor||35).toFixed(2)})</label>
-        <input type="number" id="custo-real-papelaria" value="${p.custoRealPapelaria ?? ''}" min="0" step="0.01" placeholder="Ex: 20.00" onchange="atualizarCustoRealPedido('${p.id}','custoRealPapelaria',this.value)">
-      </div>` : ''}
-    </div>` : ''}
-    <button onclick="imprimirPedidoCozinha('${p.id}')" style="width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
-      <i class="ti ti-printer"></i> 🖨️ Imprimir para a Cozinha
-    </button>
-    <button onclick="abrirDetalhamentoCusto('${p.id}')" style="width:100%;padding:12px;background:none;border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px">
-      <i class="ti ti-chart-bar"></i> 📊 Detalhamento de custo
-    </button>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <select onchange="updatePedidoStatus('${p.id}',this.value)" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text)">
-        <option value="pendente" ${p.status==='pendente'?'selected':''}>⏳ Pendente</option>
-        <option value="confirmado" ${p.status==='confirmado'?'selected':''}>✅ Confirmado</option>
-        <option value="producao" ${p.status==='producao'?'selected':''}>🎂 Em produção</option>
-        <option value="pronto" ${p.status==='pronto'?'selected':''}>🎉 Pronto</option>
-        <option value="entregue" ${p.status==='entregue'?'selected':''}>✔️ Entregue</option>
-        <option value="cancelado" ${p.status==='cancelado'?'selected':''}>❌ Cancelado</option>
-      </select>
-    </div>`;
+    <div id="pedidos-list" class="ped-grid">${renderPedidosList('todos')}</div>`;
+}
 
-  document.getElementById('modal-pedido-view').style.display = 'flex';
+// Card premium: usa foto (confirmada > inspiração) como thumbnail quando disponível,
+// segue o mesmo padrão visual de .rcp-card-premium das Receitas.
+function renderPedidoCard(p) {
+  const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}) : '—';
+  const statusLabel = {pendente:'⏳ Pendente',confirmado:'✅ Confirmado',producao:'🎂 Produção',pronto:'🎉 Pronto',entregue:'✔️ Entregue',cancelado:'❌ Cancelado'}[p.status] || p.status;
+  const diasRestantes = p.data ? Math.ceil((new Date(p.data + 'T12:00:00') - new Date()) / (1000*60*60*24)) : null;
+  const urgente = diasRestantes !== null && diasRestantes <= 2 && p.status !== 'entregue' && p.status !== 'cancelado';
+  const foto = p.fotoConfirmada || p.inspiPhoto || null;
+  const recheios = [p.recheio1, p.recheio2].filter(Boolean).join(' + ');
+  return `<div class="ped-card-premium status-${p.status}" onclick="openEditPedido('${p.id}')">
+    ${urgente ? `<div class="ped-card-urgent">🔥 ${diasRestantes<=0?'HOJE':diasRestantes+'d'}</div>` : ''}
+    <div class="ped-card-thumb">
+      ${foto ? `<img src="${foto}" alt="">` : `<div class="ped-card-thumb-placeholder"><i class="ti ti-cake"></i></div>`}
+      <span class="ped-card-status sb-${p.status}">${statusLabel}</span>
+    </div>
+    <div class="ped-card-body">
+      <div class="ped-card-name">${p.cliente || 'Sem nome'}</div>
+      <div class="ped-card-meta">
+        <span><i class="ti ti-calendar"></i> ${dataFmt}${p.hora ? ' · ' + p.hora : ''}</span>
+        ${p.aro ? `<span>Aro ${p.aro}</span>` : ''}
+      </div>
+      ${recheios ? `<div class="ped-card-recheios">${recheios}</div>` : ''}
+      <div class="ped-card-footer">
+        <span class="ped-card-valor">R$ ${parseFloat(p.valorTotal||0).toFixed(2)}</span>
+        ${p.sinal > 0 ? `<span class="ped-card-sinal">Sinal R$ ${parseFloat(p.sinal).toFixed(2)}</span>` : ''}
+      </div>
+    </div>
+    <button class="ped-card-del" onclick="event.stopPropagation();delPedido('${p.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+  </div>`;
+}
+
+// ── Navegação Anterior/Próxima entre pedidos (mesmo padrão usado em Receitas) ──
+function getListaNavegacaoPedido(id) {
+  var filtroAtivo = document.querySelector('[id^="filter-"].act');
+  var filtro = filtroAtivo ? filtroAtivo.id.replace('filter-','') : 'todos';
+  var lista = [...pedidos].sort(function(a,b){ return new Date(a.data) - new Date(b.data); });
+  if (filtro !== 'todos') lista = lista.filter(function(p){ return p.status === filtro; });
+  if (!lista.find(function(p){ return p.id === id; })) {
+    // pedido não está na lista filtrada atual — usa todos os pedidos como fallback
+    lista = [...pedidos].sort(function(a,b){ return new Date(a.data) - new Date(b.data); });
+  }
+  return lista;
+}
+
+function atualizarBotoesNavegacaoPedido(id) {
+  var lista = getListaNavegacaoPedido(id);
+  var idx = lista.findIndex(function(p){ return p.id === id; });
+  var btnAnt = document.getElementById('ped-btn-anterior');
+  var btnProx = document.getElementById('ped-btn-proxima');
+  if (!btnAnt || !btnProx) return;
+  if (idx <= 0) { btnAnt.disabled = true; } else { btnAnt.disabled = false; }
+  if (idx === -1 || idx >= lista.length - 1) { btnProx.disabled = true; } else { btnProx.disabled = false; }
+}
+
+function navegarPedidoAdjacente(direcao) {
+  if (!editPedidoId) return;
+  var lista = getListaNavegacaoPedido(editPedidoId);
+  var idx = lista.findIndex(function(p){ return p.id === editPedidoId; });
+  if (idx === -1) return;
+  var novoIdx = idx + direcao;
+  if (novoIdx < 0 || novoIdx >= lista.length) return;
+  var proximoId = lista[novoIdx].id;
+  openEditPedido(proximoId);
+}
+
+// ── Abre direto em modo edição completo (sem etapa de visualização separada) ──
+function openNovoPedido() {
+  editPedidoId = null;
+  curPedido = { retira: true, flores: false, papelaria: false };
+  document.getElementById('pedido-title').textContent = 'Novo Pedido';
+  resetPedidoForm();
+  populateRecheioSelects();
+  stPedidoTab('cliente');
+  var btnAnt = document.getElementById('ped-btn-anterior');
+  var btnProx = document.getElementById('ped-btn-proxima');
+  if (btnAnt) btnAnt.disabled = true;
+  if (btnProx) btnProx.disabled = true;
+  document.getElementById('modal-pedido').style.display = 'flex';
+}
+
+function openEditPedido(id) {
+  const p = pedidos.find(x=>x.id===id); if(!p) return;
+  editPedidoId = id;
+  curPedido = {...p};
+  document.getElementById('pedido-title').textContent = p.cliente || 'Editar Pedido';
+  resetPedidoForm();
+  populateRecheioSelects();
+  if(p.cliente) document.getElementById('p-cliente').value = p.cliente;
+  if(p.data) document.getElementById('p-data').value = p.data;
+  if(p.hora) document.getElementById('p-hora').value = p.hora;
+  if(p.endereco) document.getElementById('p-endereco').value = p.endereco;
+  if(p.telefone) document.getElementById('p-telefone').value = p.telefone;
+  if(p.obsCliente) document.getElementById('p-obs-cliente').value = p.obsCliente;
+  if(p.tema) document.getElementById('p-tema').value = p.tema;
+  if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
+  if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
+  if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
+  if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
+  if(p.status) document.getElementById('p-status').value = p.status;
+  if(p.inspiPhoto) {
+    curPedido.inspiPhoto = p.inspiPhoto;
+    document.getElementById('p-inspi-preview').innerHTML = `<img src="${p.inspiPhoto}" style="width:100%;border-radius:var(--radius-sm);max-height:200px;object-fit:cover;margin-top:4px">`;
+  }
+  if(p.aro) setAro(p.aro);
+  if(p.massa) setMassa(p.massa);
+  if(p.cobertura) setCobertura(p.cobertura);
+  setPedidoRetira(p.retira !== false);
+  setFlores(p.flores === true);
+  setPapelaria(p.papelaria === true);
+  renderFotosPedidoTab(p);
+  stPedidoTab('cliente');
+  atualizarBotoesNavegacaoPedido(id);
+  document.getElementById('modal-pedido').style.display = 'flex';
+}
+
+// Troca de abas do modal único (Cliente / Bolo & Recheio / Decoração & Fotos / Financeiro / Detalhamento de Custo)
+function stPedidoTab(tab) {
+  var tabs = ['cliente','bolo','decoracao','financeiro','custo'];
+  tabs.forEach(function(t){
+    var pane = document.getElementById('ped-tab-' + t);
+    var btn = document.getElementById('ped-tabbtn-' + t);
+    if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
+    if (btn) btn.classList.toggle('act', t === tab);
+  });
+  if (tab === 'financeiro') calcPedidoTotal();
+  if (tab === 'custo' && editPedidoId) montarAbaDetalhamentoCusto(editPedidoId);
+}
+
+// Renderiza os 3 slots de foto dentro da aba Decoração & Fotos do modal único.
+function renderFotosPedidoTab(p) {
+  var el = document.getElementById('ped-fotos-grid');
+  if (!el) return;
+  if (!p || !p.id) { el.innerHTML = '<div style="font-size:12px;color:var(--text3)">Salve o pedido para poder anexar fotos.</div>'; return; }
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Sugerida pela cliente</div>
+      ${p.inspiPhoto
+        ? `<img src="${p.inspiPhoto}" onclick="abrirFotoZoom('${p.inspiPhoto.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
+        : `<div style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:10px;text-align:center;padding:6px">Nenhuma foto</div>`}
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Confirmada com cliente</div>
+      ${p.fotoConfirmada
+        ? `<img src="${p.fotoConfirmada}" onclick="abrirFotoZoom('${p.fotoConfirmada.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
+        : `<label style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold-dark, var(--gold));font-size:10px;text-align:center;cursor:pointer;gap:4px"><i class="ti ti-upload" style="font-size:18px"></i>Adicionar<input type="file" accept="image/*" style="display:none" onchange="uploadFotoPedido('${p.id}','fotoConfirmada',this)"></label>`}
+      ${p.fotoConfirmada ? `<button onclick="uploadFotoPedido('${p.id}','fotoConfirmada',null,true)" style="width:100%;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:3px"><i class="ti ti-trash"></i> Remover</button>` : ''}
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;text-align:center">Bolo pronto</div>
+      ${p.fotoPronto
+        ? `<img src="${p.fotoPronto}" onclick="abrirFotoZoom('${p.fotoPronto.replace(/'/g,"\\'")}')" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`
+        : `<label style="width:100%;aspect-ratio:1;border-radius:8px;border:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gold-dark, var(--gold));font-size:10px;text-align:center;cursor:pointer;gap:4px"><i class="ti ti-upload" style="font-size:18px"></i>Adicionar<input type="file" accept="image/*" style="display:none" onchange="uploadFotoPedido('${p.id}','fotoPronto',this)"></label>`}
+      ${p.fotoPronto ? `<button onclick="uploadFotoPedido('${p.id}','fotoPronto',null,true)" style="width:100%;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:3px"><i class="ti ti-trash"></i> Remover</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function uploadFotoPedido(id, campo, inputEl, remover) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  const colMap = { fotoConfirmada: 'foto_confirmada', fotoPronto: 'foto_pronto' };
+  const col = colMap[campo];
+  if (remover) {
+    if (!confirm('Remover esta foto?')) return;
+    p[campo] = null;
+    savePedidos();
+    try { sb.from('pedidos_confeitaria').update({ [col]: null }).eq('id', id).then(function(){}); } catch(e) {}
+    renderFotosPedidoTab(p);
+    return;
+  }
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    p[campo] = ev.target.result;
+    savePedidos();
+    try { sb.from('pedidos_confeitaria').update({ [col]: ev.target.result }).eq('id', id).then(function(){}); } catch(e) {}
+    toast('✅ Foto adicionada!');
+    renderFotosPedidoTab(p);
+  };
+  reader.readAsDataURL(file);
+}
+
+function abrirFotoZoom(src) {
+  const win = document.createElement('div');
+  win.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  win.onclick = function(){ win.remove(); };
+  win.innerHTML = '<img src="' + src + '" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain">';
+  document.body.appendChild(win);
 }
 
 function atualizarCustoRealPedido(id, campo, valor) {
@@ -1475,13 +1453,44 @@ function atualizarCustoRealPedido(id, campo, valor) {
   } catch(e) {}
 }
 
-function abrirDetalhamentoCusto(id) {
+function updatePedidoStatus(id, status) {
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  if (status === 'entregue') {
+    const faltaTopo = p.topo && (p.custoRealTopo === undefined || p.custoRealTopo === null || p.custoRealTopo === '');
+    const faltaFlores = p.flores && (p.custoRealFlores === undefined || p.custoRealFlores === null || p.custoRealFlores === '');
+    const faltaPapelaria = p.papelaria && (p.custoRealPapelaria === undefined || p.custoRealPapelaria === null || p.custoRealPapelaria === '');
+    if (faltaTopo || faltaFlores || faltaPapelaria) {
+      const partes = [];
+      if (faltaTopo) partes.push('topo');
+      if (faltaFlores) partes.push('flores');
+      if (faltaPapelaria) partes.push('papelaria');
+      toast('⚠️ Informe o custo real de ' + partes.join(', ') + ' na aba Decoração & Fotos antes de marcar como entregue');
+      const selEl = document.getElementById('p-status');
+      if (selEl) selEl.value = p.status;
+      stPedidoTab('decoracao');
+      return;
+    }
+  }
+  p.status = status;
+  savePedidos();
+  updatePedidoStatusCloud(id, status);
+  toast('Status atualizado!');
+}
+
+// ── Aba "Detalhamento de Custo" dentro do modal único — mesma lógica de cálculo do
+// antigo modal separado, mas populando containers internos do modal de pedido. ──
+function montarAbaDetalhamentoCusto(id) {
   const p = pedidos.find(x => x.id === id);
   if (!p) return;
   const aro = parseInt(p.aro) || 0;
 
+  if (!aro) {
+    document.getElementById('ped-tab-custo').innerHTML = '<div style="font-size:13px;color:var(--text3);padding:20px;text-align:center">Selecione o aro na aba "Bolo & Recheio" para ver o detalhamento de custo.</div>';
+    return;
+  }
+
   const custoMassa = getCustoMassaAro(p.massa, aro);
-  // Resolve o nome real da receita + multiplicador para o botão "ver detalhamento" (lupa).
   function resolverReceitaEMult(nomeCardapio, prefixoVinculo) {
     if (!nomeCardapio) return { nome: null, mult: null };
     var vincs = sucreeConfig.receitasCardapio || {};
@@ -1494,21 +1503,16 @@ function abrirDetalhamentoCusto(id) {
   const massaResolvida = resolverReceitaEMult(p.massa, 'massa');
   const recheio1Resolvido = resolverReceitaEMult(p.recheio1, 'recheio');
   const recheio2Resolvido = resolverReceitaEMult(p.recheio2, 'recheio');
-  // 3 camadas de recheio no total: recheio1, recheio2, e um deles repetido (escolha manual sua, não do cliente).
   const recheioRepetido = p.recheioRepetido || 'recheio1';
   const camadasRecheio1 = p.recheio1 ? (recheioRepetido === 'recheio1' ? 2 : 1) : 0;
   const camadasRecheio2 = p.recheio2 ? (recheioRepetido === 'recheio2' ? 2 : 1) : 0;
   const custoRecheio1Camada = p.recheio1 ? getCustoRecheioAro(p.recheio1, aro) : 0;
   const custoRecheio2Camada = p.recheio2 ? getCustoRecheioAro(p.recheio2, aro) : 0;
-  const custoRecheio1 = custoRecheio1Camada * camadasRecheio1;
-  const custoRecheio2 = custoRecheio2Camada * camadasRecheio2;
   const vinculados1 = p.recheio1 ? getCustosVinculadosAro(p.recheio1, aro).map(function(v){ return {...v, camadas: camadasRecheio1}; }) : [];
   const vinculados2 = p.recheio2 ? getCustosVinculadosAro(p.recheio2, aro).map(function(v){ return {...v, camadas: camadasRecheio2}; }) : [];
   const itensVinculados = vinculados1.concat(vinculados2);
   const custoVinculados = itensVinculados.reduce(function(a, v){ return a + (v.custo * v.camadas); }, 0);
 
-  // Calda: 100% automática, vinda do vínculo cadastrado na receita de Massa — nunca
-  // escolhida pelo cliente nem pelo admin no pedido. Serve só para custo e ficha de cozinha.
   const caldaVinculada = getCustoCaldaVinculadaAro(p.massa, aro);
   const custoCalda = caldaVinculada ? caldaVinculada.custo : 0;
 
@@ -1517,17 +1521,9 @@ function abrirDetalhamentoCusto(id) {
   const custoCoberturaAuto = p.cobertura === 'chantininho' ? custoChantilly : (p.cobertura === 'buttercream' ? custoButtercream : 0);
   const nomeCoberturaAuto = p.cobertura === 'chantininho' ? 'Chantininho' : (p.cobertura === 'buttercream' ? 'Buttercream' : p.cobertura);
 
-  // Descartáveis (tábua/cakeboard + embalagem), vindos de Config — NÃO inclui mais
-  // acessórios/limpeza/mão de obra de finalização aqui, porque a formação de preço nesta
-  // tela passou a usar só o indireto de 18% sobre o total de ingredientes (ver mais abaixo).
   const cfgCustos = (typeof sucreeConfig !== 'undefined' && sucreeConfig.custos) ? sucreeConfig.custos : {};
   const tabuaPadrao = ((cfgCustos.tabuaAro||{})[aro] !== undefined ? (cfgCustos.tabuaAro||{})[aro] : (cfgCustos.tabua ?? 3));
   const embalagemPadrao = ((cfgCustos.embalagemAro||{})[aro] !== undefined ? (cfgCustos.embalagemAro||{})[aro] : (cfgCustos.embalagem ?? 15));
-
-  // ── HEADER do modal ──
-  document.getElementById('dc-cliente-nome').textContent = p.cliente || 'Cliente';
-  document.getElementById('dc-meta-aro').textContent = aro || '—';
-  document.getElementById('dc-meta-valor').textContent = 'R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
 
   function dcRow(label, valor) {
     return '<div class="dc-row"><span class="dc-row-label">'+label+'</span><span class="dc-row-value">R$ '+valor.toFixed(2)+'</span></div>';
@@ -1550,7 +1546,6 @@ function abrirDetalhamentoCusto(id) {
       + '<input type="number" class="dc-input" id="'+id_+'" value="'+(valor??'')+'" min="0" step="0.01" placeholder="0,00"></div>';
   }
 
-  // ── COLUNA 1: Calculado automaticamente ──
   let htmlAuto = dcRowExpandivel('Massa (' + (p.massa||'—') + ')', custoMassa, massaResolvida.nome, massaResolvida.mult, 'expand-massa-'+id);
   if (p.recheio1 && p.recheio2) {
     htmlAuto += '<div class="dc-field"><label>Qual sabor repete (3 camadas no total)?</label>'
@@ -1577,11 +1572,8 @@ function abrirDetalhamentoCusto(id) {
     + custoVinculados + custoCalda + custoCoberturaAuto;
 
   htmlAuto += '<div class="dc-row dc-row-total"><span class="dc-row-label">Total ingredientes</span><span class="dc-row-value">R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>';
-  document.getElementById('dc-col-auto').innerHTML = htmlAuto;
 
-  // ── COLUNA 2: Descartáveis + Decoração ──
-  document.getElementById('dc-col-descartaveis').innerHTML =
-    dcRow('Tábua/Cakeboard', tabuaPadrao) + dcRow('Embalagem', embalagemPadrao);
+  let htmlDescartaveis = dcRow('Tábua/Cakeboard', tabuaPadrao) + dcRow('Embalagem', embalagemPadrao);
 
   let htmlDecoracao = dcFieldEditavel('Diferença no cakeboard/tábua (R$, pode ser negativo)', 'dc-cakeboard', p.custoCakeboard)
     + dcFieldEditavel('Diferença na caixa de papel (R$, pode ser negativo)', 'dc-caixa', p.custoCaixa);
@@ -1594,25 +1586,41 @@ function abrirDetalhamentoCusto(id) {
     + '<input type="number" class="dc-input" id="dc-recheio-extra-qtd" value="' + (p.recheioExtraQtd??'') + '" min="0" placeholder="Qtd (g)">'
     + '<input type="number" class="dc-input" id="dc-recheio-extra-custo" value="' + (p.recheioExtraCusto??'') + '" min="0" step="0.01" placeholder="Custo (R$)">'
     + '</div></div>';
-  document.getElementById('dc-col-decoracao').innerHTML = htmlDecoracao;
 
-  // Margem ideal Sucrée fixa em 40%: preço sugerido = custo total ÷ 0,60
+  document.getElementById('ped-tab-custo').innerHTML = `
+    <div class="dc-cols">
+      <div class="dc-col">
+        <div class="dc-col-title">🧮 Calculado automaticamente</div>
+        <div id="dc-col-auto">${htmlAuto}</div>
+      </div>
+      <div class="dc-col">
+        <div class="dc-col-title">📦 Descartáveis</div>
+        <div id="dc-col-descartaveis">${htmlDescartaveis}</div>
+        <div class="dc-col-title" style="margin-top:14px">🎨 Decoração (editável)</div>
+        <div id="dc-col-decoracao">${htmlDecoracao}</div>
+      </div>
+      <div class="dc-col">
+        <div class="dc-col-title">📊 Resumo</div>
+        <div id="dc-col-resumo"></div>
+      </div>
+    </div>
+    <button class="btnp full" id="dc-btn-salvar" style="margin-top:14px"><i class="ti ti-device-floppy"></i> Salvar custos</button>
+  `;
+
   const MARGEM_IDEAL = 0.40;
 
   function recalcular() {
     const g = function(idc){ const el = document.getElementById(idc); return el ? (parseFloat(el.value)||0) : 0; };
     const custoDescartaveis = tabuaPadrao + embalagemPadrao + g('dc-cakeboard') + g('dc-caixa');
     const custoDecoracao = g('dc-topo') + g('dc-flores') + g('dc-papelaria') + g('dc-recheio-extra-custo');
-    // Custo Operacional = 18% sobre o total de ingredientes do pedido (substitui o
-    // indireto que antes era calculado individualmente dentro de cada receita).
     const custoOperacional = custoIngredientesTotal * 0.18;
     const custoMaoObraExtra = g('dc-maoobra');
     const custoTotal = custoIngredientesTotal + custoOperacional + custoDescartaveis + custoDecoracao + custoMaoObraExtra;
 
     const valorTotal = parseFloat(p.valorTotal||0);
     const lucroObtido = valorTotal - custoTotal;
-    const precoSugerido = custoTotal / (1 - MARGEM_IDEAL); // custo ÷ 0,60
-    const lucroDesejado = precoSugerido - custoTotal; // = precoSugerido × 40%
+    const precoSugerido = custoTotal / (1 - MARGEM_IDEAL);
+    const lucroDesejado = precoSugerido - custoTotal;
 
     document.getElementById('dc-col-resumo').innerHTML =
       '<div class="dc-summary-row"><span>Custo Ingredientes</span><span>R$ '+custoIngredientesTotal.toFixed(2)+'</span></div>'
@@ -1641,7 +1649,7 @@ function abrirDetalhamentoCusto(id) {
     const elRepetido = document.getElementById('dc-recheio-repetido');
     if (elRepetido) elRepetido.addEventListener('change', function(){
       p.recheioRepetido = elRepetido.value;
-      abrirDetalhamentoCusto(id); // reabre recalculando as 3 camadas com a nova escolha
+      montarAbaDetalhamentoCusto(id);
     });
     recalcular();
   }, 0);
@@ -1670,74 +1678,7 @@ function abrirDetalhamentoCusto(id) {
       }).eq('id', id).then(function(){});
     } catch(e) {}
     toast('✅ Custos salvos!');
-    fecharDetalhamentoCusto();
   };
-  document.getElementById('modal-detalhamento-custo').style.display = 'flex';
-}
-
-function fecharDetalhamentoCusto() {
-  document.getElementById('modal-detalhamento-custo').style.display = 'none';
-}
-
-function uploadFotoPedido(id, campo, inputEl, remover) {
-  const p = pedidos.find(x => x.id === id);
-  if (!p) return;
-  const colMap = { fotoConfirmada: 'foto_confirmada', fotoPronto: 'foto_pronto' };
-  const col = colMap[campo];
-  if (remover) {
-    if (!confirm('Remover esta foto?')) return;
-    p[campo] = null;
-    savePedidos();
-    try { sb.from('pedidos_confeitaria').update({ [col]: null }).eq('id', id).then(function(){}); } catch(e) {}
-    viewPedido(id);
-    return;
-  }
-  const file = inputEl && inputEl.files && inputEl.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    p[campo] = ev.target.result;
-    savePedidos();
-    try { sb.from('pedidos_confeitaria').update({ [col]: ev.target.result }).eq('id', id).then(function(){}); } catch(e) {}
-    toast('✅ Foto adicionada!');
-    viewPedido(id);
-  };
-  reader.readAsDataURL(file);
-}
-
-function abrirFotoZoom(src) {
-  const win = document.createElement('div');
-  win.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  win.onclick = function(){ win.remove(); };
-  win.innerHTML = '<img src="' + src + '" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain">';
-  document.body.appendChild(win);
-}
-
-function updatePedidoStatus(id, status) {
-  const p = pedidos.find(x=>x.id===id);
-  if(!p) return;
-  if (status === 'entregue') {
-    const faltaTopo = p.topo && (p.custoRealTopo === undefined || p.custoRealTopo === null || p.custoRealTopo === '');
-    const faltaFlores = p.flores && (p.custoRealFlores === undefined || p.custoRealFlores === null || p.custoRealFlores === '');
-    const faltaPapelaria = p.papelaria && (p.custoRealPapelaria === undefined || p.custoRealPapelaria === null || p.custoRealPapelaria === '');
-    if (faltaTopo || faltaFlores || faltaPapelaria) {
-      const partes = [];
-      if (faltaTopo) partes.push('topo');
-      if (faltaFlores) partes.push('flores');
-      if (faltaPapelaria) partes.push('papelaria');
-      toast('⚠️ Informe o custo real de ' + partes.join(', ') + ' antes de marcar como entregue');
-      const sel = document.querySelector('select[onchange*="' + id + '"]');
-      if (sel) sel.value = p.status;
-      const campo = faltaTopo ? document.getElementById('custo-real-topo') : (faltaFlores ? document.getElementById('custo-real-flores') : document.getElementById('custo-real-papelaria'));
-      if (campo) { campo.focus(); campo.style.borderColor = '#A32D2D'; }
-      return;
-    }
-  }
-  p.status = status;
-  savePedidos();
-  updatePedidoStatusCloud(id, status);
-  toast('Status atualizado!');
-  renderConfeitaria();
 }
 
 function copiarLinkCardapio() {
@@ -2015,12 +1956,10 @@ function enviarNotifNtfy(titulo, mensagem, prioridade) {
 }
 
 function notificarWhatsApp(p) {
-  // 1. Notificação push via Ntfy
   var resumoNtfy = (p.cliente||'Cliente') + ' · Aro ' + (p.aro||'?') + ' · R$ ' + parseFloat(p.valorTotal||0).toFixed(2);
   if (p.data) resumoNtfy += ' · ' + new Date(p.data+'T12:00:00').toLocaleDateString('pt-BR');
   enviarNotifNtfy('Novo Pedido - Sucree', resumoNtfy, 'high');
 
-  // 2. Abrir WhatsApp com detalhes
   try {
     const dataFmt = p.data ? new Date(p.data + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
     const msg = encodeURIComponent(
@@ -2046,9 +1985,6 @@ function notificarWhatsApp(p) {
   } catch(e) { console.log('WhatsApp erro:', e.message); }
 }
 
-// Monta a seção HTML da Ficha Técnica de Produção: quanto fazer de massa (e como dividir
-// nas 2 formas), recheio por camada (3 camadas, 1 sabor repetido), chocolate nobre
-// companheiro, calda total e cobertura final — tudo já calculado para o aro do pedido.
 function gerarFichaTecnicaProducaoHtml(p) {
   const aro = parseInt(p.aro) || 0;
   if (!aro) return '';
@@ -2059,7 +1995,6 @@ function gerarFichaTecnicaProducaoHtml(p) {
 
   let html = '<div class="sec"><div class="st">🧾 Ficha técnica de produção (aro ' + aro + ')</div>';
 
-  // 1) Massa: quantas vezes fazer a receita + divisão em 2 formas
   const massaNome = (p.massa || '').toLowerCase();
   const ehChiffon = massaNome.indexOf('chiffon') >= 0 || massaNome.indexOf('pão de ló') >= 0 || massaNome.indexOf('fofinha') >= 0;
   const recMassa = p.massa ? (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return (r.name||'').trim().toLowerCase() === p.massa.trim().toLowerCase(); }) : null;
@@ -2075,7 +2010,6 @@ function gerarFichaTecnicaProducaoHtml(p) {
   if (massaTotal) html += row('Por forma (2 formas)', Math.ceil(massaTotal/2) + 'g cada');
   html += row('Discos após assar', '4 discos (corte cada forma ao meio)');
 
-  // 2) Recheio: 3 camadas, com indicação de qual sabor repete
   if (p.recheio1 || p.recheio2) {
     const recheioRepetido = p.recheioRepetido || 'recheio1';
     const nomeRepetido = recheioRepetido === 'recheio2' ? p.recheio2 : p.recheio1;
@@ -2087,7 +2021,6 @@ function gerarFichaTecnicaProducaoHtml(p) {
     if (nomeRepetido) html += row('Recheio (2 camadas)', nomeRepetido + (qtdRepetido ? ' — ' + qtdRepetido + 'g por camada (' + (qtdRepetido*2) + 'g total)' : ''));
     if (nomeUnico) html += row('Recheio (1 camada)', nomeUnico + (qtdUnico ? ' — ' + qtdUnico + 'g' : ''));
 
-    // Quantas vezes fazer a receita de cada recheio (peso total necessário ÷ pesoTotal da receita)
     [{nome: nomeRepetido, qtdCamada: qtdRepetido, camadas: 2}, {nome: nomeUnico, qtdCamada: qtdUnico, camadas: 1}].forEach(function(item){
       if (!item.nome || !item.qtdCamada) return;
       const recR = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === item.nome; });
@@ -2098,7 +2031,6 @@ function gerarFichaTecnicaProducaoHtml(p) {
       html += row('Vezes a receita — ' + item.nome, Number(vezes.toFixed(2)) + 'x (' + totalNecessario + 'g necessários)');
     });
 
-    // Itens vinculados automaticamente a cada recheio (ex: chocolate nobre picado)
     [{nome: p.recheio1, camadas: recheioRepetido==='recheio1'?2:1}, {nome: p.recheio2, camadas: recheioRepetido==='recheio2'?2:1}].forEach(function(item){
       if (!item.nome) return;
       getCustosVinculadosAro(item.nome, aro).forEach(function(v){
@@ -2111,8 +2043,6 @@ function gerarFichaTecnicaProducaoHtml(p) {
     html += row('Recheio adicional (caso especial)', p.recheioExtraNome + (p.recheioExtraQtd ? ' — ' + p.recheioExtraQtd + 'g' : ''));
   }
 
-  // 3) Calda total (por disco × 4 discos) — 100% automática, vinda do vínculo cadastrado
-  // na receita de Massa (campo caldaVinculada), nunca escolhida pelo cliente.
   const caldaRecFicha = getCaldaVinculadaDaMassa(p.massa);
   const qtdCaldaDisco = caldaRecFicha ? getQtdAroDaReceita(caldaRecFicha.name, aro) : null;
   if (qtdCaldaDisco) {
@@ -2121,7 +2051,6 @@ function gerarFichaTecnicaProducaoHtml(p) {
   }
   if (caldaRecFicha) html += row('Tipo de calda', caldaRecFicha.name);
 
-  // 4) Cobertura final
   if (p.cobertura) {
     const vincsCobertura = sucreeConfig.receitasCardapio || {};
     const receitaCoberturaNome = p.cobertura === 'chantininho' ? (vincsCobertura.chantininho || 'Chantininho') : (vincsCobertura.buttercream || 'Buttercream');
@@ -2158,10 +2087,8 @@ function imprimirPedidoCozinha(id) {
   html += '</div>';
   if(p.tema||p.obsDeco) { html += '<div class="sec"><div class="st">🎨 Decoração</div>'; if(p.tema) html += '<div class="row"><span class="key">Tema</span><span class="val">'+p.tema+'</span></div>'; if(p.obsDeco) html += '<div style="padding:8px;background:#fffbe6;border-radius:6px;font-size:12px;font-style:italic;margin-top:6px">'+p.obsDeco+'</div>'; html += '</div>'; }
 
-  // ─── FICHA TÉCNICA DE PRODUÇÃO: quanto fazer de cada coisa para este aro específico ───
   html += gerarFichaTecnicaProducaoHtml(p);
 
-  // ─── RECEITAS: busca pelo nome cadastrado, mostra ingredientes + modo de preparo ───
   function escapeHtml(s){ return String(s||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function blocoReceita(nomeBusca) {
     if (!nomeBusca) return '';
@@ -2308,8 +2235,6 @@ function selectSemPreco() {
   toast(window._estoqueSelected.size + ' ingrediente(s) sem preço selecionados');
 }
 
-// Busca preços via IA para uma lista arbitrária de chaves de estoque (usado tanto pela tela
-// Estoque quanto pelo fluxo automático de "ingrediente novo" ao salvar receita).
 async function buscarPrecosIAIngredientes(keys) {
   if (!keys || !keys.length) return 0;
   const names = keys.map(k => estoque[k]?.name).filter(Boolean);
