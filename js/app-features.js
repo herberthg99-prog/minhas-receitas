@@ -507,6 +507,9 @@ function renderEstoque() {
         <button class="btng" id="btn-upd-estoque" onclick="atualizarEstoqueIASelecionados()" style="font-size:12px;padding:8px 12px">
           <i class="ti ti-refresh"></i> Atualizar selecionados (IA)
         </button>
+        <button class="btns" onclick="imprimirListaComprasEstoque()" style="font-size:12px;padding:8px 12px">
+          <i class="ti ti-printer"></i> Imprimir Lista
+        </button>
         <button class="btns" onclick="addEstoqueManual()" style="font-size:12px;padding:8px 12px">
           <i class="ti ti-plus"></i> Adicionar
         </button>
@@ -528,6 +531,54 @@ function renderEstoque() {
       keys.map(k => renderEstoqueItem(k)).join('')
     }`;
 }
+
+
+function getEstoqueKeysFiltroAtual() {
+  const allKeys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
+  const filtro = window._estoqueFiltro || 'todos';
+  if (filtro === 'sem_preco') return allKeys.filter(k => !estoque[k].price || estoque[k].price === 0);
+  if (filtro === 'vencido') return allKeys.filter(k => (estoque[k].price && estoque[k].price > 0) && precoVencido(estoque[k]));
+  return allKeys;
+}
+
+function escapeHtmlPrint(v) {
+  return String(v == null ? '' : v).replace(/[&<>'"]/g, function(ch){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[ch];
+  });
+}
+
+function imprimirListaComprasEstoque() {
+  const selecionados = Array.from(window._estoqueSelected || new Set()).filter(k => estoque[k]);
+  const keys = (selecionados.length ? selecionados : getEstoqueKeysFiltroAtual()).sort((a,b) => (estoque[a]?.name || a).localeCompare(estoque[b]?.name || b, 'pt-BR'));
+  if (!keys.length) { toast('Nenhum ingrediente para imprimir neste filtro.'); return; }
+  const data = new Date().toLocaleString('pt-BR');
+  const rows = keys.map(function(k){
+    const ig = estoque[k] || {};
+    const preco = ig.price > 0 ? 'R$ ' + (ig.price * 1000).toFixed(2) + '/kg' : '—';
+    return '<tr>'
+      + '<td class="check">☐</td>'
+      + '<td class="nome">' + escapeHtmlPrint(ig.name || k) + '</td>'
+      + '<td>' + escapeHtmlPrint(ig.unit || 'g') + '</td>'
+      + '<td>' + escapeHtmlPrint(preco) + '</td>'
+      + '<td class="novo"></td>'
+      + '</tr>';
+  }).join('');
+  const origem = selecionados.length ? (selecionados.length + ' selecionado(s)') : 'Filtro atual: ' + ((window._estoqueFiltro || 'todos') === 'sem_preco' ? 'Sem preço' : (window._estoqueFiltro || 'todos') === 'vencido' ? 'Vencidos 45+ dias' : 'Todos');
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista de Compras — Sucrée</title>'
+    + '<style>'
+    + '@page{margin:12mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:12px;line-height:1.35}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}.brand{font-family:Georgia,serif;font-size:24px;font-weight:700}.sub{font-size:11px;color:#333;margin-top:3px}.meta{text-align:right;font-size:11px;color:#333}h1{font-family:Georgia,serif;font-size:22px;margin:12px 0 4px}.count{font-size:12px;margin-bottom:12px}table{width:100%;border-collapse:collapse}th{font-size:11px;text-align:left;text-transform:uppercase;letter-spacing:.04em;border:1px solid #111;padding:7px 8px;background:#f2f2f2}td{border:1px solid #333;padding:10px 8px;vertical-align:middle}.check{width:34px;text-align:center;font-size:18px}.nome{font-weight:700}.novo{width:180px;height:34px}footer{margin-top:16px;border-top:1px solid #111;padding-top:8px;font-size:11px;color:#333}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.no-print{display:none}}'
+    + '</style></head><body>'
+    + '<header><div><div class="brand">Sucrée Confeitaria</div><div class="sub">Lista para conferência e atualização de preços</div></div><div class="meta"><strong>Lista de Compras</strong><br>Gerada em ' + escapeHtmlPrint(data) + '<br>' + escapeHtmlPrint(origem) + '</div></header>'
+    + '<h1>Lista de Compras</h1><div class="count">' + keys.length + ' ingrediente(s)</div>'
+    + '<table><thead><tr><th></th><th>Ingrediente</th><th>Unidade</th><th>Preço atual</th><th>Preço novo</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<footer>Atualize os preços no sistema após a compra.</footer>'
+    + '<script>window.onload=function(){window.print()}<' + '/script></body></html>';
+  const w = window.open('', '_blank');
+  if (!w) { toast('Permita pop-ups para imprimir a lista.'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
 
 
 function getEstoqueIconClass(nome) {
