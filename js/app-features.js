@@ -817,6 +817,7 @@ async function savePedidoToCloud(pedido) {
       data: pedido.data || null, hora: pedido.hora || null, retira: pedido.retira,
       endereco: pedido.endereco || null, aro: pedido.aro, massa: pedido.massa,
       recheio1: pedido.recheio1 || null, recheio2: pedido.recheio2 || null,
+      recheio_repetido: pedido.recheioRepetido || 'recheio1',
       cobertura: pedido.cobertura, deco: pedido.deco, tema: pedido.tema || null,
       topo: pedido.topo || false, flores: pedido.flores || false,
       obs_deco: pedido.obsDeco || null, inspi_photo: pedido.inspiPhoto || null,
@@ -873,14 +874,12 @@ function setPedidoRetira(val) {
   const sim = document.getElementById('btn-retira-sim');
   const nao = document.getElementById('btn-retira-nao');
   const addr = document.getElementById('entrega-addr-box');
+  if (sim) sim.classList.toggle('is-selected', val);
+  if (nao) nao.classList.toggle('is-selected', !val);
   if(val) {
-    sim.style.borderColor='var(--teal)';sim.style.background='var(--teal-light)';sim.style.color='var(--teal)';
-    nao.style.borderColor='var(--border)';nao.style.background='var(--bg)';nao.style.color='var(--text)';
-    addr.style.display='none';
+    if (addr) addr.style.display='none';
   } else {
-    nao.style.borderColor='var(--coral)';nao.style.background='var(--gold-light)';nao.style.color='var(--gold-dark)';
-    sim.style.borderColor='var(--border)';sim.style.background='var(--bg)';sim.style.color='var(--text)';
-    addr.style.display='block';
+    if (addr) addr.style.display='block';
   }
 }
 
@@ -897,16 +896,49 @@ function setAro(aro) {
 
 function setMassa(tipo) {
   curPedido.massa = tipo;
-  document.querySelectorAll('.massa-btn').forEach(b => { b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)'; });
-  const btn = document.getElementById('massa-'+tipo);
-  if(btn){btn.style.borderColor='var(--coral)';btn.style.background='var(--gold-light)';btn.style.color='var(--gold-dark)';}
+  document.querySelectorAll('.massa-btn').forEach(b => b.classList.remove('is-selected'));
+  document.getElementById('massa-'+tipo)?.classList.add('is-selected');
 }
 
 function setCobertura(tipo) {
   curPedido.cobertura = tipo;
-  document.querySelectorAll('.cob-btn').forEach(b => { b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)'; });
-  const btn = document.getElementById('cob-'+tipo);
-  if(btn){btn.style.borderColor='var(--coral)';btn.style.background='var(--gold-light)';btn.style.color='var(--gold-dark)';}
+  document.querySelectorAll('.cob-btn').forEach(b => b.classList.remove('is-selected'));
+  document.getElementById('cob-'+tipo)?.classList.add('is-selected');
+}
+
+function getPedidoRecheioRepetido(nomeR1, nomeR2) {
+  if (!nomeR1 && nomeR2) return 'recheio2';
+  if (!nomeR2) return 'recheio1';
+  return curPedido.recheioRepetido === 'recheio2' ? 'recheio2' : 'recheio1';
+}
+
+function renderPedidoRecheioRepetidoControl() {
+  const box = document.getElementById('p-recheio-repetido-box');
+  const sel = document.getElementById('p-recheio-repetido');
+  if (!box || !sel) return;
+  const nomeR1 = document.getElementById('p-recheio1')?.value || '';
+  const nomeR2 = document.getElementById('p-recheio2')?.value || '';
+  curPedido.recheio1 = nomeR1;
+  curPedido.recheio2 = nomeR2;
+  if (!nomeR1 && nomeR2) curPedido.recheioRepetido = 'recheio2';
+  else if (!nomeR2) curPedido.recheioRepetido = 'recheio1';
+  if (curPedido.recheioRepetido !== 'recheio2') curPedido.recheioRepetido = 'recheio1';
+  box.style.display = nomeR1 && nomeR2 ? 'block' : 'none';
+  sel.innerHTML = '<option value="recheio1">' + (nomeR1 || 'Recheio 1') + ' (2x)</option>'
+    + '<option value="recheio2">' + (nomeR2 || 'Recheio 2') + ' (2x)</option>';
+  sel.value = curPedido.recheioRepetido;
+}
+
+function setPedidoRecheioRepetido(val) {
+  curPedido.recheioRepetido = val === 'recheio2' ? 'recheio2' : 'recheio1';
+  const sel = document.getElementById('p-recheio-repetido');
+  if (sel) sel.value = curPedido.recheioRepetido;
+  calcPedidoTotal();
+}
+
+function onPedidoRecheiosChange() {
+  renderPedidoRecheioRepetidoControl();
+  calcPedidoTotal();
 }
 
 function setFlores(val) {
@@ -1153,11 +1185,13 @@ function calcPedidoTotal() {
   var nomeR2 = document.getElementById('p-recheio2')?.value || '';
   var custoRecheio1  = getCustoRecheioAro(nomeR1, aro);
   var custoRecheio2  = getCustoRecheioAro(nomeR2, aro);
+  var recheioRepetidoPedido = getPedidoRecheioRepetido(nomeR1, nomeR2);
+  var custoRecheioRepetido = (nomeR1 || nomeR2) ? (recheioRepetidoPedido === 'recheio2' ? custoRecheio2 : custoRecheio1) : 0;
   var caldaVincPedido = typeof getCustoCaldaVinculadaAro === 'function' ? getCustoCaldaVinculadaAro(curPedido.massa, aro) : null;
   var custoCalda     = caldaVincPedido ? caldaVincPedido.custo : 0;
   var custoChantilly = getCustoChantillyAro(aro);
   var custoCobertura = curPedido.cobertura === 'buttercream' ? (sucreeConfig.buttercream||50) : custoChantilly;
-  var custoIngr = custoRecheio1 + custoRecheio2 + custoCalda;
+  var custoIngr = custoRecheio1 + custoRecheio2 + custoRecheioRepetido + custoCalda;
   var custoCalculado = custoOp + custoIngr + custoCobertura;
   const custo = custoInput > 0 ? custoInput : (custoCalculado > 0 ? custoCalculado : valorBolo * 0.35);
   const margemPct = sucreeConfig.custos?.margemLucro || 30;
@@ -1237,6 +1271,7 @@ function criarPedidoVazio() {
     cobertura: null,
     recheio1: '',
     recheio2: '',
+    recheioRepetido: 'recheio1',
     inspiPhoto: null,
     valorTotal: 0,
     custoEstimado: 0
@@ -1257,7 +1292,7 @@ function resetPedidoForm() {
     if(el) el.value = '';
   });
 
-  ['p-recheio1','p-recheio2','p-pagamento'].forEach(id => {
+  ['p-recheio1','p-recheio2','p-recheio-repetido','p-pagamento'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1273,6 +1308,9 @@ function resetPedidoForm() {
   const fotosGrid = document.getElementById('ped-fotos-grid');
   if (fotosGrid) fotosGrid.innerHTML = '<div style="font-size:12px;color:var(--text3)">Salve o pedido para poder anexar fotos.</div>';
 
+  const repetidoBox = document.getElementById('p-recheio-repetido-box');
+  if (repetidoBox) repetidoBox.style.display = 'none';
+
   const custoTab = document.getElementById('ped-tab-custo');
   if (custoTab) custoTab.innerHTML = '';
 
@@ -1280,9 +1318,7 @@ function resetPedidoForm() {
   if (infoBox) { infoBox.style.display = 'none'; infoBox.innerHTML = ''; }
 
   document.querySelectorAll('.aro-btn').forEach(b=>b.classList.remove('sel'));
-  document.querySelectorAll('.massa-btn,.cob-btn').forEach(b=>{
-    b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)';
-  });
+  document.querySelectorAll('.massa-btn,.cob-btn,#btn-retira-sim,#btn-retira-nao').forEach(b=>b.classList.remove('is-selected'));
 
   setTextPedidoChip('ped-chip-status', '<i class="ti ti-clock"></i> Pendente');
   setTextPedidoChip('ped-chip-data', '<i class="ti ti-calendar"></i> —');
@@ -1318,6 +1354,7 @@ function savePedido() {
     massa: curPedido.massa,
     recheio1: document.getElementById('p-recheio1').value,
     recheio2: document.getElementById('p-recheio2').value,
+    recheioRepetido: document.getElementById('p-recheio-repetido')?.value || curPedido.recheioRepetido || 'recheio1',
     cobertura: curPedido.cobertura,
     valorBolo,
     custoEstimado: parseFloat(document.getElementById('p-custo')?.value||0) || (valorBolo * 0.35),
@@ -1514,6 +1551,8 @@ function openEditPedido(id) {
   if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
   if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
   if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
+  renderPedidoRecheioRepetidoControl();
+  if(p.recheioRepetido) document.getElementById('p-recheio-repetido').value = p.recheioRepetido;
   if(p.status) document.getElementById('p-status').value = p.status;
   if(p.inspiPhoto) {
     curPedido.inspiPhoto = p.inspiPhoto;
@@ -1815,6 +1854,8 @@ function montarAbaDetalhamentoCusto(id) {
     const elRepetido = document.getElementById('dc-recheio-repetido');
     if (elRepetido) elRepetido.addEventListener('change', function(){
       p.recheioRepetido = elRepetido.value;
+      curPedido.recheioRepetido = elRepetido.value;
+      renderPedidoRecheioRepetidoControl();
       montarAbaDetalhamentoCusto(id);
     });
     recalcular();
