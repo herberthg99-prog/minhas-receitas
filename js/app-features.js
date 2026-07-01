@@ -494,10 +494,14 @@ function renderEstoque() {
   const keys = filtro === 'sem_preco' ? semPreco : (filtro === 'vencido' ? vencidos : allKeys);
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:16px;font-weight:700">${total} ingrediente(s)</div>
-        <div style="font-size:12px;color:var(--text2)">${semPreco.length} sem preço · ${vencidos.length} com preço vencido (45+ dias) · <span id="sel-count">0</span> selecionado(s)</div>
+    <div class="premium-page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:46px;height:46px;border-radius:15px;background:linear-gradient(180deg,rgba(212,162,74,.24),rgba(212,162,74,.08));border:1px solid rgba(212,162,74,.35);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:22px"><i class="ti ti-package"></i></div>
+        <div>
+          <div class="premium-kicker">Gestão de insumos</div>
+          <div class="premium-title">${total} ingrediente(s)</div>
+          <div class="premium-subtitle">${semPreco.length} sem preço · ${vencidos.length} com preço vencido (45+ dias) · <span id="sel-count">0</span> selecionado(s)</div>
+        </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btng" id="btn-upd-estoque" onclick="atualizarEstoqueIASelecionados()" style="font-size:12px;padding:8px 12px">
@@ -534,13 +538,14 @@ function renderEstoqueItem(key) {
   let estoqueSelected = window._estoqueSelected || new Set();
   window._estoqueSelected = estoqueSelected;
   const isChecked = estoqueSelected.has(key);
-  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(192,57,43,.4)':'')}">
+  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(255,77,79,.46)':'')}">
     <div class="estoque-item-header">
-      <div style="display:flex;align-items:flex-start;gap:8px">
+      <div style="display:flex;align-items:flex-start;gap:11px;min-width:0">
+        <div style="width:36px;height:36px;border-radius:12px;background:rgba(212,162,74,.13);border:1px solid rgba(212,162,74,.28);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0"><i class="ti ti-bottle"></i></div>
         <input type="checkbox" ${isChecked?'checked':''} onchange="toggleEstoqueSelect('${key}',this.checked)"
           style="width:18px;height:18px;accent-color:var(--gold);margin-top:2px;flex-shrink:0;cursor:pointer">
         <div>
-          <div class="estoque-item-name">${ig.name}</div>
+          <div class="estoque-item-name" style="font-family:Georgia,'Playfair Display',serif">${ig.name}</div>
           <div class="estoque-item-meta">
             <span>${ig.unit || 'g'}</span>
             ${updStr ? `<span><i class="ti ti-clock" style="font-size:10px"></i> ${updStr}</span>` : '<span class="estoque-badge-new">Sem atualização</span>'}
