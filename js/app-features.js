@@ -890,7 +890,7 @@ function setAro(aro) {
   const infoBox = document.getElementById('aro-info-box');
   if(infoBox) { infoBox.style.display='flex'; infoBox.innerHTML = `<i class="ti ti-info-circle" style="flex-shrink:0"></i> <span>Aro ${aro}: ${ARO_INFO[aro]}</span>`; }
   const valorInput = document.getElementById('p-valor-bolo');
-  if(valorInput && !valorInput.value) valorInput.value = ARO_PRICES[aro] || '';
+  atualizarPrecoBoloSugerido();
   calcPedidoTotal();
 }
 
@@ -933,11 +933,58 @@ function setPedidoRecheioRepetido(val) {
   curPedido.recheioRepetido = val === 'recheio2' ? 'recheio2' : 'recheio1';
   const sel = document.getElementById('p-recheio-repetido');
   if (sel) sel.value = curPedido.recheioRepetido;
+  atualizarPrecoBoloSugerido();
   calcPedidoTotal();
+}
+
+function normalizarTipoRecheioCardapio(tipo) {
+  var t = (tipo || 'trad').toString().trim().toLowerCase();
+  return (t === 'prem' || t === 'premium') ? 'prem' : 'trad';
+}
+
+function getTipoRecheioPedido(nome) {
+  if (!nome) return 'trad';
+  var alvo = normalizarNomeReceitaBusca(nome);
+  var lista = (typeof getRecheiosCardapioDerivados === 'function')
+    ? getRecheiosCardapioDerivados()
+    : (typeof recipes !== 'undefined' ? recipes.filter(r => isGrupoRecheio(r.group)).map(r => ({ nome: r.name, tipo: r.tipoCardapio || 'trad' })) : []);
+  var item = lista.find(function(r){ return normalizarNomeReceitaBusca(r.nome) === alvo; });
+  return normalizarTipoRecheioCardapio(item ? item.tipo : 'trad');
+}
+
+function getClassificacaoBoloPedido() {
+  var r1 = document.getElementById('p-recheio1')?.value || curPedido.recheio1 || '';
+  var r2 = document.getElementById('p-recheio2')?.value || curPedido.recheio2 || '';
+  return (getTipoRecheioPedido(r1) === 'prem' || getTipoRecheioPedido(r2) === 'prem') ? 'prem' : 'trad';
+}
+
+function getPrecoTabelaBolo(aro, classificacao) {
+  var linha = (sucreeConfig.precos || {})[aro] || {};
+  return parseFloat(linha[classificacao === 'prem' ? 'prem' : 'trad'] || 0);
+}
+
+function atualizarPrecoBoloSugerido() {
+  var aro = curPedido.aro;
+  var input = document.getElementById('p-valor-bolo');
+  var info = document.getElementById('p-preco-sugerido-info');
+  if (!input || !info) return;
+  var classificacao = getClassificacaoBoloPedido();
+  curPedido.classificacaoBolo = classificacao;
+  var preco = aro ? getPrecoTabelaBolo(aro, classificacao) : 0;
+  var label = classificacao === 'prem' ? 'Premium' : 'Tradicional';
+  if (!aro) { info.innerHTML = '<span style="color:var(--text3)">Selecione o aro para sugerir o preço pela tabela.</span>'; return; }
+  if (preco > 0 && !curPedido.valorBoloManual) input.value = preco.toFixed(2);
+  info.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;border:1px solid rgba(212,162,74,.30);color:' + (classificacao === 'prem' ? 'var(--gold)' : 'var(--teal)') + '">Classificação: <strong>' + label + '</strong> · Tabela aro ' + aro + ': R$ ' + (preco || 0).toFixed(2) + (curPedido.valorBoloManual ? ' · valor editado manualmente' : '') + '</span>';
+}
+
+function marcarValorBoloManual() {
+  curPedido.valorBoloManual = true;
+  atualizarPrecoBoloSugerido();
 }
 
 function onPedidoRecheiosChange() {
   renderPedidoRecheioRepetidoControl();
+  atualizarPrecoBoloSugerido();
   calcPedidoTotal();
 }
 
@@ -1070,7 +1117,7 @@ function getCustoTotalReceita(rec) {
 
 function getCustoReceitaPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  var rec = findReceitaPorNomeFlex(receitaNome);
   if (!rec) return 0;
   var custoTotalReceita = getCustoTotalReceita(rec);
   if (!custoTotalReceita) return 0;
@@ -1079,9 +1126,38 @@ function getCustoReceitaPorAro(receitaNome, aro) {
   return custoTotalReceita * mult;
 }
 
+function normalizarNomeReceitaBusca(nome) {
+  return (nome || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function getAliasesReceitaPedido(nome) {
+  var norm = normalizarNomeReceitaBusca(nome);
+  if (norm === 'amanteigada') return ['Amanteigada', 'Massa Amanteigada', 'Bolo Amanteigado'];
+  if (norm === 'pao de lo' || norm === 'pao de lo fofinha' || norm === 'pao de lo fofinho') return ['Pão de Ló', 'Pao de Lo', 'Massa Pão de Ló', 'Pão de Ló Fofinha'];
+  if (norm === 'chantininho') return ['Chantininho', 'Chantilly', 'Cobertura Chantininho'];
+  if (norm === 'buttercream') return ['Buttercream', 'Butter Cream', 'Cobertura Buttercream'];
+  return [nome];
+}
+
+function findReceitaPorNomeFlex(nome) {
+  if (!nome || typeof recipes === 'undefined') return null;
+  var aliases = getAliasesReceitaPedido(nome);
+  var alvos = aliases.map(normalizarNomeReceitaBusca);
+  return recipes.find(function(r){ return alvos.indexOf(normalizarNomeReceitaBusca(r.name)) >= 0; }) || null;
+}
+
+function resolverNomeReceitaVinculada(nomeCardapio, prefixoVinculo) {
+  if (!nomeCardapio) return null;
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var key = nomeCardapio.replace(/[^a-zA-Z0-9]/g,'_');
+  var nomeVinculado = vincs[prefixoVinculo + '_' + key] || nomeCardapio;
+  var rec = findReceitaPorNomeFlex(nomeVinculado);
+  return rec ? rec.name : nomeVinculado;
+}
+
 function getQtdAroDaReceita(receitaNome, aro) {
   if (!receitaNome) return null;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  var rec = findReceitaPorNomeFlex(receitaNome);
   if (!rec) return null;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   var mult = (rec.multiplicadorAro || {})[aro];
@@ -1098,7 +1174,7 @@ function getQtdAroDoRecheio(nomeRecheio, aro) {
 
 function getCustoIngredientesPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  var rec = findReceitaPorNomeFlex(receitaNome);
   if (!rec) return 0;
   var custoIngr = (typeof totIC === 'function') ? totIC(rec.ingredients || []) : 0;
   if (!custoIngr) return 0;
@@ -1108,9 +1184,7 @@ function getCustoIngredientesPorAro(receitaNome, aro) {
 }
 
 function getCustoMassaAro(nomeMassa, aro) {
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var key = (nomeMassa||'').replace(/[^a-zA-Z0-9]/g,'_');
-  var receitaNome = vincs['massa_' + key] || nomeMassa;
+  var receitaNome = resolverNomeReceitaVinculada(nomeMassa, 'massa');
   return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
@@ -1133,15 +1207,13 @@ function getCustosVinculadosAro(nomeRecheio, aro) {
 }
 
 function getCustoRecheioAro(nomeRecheio, aro) {
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
-  var receitaNome = vincs['recheio_' + key] || nomeRecheio;
+  var receitaNome = resolverNomeReceitaVinculada(nomeRecheio, 'recheio');
   return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
 function getCaldaVinculadaDaMassa(nomeMassa) {
   if (!nomeMassa) return null;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeMassa; });
+  var rec = findReceitaPorNomeFlex(resolverNomeReceitaVinculada(nomeMassa, 'massa'));
   if (!rec || !rec.caldaVinculada) return null;
   return (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === rec.caldaVinculada; }) || null;
 }
@@ -1166,7 +1238,8 @@ function getCustoChantillyAro(aro) {
 function getCustoButtercreamAro(aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = vincs.buttercream || 'Buttercream';
-  return getCustoIngredientesPorAro(receitaNome, aro);
+  var custoReceita = getCustoIngredientesPorAro(receitaNome, aro);
+  return custoReceita || (sucreeConfig.buttercream || 50);
 }
 
 function calcPedidoTotal() {
@@ -1190,7 +1263,7 @@ function calcPedidoTotal() {
   var caldaVincPedido = typeof getCustoCaldaVinculadaAro === 'function' ? getCustoCaldaVinculadaAro(curPedido.massa, aro) : null;
   var custoCalda     = caldaVincPedido ? caldaVincPedido.custo : 0;
   var custoChantilly = getCustoChantillyAro(aro);
-  var custoCobertura = curPedido.cobertura === 'buttercream' ? (sucreeConfig.buttercream||50) : custoChantilly;
+  var custoCobertura = curPedido.cobertura === 'buttercream' ? getCustoButtercreamAro(aro) : custoChantilly;
   var custoIngr = custoRecheio1 + custoRecheio2 + custoRecheioRepetido + custoCalda;
   var custoCalculado = custoOp + custoIngr + custoCobertura;
   const custo = custoInput > 0 ? custoInput : (custoCalculado > 0 ? custoCalculado : valorBolo * 0.35);
@@ -1251,7 +1324,7 @@ function getRecheios() {
 function populateRecheioSelects() {
   const recheios = getRecheios();
   const extras = [curPedido.recheio1, curPedido.recheio2].filter(function(n){ return n && !recheios.includes(n); });
-  const todasOpcoes = [...recheios, ...extras];
+  const todasOpcoes = [...recheios, ...extras].sort((a,b) => a.localeCompare(b, 'pt-BR'));
   const opts = todasOpcoes.map(r => `<option value="${r.replace(/"/g,'&quot;')}">${r}</option>`).join('');
   const sel1 = document.getElementById('p-recheio1');
   const sel2 = document.getElementById('p-recheio2');
@@ -1274,6 +1347,8 @@ function criarPedidoVazio() {
     recheioRepetido: 'recheio1',
     inspiPhoto: null,
     valorTotal: 0,
+    valorBoloManual: false,
+    classificacaoBolo: 'trad',
     custoEstimado: 0
   };
 }
@@ -1355,6 +1430,7 @@ function savePedido() {
     recheio1: document.getElementById('p-recheio1').value,
     recheio2: document.getElementById('p-recheio2').value,
     recheioRepetido: document.getElementById('p-recheio-repetido')?.value || curPedido.recheioRepetido || 'recheio1',
+    classificacaoBolo: curPedido.classificacaoBolo || getClassificacaoBoloPedido(),
     cobertura: curPedido.cobertura,
     valorBolo,
     custoEstimado: parseFloat(document.getElementById('p-custo')?.value||0) || (valorBolo * 0.35),
@@ -1548,11 +1624,12 @@ function openEditPedido(id) {
   if(p.obsCliente) document.getElementById('p-obs-cliente').value = p.obsCliente;
   if(p.tema) document.getElementById('p-tema').value = p.tema;
   if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
-  if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
+  if(p.valorBolo) { document.getElementById('p-valor-bolo').value = p.valorBolo; curPedido.valorBoloManual = true; }
   if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
   if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
   renderPedidoRecheioRepetidoControl();
   if(p.recheioRepetido) document.getElementById('p-recheio-repetido').value = p.recheioRepetido;
+  atualizarPrecoBoloSugerido();
   if(p.status) document.getElementById('p-status').value = p.status;
   if(p.inspiPhoto) {
     curPedido.inspiPhoto = p.inspiPhoto;
@@ -1698,12 +1775,10 @@ function montarAbaDetalhamentoCusto(id) {
   const custoMassa = getCustoMassaAro(p.massa, aro);
   function resolverReceitaEMult(nomeCardapio, prefixoVinculo) {
     if (!nomeCardapio) return { nome: null, mult: null };
-    var vincs = sucreeConfig.receitasCardapio || {};
-    var key = nomeCardapio.replace(/[^a-zA-Z0-9]/g,'_');
-    var nomeReal = vincs[prefixoVinculo + '_' + key] || nomeCardapio;
-    var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeReal; });
+    var nomeReal = resolverNomeReceitaVinculada(nomeCardapio, prefixoVinculo);
+    var rec = findReceitaPorNomeFlex(nomeReal);
     var mult = (rec && rec.multiplicadorAro) ? rec.multiplicadorAro[aro] : null;
-    return { nome: nomeReal, mult: mult };
+    return { nome: rec ? rec.name : nomeReal, mult: mult };
   }
   const massaResolvida = resolverReceitaEMult(p.massa, 'massa');
   const recheio1Resolvido = resolverReceitaEMult(p.recheio1, 'recheio');
