@@ -1227,20 +1227,67 @@ function populateRecheioSelects() {
   if(curPedido.recheio2 && sel2) sel2.value = curPedido.recheio2;
 }
 
+function criarPedidoVazio() {
+  return {
+    retira: true,
+    flores: false,
+    papelaria: false,
+    aro: null,
+    massa: null,
+    cobertura: null,
+    recheio1: '',
+    recheio2: '',
+    inspiPhoto: null,
+    valorTotal: 0,
+    custoEstimado: 0
+  };
+}
+
+function setTextPedidoChip(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
 function resetPedidoForm() {
+  if (!editPedidoId) curPedido = criarPedidoVazio();
+
   ['p-cliente','p-data','p-hora','p-endereco','p-telefone','p-obs-cliente',
    'p-tema','p-obs-deco','p-valor-bolo','p-custo','p-sinal'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
-  document.getElementById('p-inspi-preview').innerHTML = '';
-  document.getElementById('aro-info-box').style.display = 'none';
+
+  ['p-recheio1','p-recheio2','p-pagamento'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  const statusEl = document.getElementById('p-status');
+  if (statusEl) statusEl.value = 'pendente';
+
+  const inspiInput = document.getElementById('p-inspi-input');
+  if (inspiInput) inspiInput.value = '';
+  const inspiPreview = document.getElementById('p-inspi-preview');
+  if (inspiPreview) inspiPreview.innerHTML = '';
+
+  const fotosGrid = document.getElementById('ped-fotos-grid');
+  if (fotosGrid) fotosGrid.innerHTML = '<div style="font-size:12px;color:var(--text3)">Salve o pedido para poder anexar fotos.</div>';
+
+  const custoTab = document.getElementById('ped-tab-custo');
+  if (custoTab) custoTab.innerHTML = '';
+
+  const infoBox = document.getElementById('aro-info-box');
+  if (infoBox) { infoBox.style.display = 'none'; infoBox.innerHTML = ''; }
+
   document.querySelectorAll('.aro-btn').forEach(b=>b.classList.remove('sel'));
   document.querySelectorAll('.massa-btn,.cob-btn').forEach(b=>{
     b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)';
   });
-  document.getElementById('p-pagamento').value = '';
-  document.getElementById('p-status').value = 'pendente';
+
+  setTextPedidoChip('ped-chip-status', '<i class="ti ti-clock"></i> Pendente');
+  setTextPedidoChip('ped-chip-data', '<i class="ti ti-calendar"></i> —');
+  setTextPedidoChip('ped-chip-aro', '<i class="ti ti-ruler"></i> —');
+
   setPedidoRetira(true);
   const txtFlores = document.getElementById('txt-flores-valor');
   if (txtFlores) txtFlores.textContent = 'R$ ' + (sucreeConfig.floresValor||50).toFixed(2);
@@ -1437,7 +1484,7 @@ function navegarPedidoAdjacente(direcao) {
 // ── Abre direto em modo edição completo (sem etapa de visualização separada) ──
 function openNovoPedido() {
   editPedidoId = null;
-  curPedido = { retira: true, flores: false, papelaria: false };
+  curPedido = criarPedidoVazio();
   document.getElementById('pedido-title').textContent = 'Novo Pedido';
   resetPedidoForm();
   populateRecheioSelects();
