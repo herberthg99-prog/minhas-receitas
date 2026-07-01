@@ -318,10 +318,56 @@ function normalizarChaveIngrediente(nome) {
 // passar por aqui (em vez de ler ig.price diretamente). Retorna preço por g/ml (mesma
 // convenção interna sempre usada: price = R$ por grama/mililitro, não por kg/L).
 // Se o ingrediente ainda não tem preço cadastrado no Estoque, retorna 0.
+function normalizarUnidadeEstoque(unit) {
+  const u = (unit || 'g').toString().trim().toLowerCase();
+  if (u === 'l' || u === 'lt' || u === 'litro' || u === 'litros') return 'l';
+  if (u === 'ml') return 'ml';
+  if (u === 'kg' || u === 'quilo' || u === 'quilos') return 'kg';
+  if (u === 'un' || u === 'und' || u === 'unid' || u === 'unidade' || u === 'unidades') return 'un';
+  return 'g';
+}
+
+function getPrecoInternoEstoqueItem(item) {
+  if (!item || !item.price || item.price <= 0) return 0;
+  const unit = normalizarUnidadeEstoque(item.unit);
+  if (unit === 'un' && item.price > 0 && item.price < 0.05) return item.price * 1000;
+  return item.price;
+}
+
+function formatPrecoEstoqueItem(item) {
+  if (!item || !item.price || item.price <= 0) return '—';
+  const unit = normalizarUnidadeEstoque(item.unit);
+  const preco = getPrecoInternoEstoqueItem(item);
+  if (unit === 'un') return 'R$ ' + preco.toFixed(2) + '/un';
+  if (unit === 'ml' || unit === 'l') return 'R$ ' + (preco * 1000).toFixed(2) + '/L';
+  return 'R$ ' + (preco * 1000).toFixed(2) + '/kg';
+}
+
+function getValorDisplayEstoqueItem(item) {
+  if (!item || !item.price || item.price <= 0) return '';
+  const unit = normalizarUnidadeEstoque(item.unit);
+  const preco = getPrecoInternoEstoqueItem(item);
+  return unit === 'un' ? preco.toFixed(2) : (preco * 1000).toFixed(2);
+}
+
+function getPlaceholderPrecoEstoque(unit) {
+  const u = normalizarUnidadeEstoque(unit);
+  if (u === 'un') return 'Preço por unidade (R$)';
+  if (u === 'ml' || u === 'l') return 'Preço por litro (R$)';
+  return 'Preço por kg (R$)';
+}
+
+function formatPrecoIngrediente(nome) {
+  if (!nome) return '—';
+  const key = normalizarChaveIngrediente(nome);
+  return key && estoque[key] ? formatPrecoEstoqueItem(estoque[key]) : '—';
+}
+
 function getPrecoIngrediente(nome) {
   if (!nome) return 0;
   const key = normalizarChaveIngrediente(nome);
-  return (estoque[key] && estoque[key].price) ? estoque[key].price : 0;
+  if (!key || !estoque[key]) return 0;
+  return getPrecoInternoEstoqueItem(estoque[key]);
 }
 
 // Verdadeiro se o ingrediente ainda não tem preço cadastrado no Estoque — usado para
@@ -494,14 +540,21 @@ function renderEstoque() {
   const keys = filtro === 'sem_preco' ? semPreco : (filtro === 'vencido' ? vencidos : allKeys);
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:16px;font-weight:700">${total} ingrediente(s)</div>
-        <div style="font-size:12px;color:var(--text2)">${semPreco.length} sem preço · ${vencidos.length} com preço vencido (45+ dias) · <span id="sel-count">0</span> selecionado(s)</div>
+    <div class="premium-page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:46px;height:46px;border-radius:15px;background:linear-gradient(180deg,rgba(212,162,74,.24),rgba(212,162,74,.08));border:1px solid rgba(212,162,74,.35);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:22px"><i class="ti ti-package"></i></div>
+        <div>
+          <div class="premium-kicker">Gestão de insumos</div>
+          <div class="premium-title">${total} ingrediente(s)</div>
+          <div class="premium-subtitle">${semPreco.length} sem preço · ${vencidos.length} com preço vencido (45+ dias) · <span id="sel-count">0</span> selecionado(s)</div>
+        </div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btng" id="btn-upd-estoque" onclick="atualizarEstoqueIASelecionados()" style="font-size:12px;padding:8px 12px">
           <i class="ti ti-refresh"></i> Atualizar selecionados (IA)
+        </button>
+        <button class="btns" onclick="imprimirListaComprasEstoque()" style="font-size:12px;padding:8px 12px">
+          <i class="ti ti-printer"></i> Imprimir Lista
         </button>
         <button class="btns" onclick="addEstoqueManual()" style="font-size:12px;padding:8px 12px">
           <i class="ti ti-plus"></i> Adicionar
@@ -525,22 +578,86 @@ function renderEstoque() {
     }`;
 }
 
+
+
+function getEstoqueKeysFiltroAtual() {
+  const allKeys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
+  const filtro = window._estoqueFiltro || 'todos';
+  if (filtro === 'sem_preco') return allKeys.filter(k => !estoque[k].price || estoque[k].price === 0);
+  if (filtro === 'vencido') return allKeys.filter(k => (estoque[k].price && estoque[k].price > 0) && precoVencido(estoque[k]));
+  return allKeys;
+}
+
+function escapeHtmlPrint(v) {
+  return String(v == null ? '' : v).replace(/[&<>'"]/g, function(ch){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[ch];
+  });
+}
+
+function imprimirListaComprasEstoque() {
+  const selecionados = Array.from(window._estoqueSelected || new Set()).filter(k => estoque[k]);
+  const keys = (selecionados.length ? selecionados : getEstoqueKeysFiltroAtual()).sort((a,b) => (estoque[a]?.name || a).localeCompare(estoque[b]?.name || b, 'pt-BR'));
+  if (!keys.length) { toast('Nenhum ingrediente para imprimir neste filtro.'); return; }
+  const data = new Date().toLocaleString('pt-BR');
+  const rows = keys.map(function(k){
+    const ig = estoque[k] || {};
+    const precoAtualFormatado = formatPrecoEstoqueItem(ig);
+    return '<tr>'
+      + '<td class="check">☐</td>'
+      + '<td class="nome">' + escapeHtmlPrint(ig.name || k) + '</td>'
+      + '<td>' + escapeHtmlPrint(ig.unit || 'g') + '</td>'
+      + '<td>' + escapeHtmlPrint(precoAtualFormatado) + '</td>'
+      + '<td class="novo"></td>'
+      + '</tr>';
+  }).join('');
+  const origem = selecionados.length ? (selecionados.length + ' selecionado(s)') : 'Filtro atual: ' + ((window._estoqueFiltro || 'todos') === 'sem_preco' ? 'Sem preço' : (window._estoqueFiltro || 'todos') === 'vencido' ? 'Vencidos 45+ dias' : 'Todos');
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista de Compras — Sucrée</title>'
+    + '<style>'
+    + '@page{margin:12mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:12px;line-height:1.35}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}.brand{font-family:Georgia,serif;font-size:24px;font-weight:700}.sub{font-size:11px;color:#333;margin-top:3px}.meta{text-align:right;font-size:11px;color:#333}h1{font-family:Georgia,serif;font-size:22px;margin:12px 0 4px}.count{font-size:12px;margin-bottom:12px}table{width:100%;border-collapse:collapse}th{font-size:11px;text-align:left;text-transform:uppercase;letter-spacing:.04em;border:1px solid #111;padding:7px 8px;background:#f2f2f2}td{border:1px solid #333;padding:10px 8px;vertical-align:middle}.check{width:34px;text-align:center;font-size:18px}.nome{font-weight:700}.novo{width:180px;height:34px}footer{margin-top:16px;border-top:1px solid #111;padding-top:8px;font-size:11px;color:#333}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.no-print{display:none}}'
+    + '</style></head><body>'
+    + '<header><div><div class="brand">Sucrée Confeitaria</div><div class="sub">Lista para conferência e atualização de preços</div></div><div class="meta"><strong>Lista de Compras</strong><br>Gerada em ' + escapeHtmlPrint(data) + '<br>' + escapeHtmlPrint(origem) + '</div></header>'
+    + '<h1>Lista de Compras</h1><div class="count">' + keys.length + ' ingrediente(s)</div>'
+    + '<table><thead><tr><th></th><th>Ingrediente</th><th>Unidade</th><th>Preço atual</th><th>Preço novo</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<footer>Atualize os preços no sistema após a compra.</footer>'
+    + '<script>window.onload=function(){window.print()}<' + '/script></body></html>';
+  const w = window.open('', '_blank');
+  if (!w) { toast('Permita pop-ups para imprimir a lista.'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+
+
+
+function getEstoqueIconClass(nome) {
+  const n = (nome || '').toLowerCase();
+  if (/chocolate|cacau|ganache|brigadeiro|nutella/.test(n)) return 'ti ti-chocolate';
+  if (/leite|creme|nata|manteiga|queijo|iogurte|cream cheese|chantilly/.test(n)) return 'ti ti-milk';
+  if (/morango|fruta|lim[aã]o|laranja|banana|uva|maracuj[aá]|coco|abacaxi/.test(n)) return 'ti ti-apple';
+  if (/aç[uú]car|acucar|mel|glucose|caramelo/.test(n)) return 'ti ti-candy';
+  if (/farinha|fermento|amido|polvilho/.test(n)) return 'ti ti-bread';
+  if (/ovo|gema|clara/.test(n)) return 'ti ti-egg';
+  return 'ti ti-bottle';
+}
+
 function renderEstoqueItem(key) {
   const ig = estoque[key];
-  const priceKg = ig.price ? (ig.price * 1000).toFixed(2) : '';
+  const priceDisplay = getValorDisplayEstoqueItem(ig);
   const updStr = ig.updatedAt ? new Date(ig.updatedAt).toLocaleDateString('pt-BR') : null;
   const vencido = (ig.price && ig.price > 0) && precoVencido(ig);
   const semPreco = !ig.price || ig.price <= 0;
   let estoqueSelected = window._estoqueSelected || new Set();
   window._estoqueSelected = estoqueSelected;
   const isChecked = estoqueSelected.has(key);
-  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(192,57,43,.4)':'')}">
+  const idxAnim = Object.keys(estoque).sort((a,b) => a.localeCompare(b)).indexOf(key);
+  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="animation-delay:${Math.min(360, Math.max(0, idxAnim) * 40)}ms;${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(255,77,79,.46)':'')}">
     <div class="estoque-item-header">
-      <div style="display:flex;align-items:flex-start;gap:8px">
+      <div style="display:flex;align-items:flex-start;gap:11px;min-width:0">
+        <div class="estoque-icon-badge"><i class="${getEstoqueIconClass(ig.name)}"></i></div>
         <input type="checkbox" ${isChecked?'checked':''} onchange="toggleEstoqueSelect('${key}',this.checked)"
           style="width:18px;height:18px;accent-color:var(--gold);margin-top:2px;flex-shrink:0;cursor:pointer">
         <div>
-          <div class="estoque-item-name">${ig.name}</div>
+          <div class="estoque-item-name" style="font-family:Georgia,'Playfair Display',serif">${ig.name}</div>
           <div class="estoque-item-meta">
             <span>${ig.unit || 'g'}</span>
             ${updStr ? `<span><i class="ti ti-clock" style="font-size:10px"></i> ${updStr}</span>` : '<span class="estoque-badge-new">Sem atualização</span>'}
@@ -551,10 +668,10 @@ function renderEstoqueItem(key) {
           ${ig.usedIn && ig.usedIn.length ? `<div class="estoque-item-recipes"><i class="ti ti-book" style="font-size:10px"></i> ${ig.usedIn.slice(0,3).join(', ')}${ig.usedIn.length > 3 ? '...' : ''}</div>` : ''}
         </div>
       </div>
-      <div class="estoque-item-price">${ig.price > 0 ? 'R$ ' + (ig.price * 1000).toFixed(2) + '/kg' : '—'}</div>
+      <div class="estoque-item-price">${formatPrecoEstoqueItem(ig)}</div>
     </div>
     <div class="estoque-edit-row">
-      <input type="number" value="${priceKg}" placeholder="Preço por kg (R$)" min="0" step="0.01"
+      <input type="number" value="${priceDisplay}" placeholder="${getPlaceholderPrecoEstoque(ig.unit)}" min="0" step="0.01"
         onchange="updateEstoquePrice('${key}', parseFloat(this.value)||0)"
         onblur="updateEstoquePrice('${key}', parseFloat(this.value)||0)"
         onkeydown="if(event.key==='Enter'){updateEstoquePrice('${key}', parseFloat(this.value)||0);this.blur()}">
@@ -574,9 +691,10 @@ function renderEstoqueItem(key) {
 // guardam mais preço próprio, então não há nada para "empurrar" para elas: a próxima vez
 // que qualquer cálculo de custo rodar (calcAt, getCustoTotalReceita, etc.), ele já lê o
 // valor novo direto daqui via getPrecoIngrediente().
-function updateEstoquePrice(key, priceKg) {
+function updateEstoquePrice(key, valorDisplay) {
   if (!estoque[key]) return;
-  estoque[key].price = priceKg / 1000;
+  const unit = normalizarUnidadeEstoque(estoque[key].unit);
+  estoque[key].price = unit === 'un' ? valorDisplay : (valorDisplay / 1000);
   estoque[key].updatedAt = new Date().toISOString();
   saveEstoque();
   const itemEl = document.getElementById('est-item-' + key.replace(/[^a-z0-9]/g,'_'));
@@ -635,11 +753,11 @@ function abrirModalDuplicados() {
         + '<div style="display:flex;flex-direction:column;gap:8px">'
         + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
           + '<input type="radio" name="dup-escolha-' + i + '" value="a" checked style="width:16px;height:16px">'
-          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.a.name + '"</strong>' + (par.a.price ? ' (R$ ' + (par.a.price*1000).toFixed(2) + '/kg)' : ' (sem preço)') + '</span>'
+          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.a.name + '"</strong>' + (par.a.price ? ' (' + formatPrecoEstoqueItem(par.a) + ')' : ' (sem preço)') + '</span>'
         + '</label>'
         + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
           + '<input type="radio" name="dup-escolha-' + i + '" value="b" style="width:16px;height:16px">'
-          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.b.name + '"</strong>' + (par.b.price ? ' (R$ ' + (par.b.price*1000).toFixed(2) + '/kg)' : ' (sem preço)') + '</span>'
+          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.b.name + '"</strong>' + (par.b.price ? ' (' + formatPrecoEstoqueItem(par.b) + ')' : ' (sem preço)') + '</span>'
         + '</label>'
         + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
           + '<input type="radio" name="dup-escolha-' + i + '" value="none" style="width:16px;height:16px">'
@@ -699,6 +817,7 @@ async function savePedidoToCloud(pedido) {
       data: pedido.data || null, hora: pedido.hora || null, retira: pedido.retira,
       endereco: pedido.endereco || null, aro: pedido.aro, massa: pedido.massa,
       recheio1: pedido.recheio1 || null, recheio2: pedido.recheio2 || null,
+      recheio_repetido: pedido.recheioRepetido || 'recheio1',
       cobertura: pedido.cobertura, deco: pedido.deco, tema: pedido.tema || null,
       topo: pedido.topo || false, flores: pedido.flores || false,
       obs_deco: pedido.obsDeco || null, inspi_photo: pedido.inspiPhoto || null,
@@ -755,14 +874,12 @@ function setPedidoRetira(val) {
   const sim = document.getElementById('btn-retira-sim');
   const nao = document.getElementById('btn-retira-nao');
   const addr = document.getElementById('entrega-addr-box');
+  if (sim) sim.classList.toggle('is-selected', val);
+  if (nao) nao.classList.toggle('is-selected', !val);
   if(val) {
-    sim.style.borderColor='var(--teal)';sim.style.background='var(--teal-light)';sim.style.color='var(--teal)';
-    nao.style.borderColor='var(--border)';nao.style.background='var(--bg)';nao.style.color='var(--text)';
-    addr.style.display='none';
+    if (addr) addr.style.display='none';
   } else {
-    nao.style.borderColor='var(--coral)';nao.style.background='var(--gold-light)';nao.style.color='var(--gold-dark)';
-    sim.style.borderColor='var(--border)';sim.style.background='var(--bg)';sim.style.color='var(--text)';
-    addr.style.display='block';
+    if (addr) addr.style.display='block';
   }
 }
 
@@ -773,22 +890,102 @@ function setAro(aro) {
   const infoBox = document.getElementById('aro-info-box');
   if(infoBox) { infoBox.style.display='flex'; infoBox.innerHTML = `<i class="ti ti-info-circle" style="flex-shrink:0"></i> <span>Aro ${aro}: ${ARO_INFO[aro]}</span>`; }
   const valorInput = document.getElementById('p-valor-bolo');
-  if(valorInput && !valorInput.value) valorInput.value = ARO_PRICES[aro] || '';
+  atualizarPrecoBoloSugerido();
   calcPedidoTotal();
 }
 
 function setMassa(tipo) {
   curPedido.massa = tipo;
-  document.querySelectorAll('.massa-btn').forEach(b => { b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)'; });
-  const btn = document.getElementById('massa-'+tipo);
-  if(btn){btn.style.borderColor='var(--coral)';btn.style.background='var(--gold-light)';btn.style.color='var(--gold-dark)';}
+  document.querySelectorAll('.massa-btn').forEach(b => b.classList.remove('is-selected'));
+  document.getElementById('massa-'+tipo)?.classList.add('is-selected');
 }
 
 function setCobertura(tipo) {
   curPedido.cobertura = tipo;
-  document.querySelectorAll('.cob-btn').forEach(b => { b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)'; });
-  const btn = document.getElementById('cob-'+tipo);
-  if(btn){btn.style.borderColor='var(--coral)';btn.style.background='var(--gold-light)';btn.style.color='var(--gold-dark)';}
+  document.querySelectorAll('.cob-btn').forEach(b => b.classList.remove('is-selected'));
+  document.getElementById('cob-'+tipo)?.classList.add('is-selected');
+}
+
+function getPedidoRecheioRepetido(nomeR1, nomeR2) {
+  if (!nomeR1 && nomeR2) return 'recheio2';
+  if (!nomeR2) return 'recheio1';
+  return curPedido.recheioRepetido === 'recheio2' ? 'recheio2' : 'recheio1';
+}
+
+function renderPedidoRecheioRepetidoControl() {
+  const box = document.getElementById('p-recheio-repetido-box');
+  const sel = document.getElementById('p-recheio-repetido');
+  if (!box || !sel) return;
+  const nomeR1 = document.getElementById('p-recheio1')?.value || '';
+  const nomeR2 = document.getElementById('p-recheio2')?.value || '';
+  curPedido.recheio1 = nomeR1;
+  curPedido.recheio2 = nomeR2;
+  if (!nomeR1 && nomeR2) curPedido.recheioRepetido = 'recheio2';
+  else if (!nomeR2) curPedido.recheioRepetido = 'recheio1';
+  if (curPedido.recheioRepetido !== 'recheio2') curPedido.recheioRepetido = 'recheio1';
+  box.style.display = nomeR1 && nomeR2 ? 'block' : 'none';
+  sel.innerHTML = '<option value="recheio1">' + (nomeR1 || 'Recheio 1') + ' (2x)</option>'
+    + '<option value="recheio2">' + (nomeR2 || 'Recheio 2') + ' (2x)</option>';
+  sel.value = curPedido.recheioRepetido;
+}
+
+function setPedidoRecheioRepetido(val) {
+  curPedido.recheioRepetido = val === 'recheio2' ? 'recheio2' : 'recheio1';
+  const sel = document.getElementById('p-recheio-repetido');
+  if (sel) sel.value = curPedido.recheioRepetido;
+  atualizarPrecoBoloSugerido();
+  calcPedidoTotal();
+}
+
+function normalizarTipoRecheioCardapio(tipo) {
+  var t = (tipo || 'trad').toString().trim().toLowerCase();
+  return (t === 'prem' || t === 'premium') ? 'prem' : 'trad';
+}
+
+function getTipoRecheioPedido(nome) {
+  if (!nome) return 'trad';
+  var alvo = normalizarNomeReceitaBusca(nome);
+  var lista = (typeof getRecheiosCardapioDerivados === 'function')
+    ? getRecheiosCardapioDerivados()
+    : (typeof recipes !== 'undefined' ? recipes.filter(r => isGrupoRecheio(r.group)).map(r => ({ nome: r.name, tipo: r.tipoCardapio || 'trad' })) : []);
+  var item = lista.find(function(r){ return normalizarNomeReceitaBusca(r.nome) === alvo; });
+  return normalizarTipoRecheioCardapio(item ? item.tipo : 'trad');
+}
+
+function getClassificacaoBoloPedido() {
+  var r1 = document.getElementById('p-recheio1')?.value || curPedido.recheio1 || '';
+  var r2 = document.getElementById('p-recheio2')?.value || curPedido.recheio2 || '';
+  return (getTipoRecheioPedido(r1) === 'prem' || getTipoRecheioPedido(r2) === 'prem') ? 'prem' : 'trad';
+}
+
+function getPrecoTabelaBolo(aro, classificacao) {
+  var linha = (sucreeConfig.precos || {})[aro] || {};
+  return parseFloat(linha[classificacao === 'prem' ? 'prem' : 'trad'] || 0);
+}
+
+function atualizarPrecoBoloSugerido() {
+  var aro = curPedido.aro;
+  var input = document.getElementById('p-valor-bolo');
+  var info = document.getElementById('p-preco-sugerido-info');
+  if (!input || !info) return;
+  var classificacao = getClassificacaoBoloPedido();
+  curPedido.classificacaoBolo = classificacao;
+  var preco = aro ? getPrecoTabelaBolo(aro, classificacao) : 0;
+  var label = classificacao === 'prem' ? 'Premium' : 'Tradicional';
+  if (!aro) { info.innerHTML = '<span style="color:var(--text3)">Selecione o aro para sugerir o preço pela tabela.</span>'; return; }
+  if (preco > 0 && !curPedido.valorBoloManual) input.value = preco.toFixed(2);
+  info.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;border:1px solid rgba(212,162,74,.30);color:' + (classificacao === 'prem' ? 'var(--gold)' : 'var(--teal)') + '">Classificação: <strong>' + label + '</strong> · Tabela aro ' + aro + ': R$ ' + (preco || 0).toFixed(2) + (curPedido.valorBoloManual ? ' · valor editado manualmente' : '') + '</span>';
+}
+
+function marcarValorBoloManual() {
+  curPedido.valorBoloManual = true;
+  atualizarPrecoBoloSugerido();
+}
+
+function onPedidoRecheiosChange() {
+  renderPedidoRecheioRepetidoControl();
+  atualizarPrecoBoloSugerido();
+  calcPedidoTotal();
 }
 
 function setFlores(val) {
@@ -920,7 +1117,7 @@ function getCustoTotalReceita(rec) {
 
 function getCustoReceitaPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  var rec = findReceitaPorNomeFlex(receitaNome);
   if (!rec) return 0;
   var custoTotalReceita = getCustoTotalReceita(rec);
   if (!custoTotalReceita) return 0;
@@ -929,9 +1126,38 @@ function getCustoReceitaPorAro(receitaNome, aro) {
   return custoTotalReceita * mult;
 }
 
+function normalizarNomeReceitaBusca(nome) {
+  return (nome || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function getAliasesReceitaPedido(nome) {
+  var norm = normalizarNomeReceitaBusca(nome);
+  if (norm === 'amanteigada') return ['Amanteigada', 'Massa Amanteigada', 'Bolo Amanteigado'];
+  if (norm === 'pao de lo' || norm === 'pao de lo fofinha' || norm === 'pao de lo fofinho') return ['Pão de Ló', 'Pao de Lo', 'Massa Pão de Ló', 'Pão de Ló Fofinha'];
+  if (norm === 'chantininho') return ['Chantininho', 'Chantilly', 'Cobertura Chantininho'];
+  if (norm === 'buttercream') return ['Buttercream', 'Butter Cream', 'Cobertura Buttercream'];
+  return [nome];
+}
+
+function findReceitaPorNomeFlex(nome) {
+  if (!nome || typeof recipes === 'undefined') return null;
+  var aliases = getAliasesReceitaPedido(nome);
+  var alvos = aliases.map(normalizarNomeReceitaBusca);
+  return recipes.find(function(r){ return alvos.indexOf(normalizarNomeReceitaBusca(r.name)) >= 0; }) || null;
+}
+
+function resolverNomeReceitaVinculada(nomeCardapio, prefixoVinculo) {
+  if (!nomeCardapio) return null;
+  var vincs = sucreeConfig.receitasCardapio || {};
+  var key = nomeCardapio.replace(/[^a-zA-Z0-9]/g,'_');
+  var nomeVinculado = vincs[prefixoVinculo + '_' + key] || nomeCardapio;
+  var rec = findReceitaPorNomeFlex(nomeVinculado);
+  return rec ? rec.name : nomeVinculado;
+}
+
 function getQtdAroDaReceita(receitaNome, aro) {
   if (!receitaNome) return null;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  var rec = findReceitaPorNomeFlex(receitaNome);
   if (!rec) return null;
   var pesoBase = rec.pesoTotal || rec.yield_qty;
   var mult = (rec.multiplicadorAro || {})[aro];
@@ -948,7 +1174,7 @@ function getQtdAroDoRecheio(nomeRecheio, aro) {
 
 function getCustoIngredientesPorAro(receitaNome, aro) {
   if (!receitaNome) return 0;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === receitaNome; });
+  var rec = findReceitaPorNomeFlex(receitaNome);
   if (!rec) return 0;
   var custoIngr = (typeof totIC === 'function') ? totIC(rec.ingredients || []) : 0;
   if (!custoIngr) return 0;
@@ -958,9 +1184,7 @@ function getCustoIngredientesPorAro(receitaNome, aro) {
 }
 
 function getCustoMassaAro(nomeMassa, aro) {
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var key = (nomeMassa||'').replace(/[^a-zA-Z0-9]/g,'_');
-  var receitaNome = vincs['massa_' + key] || nomeMassa;
+  var receitaNome = resolverNomeReceitaVinculada(nomeMassa, 'massa');
   return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
@@ -983,15 +1207,13 @@ function getCustosVinculadosAro(nomeRecheio, aro) {
 }
 
 function getCustoRecheioAro(nomeRecheio, aro) {
-  var vincs = sucreeConfig.receitasCardapio || {};
-  var key = (nomeRecheio||'').replace(/[^a-zA-Z0-9]/g,'_');
-  var receitaNome = vincs['recheio_' + key] || nomeRecheio;
+  var receitaNome = resolverNomeReceitaVinculada(nomeRecheio, 'recheio');
   return getCustoIngredientesPorAro(receitaNome, aro);
 }
 
 function getCaldaVinculadaDaMassa(nomeMassa) {
   if (!nomeMassa) return null;
-  var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeMassa; });
+  var rec = findReceitaPorNomeFlex(resolverNomeReceitaVinculada(nomeMassa, 'massa'));
   if (!rec || !rec.caldaVinculada) return null;
   return (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === rec.caldaVinculada; }) || null;
 }
@@ -1016,7 +1238,8 @@ function getCustoChantillyAro(aro) {
 function getCustoButtercreamAro(aro) {
   var vincs = sucreeConfig.receitasCardapio || {};
   var receitaNome = vincs.buttercream || 'Buttercream';
-  return getCustoIngredientesPorAro(receitaNome, aro);
+  var custoReceita = getCustoIngredientesPorAro(receitaNome, aro);
+  return custoReceita || (sucreeConfig.buttercream || 50);
 }
 
 function calcPedidoTotal() {
@@ -1035,11 +1258,13 @@ function calcPedidoTotal() {
   var nomeR2 = document.getElementById('p-recheio2')?.value || '';
   var custoRecheio1  = getCustoRecheioAro(nomeR1, aro);
   var custoRecheio2  = getCustoRecheioAro(nomeR2, aro);
+  var recheioRepetidoPedido = getPedidoRecheioRepetido(nomeR1, nomeR2);
+  var custoRecheioRepetido = (nomeR1 || nomeR2) ? (recheioRepetidoPedido === 'recheio2' ? custoRecheio2 : custoRecheio1) : 0;
   var caldaVincPedido = typeof getCustoCaldaVinculadaAro === 'function' ? getCustoCaldaVinculadaAro(curPedido.massa, aro) : null;
   var custoCalda     = caldaVincPedido ? caldaVincPedido.custo : 0;
   var custoChantilly = getCustoChantillyAro(aro);
-  var custoCobertura = curPedido.cobertura === 'buttercream' ? (sucreeConfig.buttercream||50) : custoChantilly;
-  var custoIngr = custoRecheio1 + custoRecheio2 + custoCalda;
+  var custoCobertura = curPedido.cobertura === 'buttercream' ? getCustoButtercreamAro(aro) : custoChantilly;
+  var custoIngr = custoRecheio1 + custoRecheio2 + custoRecheioRepetido + custoCalda;
   var custoCalculado = custoOp + custoIngr + custoCobertura;
   const custo = custoInput > 0 ? custoInput : (custoCalculado > 0 ? custoCalculado : valorBolo * 0.35);
   const margemPct = sucreeConfig.custos?.margemLucro || 30;
@@ -1099,7 +1324,7 @@ function getRecheios() {
 function populateRecheioSelects() {
   const recheios = getRecheios();
   const extras = [curPedido.recheio1, curPedido.recheio2].filter(function(n){ return n && !recheios.includes(n); });
-  const todasOpcoes = [...recheios, ...extras];
+  const todasOpcoes = [...recheios, ...extras].sort((a,b) => a.localeCompare(b, 'pt-BR'));
   const opts = todasOpcoes.map(r => `<option value="${r.replace(/"/g,'&quot;')}">${r}</option>`).join('');
   const sel1 = document.getElementById('p-recheio1');
   const sel2 = document.getElementById('p-recheio2');
@@ -1109,20 +1334,71 @@ function populateRecheioSelects() {
   if(curPedido.recheio2 && sel2) sel2.value = curPedido.recheio2;
 }
 
+function criarPedidoVazio() {
+  return {
+    retira: true,
+    flores: false,
+    papelaria: false,
+    aro: null,
+    massa: null,
+    cobertura: null,
+    recheio1: '',
+    recheio2: '',
+    recheioRepetido: 'recheio1',
+    inspiPhoto: null,
+    valorTotal: 0,
+    valorBoloManual: false,
+    classificacaoBolo: 'trad',
+    custoEstimado: 0
+  };
+}
+
+function setTextPedidoChip(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
 function resetPedidoForm() {
+  if (!editPedidoId) curPedido = criarPedidoVazio();
+
   ['p-cliente','p-data','p-hora','p-endereco','p-telefone','p-obs-cliente',
    'p-tema','p-obs-deco','p-valor-bolo','p-custo','p-sinal'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
-  document.getElementById('p-inspi-preview').innerHTML = '';
-  document.getElementById('aro-info-box').style.display = 'none';
-  document.querySelectorAll('.aro-btn').forEach(b=>b.classList.remove('sel'));
-  document.querySelectorAll('.massa-btn,.cob-btn').forEach(b=>{
-    b.style.borderColor='var(--border)';b.style.background='var(--bg)';b.style.color='var(--text)';
+
+  ['p-recheio1','p-recheio2','p-recheio-repetido','p-pagamento'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
-  document.getElementById('p-pagamento').value = '';
-  document.getElementById('p-status').value = 'pendente';
+
+  const statusEl = document.getElementById('p-status');
+  if (statusEl) statusEl.value = 'pendente';
+
+  const inspiInput = document.getElementById('p-inspi-input');
+  if (inspiInput) inspiInput.value = '';
+  const inspiPreview = document.getElementById('p-inspi-preview');
+  if (inspiPreview) inspiPreview.innerHTML = '';
+
+  const fotosGrid = document.getElementById('ped-fotos-grid');
+  if (fotosGrid) fotosGrid.innerHTML = '<div style="font-size:12px;color:var(--text3)">Salve o pedido para poder anexar fotos.</div>';
+
+  const repetidoBox = document.getElementById('p-recheio-repetido-box');
+  if (repetidoBox) repetidoBox.style.display = 'none';
+
+  const custoTab = document.getElementById('ped-tab-custo');
+  if (custoTab) custoTab.innerHTML = '';
+
+  const infoBox = document.getElementById('aro-info-box');
+  if (infoBox) { infoBox.style.display = 'none'; infoBox.innerHTML = ''; }
+
+  document.querySelectorAll('.aro-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.massa-btn,.cob-btn,#btn-retira-sim,#btn-retira-nao').forEach(b=>b.classList.remove('is-selected'));
+
+  setTextPedidoChip('ped-chip-status', '<i class="ti ti-clock"></i> Pendente');
+  setTextPedidoChip('ped-chip-data', '<i class="ti ti-calendar"></i> —');
+  setTextPedidoChip('ped-chip-aro', '<i class="ti ti-ruler"></i> —');
+
   setPedidoRetira(true);
   const txtFlores = document.getElementById('txt-flores-valor');
   if (txtFlores) txtFlores.textContent = 'R$ ' + (sucreeConfig.floresValor||50).toFixed(2);
@@ -1153,6 +1429,8 @@ function savePedido() {
     massa: curPedido.massa,
     recheio1: document.getElementById('p-recheio1').value,
     recheio2: document.getElementById('p-recheio2').value,
+    recheioRepetido: document.getElementById('p-recheio-repetido')?.value || curPedido.recheioRepetido || 'recheio1',
+    classificacaoBolo: curPedido.classificacaoBolo || getClassificacaoBoloPedido(),
     cobertura: curPedido.cobertura,
     valorBolo,
     custoEstimado: parseFloat(document.getElementById('p-custo')?.value||0) || (valorBolo * 0.35),
@@ -1259,7 +1537,8 @@ function renderPedidoCard(p) {
   const urgente = diasRestantes !== null && diasRestantes <= 2 && p.status !== 'entregue' && p.status !== 'cancelado';
   const foto = p.fotoConfirmada || p.inspiPhoto || null;
   const recheios = [p.recheio1, p.recheio2].filter(Boolean).join(' + ');
-  return `<div class="ped-card-premium status-${p.status}" onclick="openEditPedido('${p.id}')">
+  const idxAnim = Math.max(0, pedidos.findIndex(function(x){ return x.id === p.id; }));
+  return `<div class="ped-card-premium status-${p.status}" style="animation-delay:${Math.min(360, idxAnim * 40)}ms" onclick="openEditPedido('${p.id}')">
     ${urgente ? `<div class="ped-card-urgent">🔥 ${diasRestantes<=0?'HOJE':diasRestantes+'d'}</div>` : ''}
     <div class="ped-card-thumb">
       ${foto ? `<img src="${foto}" alt="">` : `<div class="ped-card-thumb-placeholder"><i class="ti ti-cake"></i></div>`}
@@ -1318,7 +1597,7 @@ function navegarPedidoAdjacente(direcao) {
 // ── Abre direto em modo edição completo (sem etapa de visualização separada) ──
 function openNovoPedido() {
   editPedidoId = null;
-  curPedido = { retira: true, flores: false, papelaria: false };
+  curPedido = criarPedidoVazio();
   document.getElementById('pedido-title').textContent = 'Novo Pedido';
   resetPedidoForm();
   populateRecheioSelects();
@@ -1345,9 +1624,12 @@ function openEditPedido(id) {
   if(p.obsCliente) document.getElementById('p-obs-cliente').value = p.obsCliente;
   if(p.tema) document.getElementById('p-tema').value = p.tema;
   if(p.obsDeco) document.getElementById('p-obs-deco').value = p.obsDeco;
-  if(p.valorBolo) document.getElementById('p-valor-bolo').value = p.valorBolo;
+  if(p.valorBolo) { document.getElementById('p-valor-bolo').value = p.valorBolo; curPedido.valorBoloManual = true; }
   if(p.sinal) document.getElementById('p-sinal').value = p.sinal;
   if(p.pagamento) document.getElementById('p-pagamento').value = p.pagamento;
+  renderPedidoRecheioRepetidoControl();
+  if(p.recheioRepetido) document.getElementById('p-recheio-repetido').value = p.recheioRepetido;
+  atualizarPrecoBoloSugerido();
   if(p.status) document.getElementById('p-status').value = p.status;
   if(p.inspiPhoto) {
     curPedido.inspiPhoto = p.inspiPhoto;
@@ -1493,12 +1775,10 @@ function montarAbaDetalhamentoCusto(id) {
   const custoMassa = getCustoMassaAro(p.massa, aro);
   function resolverReceitaEMult(nomeCardapio, prefixoVinculo) {
     if (!nomeCardapio) return { nome: null, mult: null };
-    var vincs = sucreeConfig.receitasCardapio || {};
-    var key = nomeCardapio.replace(/[^a-zA-Z0-9]/g,'_');
-    var nomeReal = vincs[prefixoVinculo + '_' + key] || nomeCardapio;
-    var rec = (typeof recipes !== 'undefined' ? recipes : []).find(function(r){ return r.name === nomeReal; });
+    var nomeReal = resolverNomeReceitaVinculada(nomeCardapio, prefixoVinculo);
+    var rec = findReceitaPorNomeFlex(nomeReal);
     var mult = (rec && rec.multiplicadorAro) ? rec.multiplicadorAro[aro] : null;
-    return { nome: nomeReal, mult: mult };
+    return { nome: rec ? rec.name : nomeReal, mult: mult };
   }
   const massaResolvida = resolverReceitaEMult(p.massa, 'massa');
   const recheio1Resolvido = resolverReceitaEMult(p.recheio1, 'recheio');
@@ -1649,6 +1929,8 @@ function montarAbaDetalhamentoCusto(id) {
     const elRepetido = document.getElementById('dc-recheio-repetido');
     if (elRepetido) elRepetido.addEventListener('change', function(){
       p.recheioRepetido = elRepetido.value;
+      curPedido.recheioRepetido = elRepetido.value;
+      renderPedidoRecheioRepetidoControl();
       montarAbaDetalhamentoCusto(id);
     });
     recalcular();
