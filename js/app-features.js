@@ -529,6 +529,18 @@ function renderEstoque() {
     }`;
 }
 
+
+function getEstoqueIconClass(nome) {
+  const n = (nome || '').toLowerCase();
+  if (/chocolate|cacau|ganache|brigadeiro|nutella/.test(n)) return 'ti ti-chocolate';
+  if (/leite|creme|nata|manteiga|queijo|iogurte|cream cheese|chantilly/.test(n)) return 'ti ti-milk';
+  if (/morango|fruta|lim[aã]o|laranja|banana|uva|maracuj[aá]|coco|abacaxi/.test(n)) return 'ti ti-apple';
+  if (/aç[uú]car|acucar|mel|glucose|caramelo/.test(n)) return 'ti ti-candy';
+  if (/farinha|fermento|amido|polvilho/.test(n)) return 'ti ti-bread';
+  if (/ovo|gema|clara/.test(n)) return 'ti ti-egg';
+  return 'ti ti-bottle';
+}
+
 function renderEstoqueItem(key) {
   const ig = estoque[key];
   const priceKg = ig.price ? (ig.price * 1000).toFixed(2) : '';
@@ -538,10 +550,11 @@ function renderEstoqueItem(key) {
   let estoqueSelected = window._estoqueSelected || new Set();
   window._estoqueSelected = estoqueSelected;
   const isChecked = estoqueSelected.has(key);
-  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(255,77,79,.46)':'')}">
+  const idxAnim = Object.keys(estoque).sort((a,b) => a.localeCompare(b)).indexOf(key);
+  return `<div class="estoque-item" id="est-item-${key.replace(/[^a-z0-9]/g,'_')}" style="animation-delay:${Math.min(360, Math.max(0, idxAnim) * 40)}ms;${isChecked?'border-color:var(--gold);border-width:2px':(semPreco?'border-color:rgba(255,77,79,.46)':'')}">
     <div class="estoque-item-header">
       <div style="display:flex;align-items:flex-start;gap:11px;min-width:0">
-        <div style="width:36px;height:36px;border-radius:12px;background:rgba(212,162,74,.13);border:1px solid rgba(212,162,74,.28);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0"><i class="ti ti-bottle"></i></div>
+        <div class="estoque-icon-badge"><i class="${getEstoqueIconClass(ig.name)}"></i></div>
         <input type="checkbox" ${isChecked?'checked':''} onchange="toggleEstoqueSelect('${key}',this.checked)"
           style="width:18px;height:18px;accent-color:var(--gold);margin-top:2px;flex-shrink:0;cursor:pointer">
         <div>
@@ -1264,7 +1277,8 @@ function renderPedidoCard(p) {
   const urgente = diasRestantes !== null && diasRestantes <= 2 && p.status !== 'entregue' && p.status !== 'cancelado';
   const foto = p.fotoConfirmada || p.inspiPhoto || null;
   const recheios = [p.recheio1, p.recheio2].filter(Boolean).join(' + ');
-  return `<div class="ped-card-premium status-${p.status}" onclick="openEditPedido('${p.id}')">
+  const idxAnim = Math.max(0, pedidos.findIndex(function(x){ return x.id === p.id; }));
+  return `<div class="ped-card-premium status-${p.status}" style="animation-delay:${Math.min(360, idxAnim * 40)}ms" onclick="openEditPedido('${p.id}')">
     ${urgente ? `<div class="ped-card-urgent">🔥 ${diasRestantes<=0?'HOJE':diasRestantes+'d'}</div>` : ''}
     <div class="ped-card-thumb">
       ${foto ? `<img src="${foto}" alt="">` : `<div class="ped-card-thumb-placeholder"><i class="ti ti-cake"></i></div>`}
