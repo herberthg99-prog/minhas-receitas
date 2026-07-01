@@ -1,9 +1,11 @@
 // app-core.js v6 — Sucrée Confeitaria (navegação Anterior/Próxima também na Visualização)
 // ═══════════════════════════════════════════
 
-const SUPABASE_URL = 'https://tisdrdgpizywzcrjxnok.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_CONFIG = {
+  url: 'https://tisdrdgpizywzcrjxnok.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpc2RyZGdwaXp5d3pjcmp4bm9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjAxNTksImV4cCI6MjA5NzEzNjE1OX0.7hGOXUCyxtQR4sRc-7uxVLPrjqgJ5ss7lKJydTRFHkg'
+};
+const sb = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 
 const USER_ID = 'herberth_admin';
 localStorage.setItem('mr_user_id', USER_ID);
@@ -999,7 +1001,7 @@ function renderRecipes() {
     var descricao = (r.comment||'').trim();
     if (descricao.length > 110) descricao = descricao.slice(0,107) + '...';
 
-    html += '<div class="rc-card rc-card-premium">';
+    html += '<div class="rc-card rc-card-premium" style="animation-delay:' + Math.min(360, (html.match(/rc-card-premium/g)||[]).length * 40) + 'ms">';
     html += '<div class="rcp-media">';
     if (photo) {
       html += '<img class="rcp-media-img" src="' + photo + '" alt="" loading="lazy" onclick="viewRecipe(\'' + r.id + '\')">';
@@ -1845,7 +1847,7 @@ function renderIngrTable() {
     const sub = (parseFloat(ig.qty||0) * preco).toFixed(2);
     const precoCell = (ig.name && semPreco)
       ? `<span style="color:#e74c3c;font-size:11px;cursor:pointer" onclick="goPage('estoque')" title="Cadastrar preço no Estoque"><i class="ti ti-alert-circle"></i> sem preço</span>`
-      : `<span style="color:var(--text2);font-size:12px">${preco>0 ? 'R$ '+(preco*1000).toFixed(2) : '—'}</span>`;
+      : `<span style="color:var(--text2);font-size:12px">${preco>0 ? (typeof formatPrecoIngrediente === 'function' ? formatPrecoIngrediente(ig.name) : 'R$ '+(preco*1000).toFixed(2)) : '—'}</span>`;
     return `<tr class="${ig.isBase ? 'ihl' : ''}">
       <td style="text-align:center"><input type="radio" name="bir" ${ig.isBase?'checked':''} onchange="setBase(${i})" style="accent-color:var(--blue);width:18px;height:18px"></td>
       <td>
@@ -1873,7 +1875,7 @@ function renderIngrTable() {
       const preco = typeof getPrecoIngrediente === 'function' ? getPrecoIngrediente(ig.name) : 0;
       const semPreco = typeof ingredienteSemPreco === 'function' ? ingredienteSemPreco(ig.name) : !preco;
       const sub = (parseFloat(ig.qty||0) * preco).toFixed(2);
-      const precoTxt = (ig.name && semPreco) ? '⚠️ sem preço' : (preco>0 ? 'R$ '+(preco*1000).toFixed(2)+'/kg' : '—');
+      const precoTxt = (ig.name && semPreco) ? '⚠️ sem preço' : (preco>0 ? (typeof formatPrecoIngrediente === 'function' ? formatPrecoIngrediente(ig.name) : 'R$ '+(preco*1000).toFixed(2)+'/kg') : '—');
       const nomeEscapado = (ig.name||'').replace(/"/g,'&quot;');
       return `<div class="rcp-edit-ingr-mobile-card" data-nome="${nomeEscapado}">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -1948,7 +1950,7 @@ function updateIngrSubtotal(i) {
   if (el) el.textContent = fR(sub);
   const elM = document.getElementById('ingr-sub-m-' + i);
   if (elM) {
-    const precoTxt = (ig.name && semPreco) ? '⚠️ sem preço' : (preco>0 ? 'R$ '+(preco*1000).toFixed(2)+'/kg' : '—');
+    const precoTxt = (ig.name && semPreco) ? '⚠️ sem preço' : (preco>0 ? (typeof formatPrecoIngrediente === 'function' ? formatPrecoIngrediente(ig.name) : 'R$ '+(preco*1000).toFixed(2)+'/kg') : '—');
     elM.textContent = precoTxt + ' · ' + fR(sub);
   }
   atualizarMultiplicadorAroPreview();
