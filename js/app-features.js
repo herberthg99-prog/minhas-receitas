@@ -602,6 +602,7 @@ function imprimirListaComprasEstoque() {
   const rows = keys.map(function(k){
     const ig = estoque[k] || {};
     const preco = formatPrecoEstoqueItem(ig);
+    const preco = ig.price > 0 ? 'R$ ' + (ig.price * 1000).toFixed(2) + '/kg' : '—';
     return '<tr>'
       + '<td class="check">☐</td>'
       + '<td class="nome">' + escapeHtmlPrint(ig.name || k) + '</td>'
