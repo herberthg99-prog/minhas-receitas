@@ -318,10 +318,56 @@ function normalizarChaveIngrediente(nome) {
 // passar por aqui (em vez de ler ig.price diretamente). Retorna preço por g/ml (mesma
 // convenção interna sempre usada: price = R$ por grama/mililitro, não por kg/L).
 // Se o ingrediente ainda não tem preço cadastrado no Estoque, retorna 0.
+function normalizarUnidadeEstoque(unit) {
+  const u = (unit || 'g').toString().trim().toLowerCase();
+  if (u === 'l' || u === 'lt' || u === 'litro' || u === 'litros') return 'l';
+  if (u === 'ml') return 'ml';
+  if (u === 'kg' || u === 'quilo' || u === 'quilos') return 'kg';
+  if (u === 'un' || u === 'und' || u === 'unid' || u === 'unidade' || u === 'unidades') return 'un';
+  return 'g';
+}
+
+function getPrecoInternoEstoqueItem(item) {
+  if (!item || !item.price || item.price <= 0) return 0;
+  const unit = normalizarUnidadeEstoque(item.unit);
+  if (unit === 'un' && item.price > 0 && item.price < 0.05) return item.price * 1000;
+  return item.price;
+}
+
+function formatPrecoEstoqueItem(item) {
+  if (!item || !item.price || item.price <= 0) return '—';
+  const unit = normalizarUnidadeEstoque(item.unit);
+  const preco = getPrecoInternoEstoqueItem(item);
+  if (unit === 'un') return 'R$ ' + preco.toFixed(2) + '/un';
+  if (unit === 'ml' || unit === 'l') return 'R$ ' + (preco * 1000).toFixed(2) + '/L';
+  return 'R$ ' + (preco * 1000).toFixed(2) + '/kg';
+}
+
+function getValorDisplayEstoqueItem(item) {
+  if (!item || !item.price || item.price <= 0) return '';
+  const unit = normalizarUnidadeEstoque(item.unit);
+  const preco = getPrecoInternoEstoqueItem(item);
+  return unit === 'un' ? preco.toFixed(2) : (preco * 1000).toFixed(2);
+}
+
+function getPlaceholderPrecoEstoque(unit) {
+  const u = normalizarUnidadeEstoque(unit);
+  if (u === 'un') return 'Preço por unidade (R$)';
+  if (u === 'ml' || u === 'l') return 'Preço por litro (R$)';
+  return 'Preço por kg (R$)';
+}
+
+function formatPrecoIngrediente(nome) {
+  if (!nome) return '—';
+  const key = normalizarChaveIngrediente(nome);
+  return key && estoque[key] ? formatPrecoEstoqueItem(estoque[key]) : '—';
+}
+
 function getPrecoIngrediente(nome) {
   if (!nome) return 0;
   const key = normalizarChaveIngrediente(nome);
-  return (estoque[key] && estoque[key].price) ? estoque[key].price : 0;
+  if (!key || !estoque[key]) return 0;
+  return getPrecoInternoEstoqueItem(estoque[key]);
 }
 
 // Verdadeiro se o ingrediente ainda não tem preço cadastrado no Estoque — usado para
@@ -533,6 +579,7 @@ function renderEstoque() {
 }
 
 
+
 function getEstoqueKeysFiltroAtual() {
   const allKeys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
   const filtro = window._estoqueFiltro || 'todos';
@@ -554,6 +601,7 @@ function imprimirListaComprasEstoque() {
   const data = new Date().toLocaleString('pt-BR');
   const rows = keys.map(function(k){
     const ig = estoque[k] || {};
+    const preco = formatPrecoEstoqueItem(ig);
     const preco = ig.price > 0 ? 'R$ ' + (ig.price * 1000).toFixed(2) + '/kg' : '—';
     return '<tr>'
       + '<td class="check">☐</td>'
@@ -581,6 +629,7 @@ function imprimirListaComprasEstoque() {
 
 
 
+
 function getEstoqueIconClass(nome) {
   const n = (nome || '').toLowerCase();
   if (/chocolate|cacau|ganache|brigadeiro|nutella/.test(n)) return 'ti ti-chocolate';
@@ -594,7 +643,7 @@ function getEstoqueIconClass(nome) {
 
 function renderEstoqueItem(key) {
   const ig = estoque[key];
-  const priceKg = ig.price ? (ig.price * 1000).toFixed(2) : '';
+  const priceDisplay = getValorDisplayEstoqueItem(ig);
   const updStr = ig.updatedAt ? new Date(ig.updatedAt).toLocaleDateString('pt-BR') : null;
   const vencido = (ig.price && ig.price > 0) && precoVencido(ig);
   const semPreco = !ig.price || ig.price <= 0;
@@ -620,10 +669,10 @@ function renderEstoqueItem(key) {
           ${ig.usedIn && ig.usedIn.length ? `<div class="estoque-item-recipes"><i class="ti ti-book" style="font-size:10px"></i> ${ig.usedIn.slice(0,3).join(', ')}${ig.usedIn.length > 3 ? '...' : ''}</div>` : ''}
         </div>
       </div>
-      <div class="estoque-item-price">${ig.price > 0 ? 'R$ ' + (ig.price * 1000).toFixed(2) + '/kg' : '—'}</div>
+      <div class="estoque-item-price">${formatPrecoEstoqueItem(ig)}</div>
     </div>
     <div class="estoque-edit-row">
-      <input type="number" value="${priceKg}" placeholder="Preço por kg (R$)" min="0" step="0.01"
+      <input type="number" value="${priceDisplay}" placeholder="${getPlaceholderPrecoEstoque(ig.unit)}" min="0" step="0.01"
         onchange="updateEstoquePrice('${key}', parseFloat(this.value)||0)"
         onblur="updateEstoquePrice('${key}', parseFloat(this.value)||0)"
         onkeydown="if(event.key==='Enter'){updateEstoquePrice('${key}', parseFloat(this.value)||0);this.blur()}">
@@ -643,9 +692,10 @@ function renderEstoqueItem(key) {
 // guardam mais preço próprio, então não há nada para "empurrar" para elas: a próxima vez
 // que qualquer cálculo de custo rodar (calcAt, getCustoTotalReceita, etc.), ele já lê o
 // valor novo direto daqui via getPrecoIngrediente().
-function updateEstoquePrice(key, priceKg) {
+function updateEstoquePrice(key, valorDisplay) {
   if (!estoque[key]) return;
-  estoque[key].price = priceKg / 1000;
+  const unit = normalizarUnidadeEstoque(estoque[key].unit);
+  estoque[key].price = unit === 'un' ? valorDisplay : (valorDisplay / 1000);
   estoque[key].updatedAt = new Date().toISOString();
   saveEstoque();
   const itemEl = document.getElementById('est-item-' + key.replace(/[^a-z0-9]/g,'_'));
@@ -704,11 +754,11 @@ function abrirModalDuplicados() {
         + '<div style="display:flex;flex-direction:column;gap:8px">'
         + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
           + '<input type="radio" name="dup-escolha-' + i + '" value="a" checked style="width:16px;height:16px">'
-          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.a.name + '"</strong>' + (par.a.price ? ' (R$ ' + (par.a.price*1000).toFixed(2) + '/kg)' : ' (sem preço)') + '</span>'
+          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.a.name + '"</strong>' + (par.a.price ? ' (' + formatPrecoEstoqueItem(par.a) + ')' : ' (sem preço)') + '</span>'
         + '</label>'
         + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
           + '<input type="radio" name="dup-escolha-' + i + '" value="b" style="width:16px;height:16px">'
-          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.b.name + '"</strong>' + (par.b.price ? ' (R$ ' + (par.b.price*1000).toFixed(2) + '/kg)' : ' (sem preço)') + '</span>'
+          + '<span style="font-size:13px;color:#F5EDD8">Manter <strong>"' + par.b.name + '"</strong>' + (par.b.price ? ' (' + formatPrecoEstoqueItem(par.b) + ')' : ' (sem preço)') + '</span>'
         + '</label>'
         + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;border-radius:8px;background:rgba(255,255,255,.03)">'
           + '<input type="radio" name="dup-escolha-' + i + '" value="none" style="width:16px;height:16px">'
