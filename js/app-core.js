@@ -999,7 +999,7 @@ function renderRecipes() {
     var descricao = (r.comment||'').trim();
     if (descricao.length > 110) descricao = descricao.slice(0,107) + '...';
 
-    html += '<div class="rc-card rc-card-premium">';
+    html += '<div class="rc-card rc-card-premium" style="animation-delay:' + Math.min(360, (html.match(/rc-card-premium/g)||[]).length * 40) + 'ms">';
     html += '<div class="rcp-media">';
     if (photo) {
       html += '<img class="rcp-media-img" src="' + photo + '" alt="" loading="lazy" onclick="viewRecipe(\'' + r.id + '\')">';
