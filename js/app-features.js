@@ -532,6 +532,7 @@ function renderEstoque() {
     }`;
 }
 
+
 function getEstoqueKeysFiltroAtual() {
   const allKeys = Object.keys(estoque).sort((a,b) => a.localeCompare(b));
   const filtro = window._estoqueFiltro || 'todos';
@@ -577,6 +578,7 @@ function imprimirListaComprasEstoque() {
   w.document.write(html);
   w.document.close();
 }
+
 
 
 function getEstoqueIconClass(nome) {
