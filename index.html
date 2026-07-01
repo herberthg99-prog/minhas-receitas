@@ -13,21 +13,45 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --gold:#D4A24A;--coral:#E6C06D;--coral-light:#0D2D5A;--coral-dark:#A87528;
-  --teal:#5DCAA5;--teal-light:#0D2D5A;--teal-mid:#5DCAA5;
-  --blue:#1B5EA8;--blue-light:#0D2D5A;--blue-mid:#1B5EA8;
-  --amber-light:#0D2D5A;--amber-dark:#D4A24A;
-  --green-light:#0D2D5A;--green-dark:#5DCAA5;
-  --red-light:#3A1414;--red-dark:#E07A7A;
-  --bg:#020B18;--surface:rgba(13,45,90,0.55);--border:rgba(212,162,74,0.3);
-  --text:#F8F7F4;--text2:rgba(217,217,217,0.85);--text3:rgba(138,155,184,0.7);
-  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.3);
-  /* ── Paleta do redesign premium (sidebar + cards de Receitas) ── */
-  --nav-bg:#061A38;--nav-bg-dark:#04122B;
-  --card-bg:#0A2348;--card-bg-hover:#102C58;
-  --gold-light:#E8C87A;--gold-dark:#A87528;
-  --white:#F5F5F5;--text-secondary:#AEB8C7;
-  --success:#00D68F;--danger:#FF4D4F;
+  /* Tokens semânticos premium Sucrée */
+  --color-bg-deep:#020B18;
+  --color-bg-navy:#071B3A;
+  --color-bg-navy-soft:#061A38;
+  --color-surface:#0A2348;
+  --color-surface-hover:#102C58;
+  --color-gold:#D4A24A;
+  --color-gold-soft:#E6C06D;
+  --color-gold-bright:#E8C87A;
+  --color-gold-deep:#A87528;
+  --color-border-gold:rgba(212,162,74,.30);
+  --color-text:#F8F7F4;
+  --color-muted:#AEB8C7;
+  --color-muted-2:rgba(217,217,217,.86);
+  --color-muted-3:rgba(138,155,184,.72);
+  --color-success:#5DCAA5;
+  --color-danger:#FF4D4F;
+
+  /* Aliases legados apontando para tokens corretos */
+  --gold:var(--color-gold);--coral:var(--color-gold-soft);--coral-light:rgba(212,162,74,.14);--coral-dark:var(--color-gold-deep);
+  --teal:var(--color-success);--teal-light:rgba(93,202,165,.14);--teal-mid:rgba(93,202,165,.42);
+  --blue:#1B5EA8;--blue-light:rgba(27,94,168,.16);--blue-mid:rgba(27,94,168,.46);
+  --amber-light:rgba(212,162,74,.14);--amber-dark:var(--color-gold-soft);
+  --green-light:rgba(93,202,165,.14);--green-dark:var(--color-success);
+  --red-light:rgba(255,77,79,.14);--red-dark:#FF8080;
+  --bg:var(--color-bg-deep);--surface:rgba(10,35,72,.74);--border:var(--color-border-gold);
+  --text:var(--color-text);--text2:var(--color-muted-2);--text3:var(--color-muted-3);
+  --radius:18px;--radius-sm:14px;--shadow:0 18px 46px rgba(0,0,0,.36);
+  --shadow-soft:0 12px 34px rgba(0,0,0,.28);
+  --shadow-deep:0 24px 70px rgba(0,0,0,.48);
+  --gradient-panel:linear-gradient(145deg,rgba(10,35,72,.86),rgba(2,11,24,.88)),radial-gradient(circle at 92% 0%,rgba(212,162,74,.10),transparent 30%);
+  --gradient-card:linear-gradient(160deg,rgba(10,35,72,.78),rgba(2,11,24,.90));
+  --gradient-gold:linear-gradient(135deg,var(--color-gold-deep),var(--color-gold-bright) 48%,var(--color-gold));
+
+  --nav-bg:var(--color-bg-navy-soft);--nav-bg-dark:#04122B;
+  --card-bg:var(--color-surface);--card-bg-hover:var(--color-surface-hover);
+  --gold-light:var(--color-gold-bright);--gold-dark:var(--color-gold-deep);
+  --white:#F5F5F5;--text-secondary:var(--color-muted);
+  --success:#00D68F;--danger:var(--color-danger);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(160deg,#071B3A 0%,#020B18 60%);color:var(--text);font-size:15px;min-height:100vh}
@@ -496,6 +520,66 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 .ingr-sug-chip:hover { background:var(--gold); color:#fff; }
 
 /* ══════════════════════════════════════════════════════
+   SISTEMA VISUAL PREMIUM UNIFICADO — Fases 1 a 4
+   Mantém CSS inline, mas cria uma base comum para cards, botões,
+   inputs, cabeçalhos e estados em todo o painel.
+   ══════════════════════════════════════════════════════ */
+.card,.rc,.rc-card-premium,.ped-header,.ped-card-premium,.dc-card,.rch-card,.rch-type-card,.dc-col,.rcp-edit-card,.met,.estoque-item,.premium-panel{
+  background:var(--gradient-card);
+  border:1px solid rgba(212,162,74,.24);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-soft);
+  backdrop-filter:blur(10px);
+}
+.card,.rcp-edit-card,.dc-card,.rch-type-card,.dc-col,.premium-panel{padding:20px 22px;margin-bottom:18px}
+.rc,.rc-card-premium,.ped-card-premium,.estoque-item{overflow:hidden;position:relative}
+.card::before,.rc-card-premium::before,.ped-card-premium::before,.estoque-item::before,.dc-card::before,.rch-card::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,200,122,.55),transparent);pointer-events:none
+}
+.rc-card-premium:hover,.ped-card-premium:hover,.estoque-item:hover,.rch-card:hover{
+  transform:translateY(-3px);border-color:rgba(212,162,74,.44);box-shadow:var(--shadow-deep)
+}
+.btnp,.btn-next,.dc-btn-gold,.rcp-edit-btn-gold,.rcp-btn-main,.sidebar-premium-btn,.login-btn{
+  background:var(--gradient-gold);color:#020B18;border:0;border-radius:999px;
+  font-weight:800;letter-spacing:.01em;box-shadow:0 14px 32px rgba(212,162,74,.24),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.btnp,.btns,.btng,.btn-back,.dc-btn,.rcp-edit-btn,.rb,.pm{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease}
+.btnp:hover,.btns:hover,.btng:hover,.btn-back:hover,.dc-btn:hover,.rcp-edit-btn:hover,.rb:hover,.pm:hover{transform:translateY(-1px)}
+.btns,.btn-back,.dc-btn-dark,.rcp-edit-btn-dark,.rb,.pm{
+  background:rgba(2,11,24,.50);color:var(--text);border:1px solid rgba(212,162,74,.34);
+  border-radius:999px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)
+}
+.btng{background:rgba(93,202,165,.14);color:var(--teal);border:1px solid rgba(93,202,165,.36);border-radius:999px}
+.btnp:disabled,.btn-next:disabled,.dc-btn:disabled,.rcp-edit-btn:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
+.fg input,.fg select,.fg textarea,.srow input,.srow select,.comment-box textarea,.pinrow input,.pct-row input,.bcrow input,.dc-input,.dc-select,.rcp-edit-input,.rcp-edit-select,.rcp-edit-textarea,.estoque-edit-row input,.estoque-edit-row select,.login-input{
+  background:rgba(2,11,24,.58);border:1px solid rgba(212,162,74,.30);border-radius:14px;color:var(--text);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus,.srow input:focus,.srow select:focus,.comment-box textarea:focus,.dc-input:focus,.dc-select:focus,.rcp-edit-input:focus,.rcp-edit-select:focus,.rcp-edit-textarea:focus,.estoque-edit-row input:focus,.estoque-edit-row select:focus,.login-input:focus{
+  outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,162,74,.18),0 12px 28px rgba(0,0,0,.20)
+}
+.premium-page-header,.ped-header,.rcp-page-header{
+  background:var(--gradient-panel);border:1px solid rgba(212,162,74,.24);border-radius:20px;padding:20px 22px;box-shadow:var(--shadow-soft)
+}
+.premium-kicker{font-size:10.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+.premium-title{font-family:Georgia,'Playfair Display',serif;font-size:24px;line-height:1.15;color:var(--text);font-weight:700}
+.premium-subtitle{font-size:13px;color:var(--text-secondary);margin-top:4px}
+@media(max-width:767px){.card,.rcp-edit-card,.dc-card,.rch-type-card,.dc-col,.premium-panel{padding:18px 16px}.premium-title,.rcp-page-title,.ped-header-title{font-size:21px}}
+/* Navegação mobile: bottom bar premium para ampliar área útil */
+@media(max-width:899px){
+  .sidebar{top:auto;left:0;right:0;bottom:0;width:100%;height:74px;flex-direction:row;align-items:center;justify-content:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid rgba(212,162,74,.28);background:rgba(2,11,24,.94);box-shadow:0 -18px 46px rgba(0,0,0,.45)}
+  .sidebar-mobile-only{display:flex;width:100%;height:100%;align-items:center;justify-content:space-around;gap:2px;overflow-x:auto;scrollbar-width:none}
+  .sidebar-mobile-only::-webkit-scrollbar{display:none}
+  .app{padding-left:0!important;padding-bottom:74px}
+  .content{padding:16px 14px 96px}
+  .bni{min-width:56px;width:auto;height:56px;border-radius:16px;padding:7px 6px;color:var(--text-secondary);font-size:9px;justify-content:center}
+  .bni i{font-size:21px}.bni.act{background:rgba(212,162,74,.14);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(212,162,74,.28)}
+  .bni:nth-child(n+7){display:none}
+}
+
+
+/* ══════════════════════════════════════════════════════
    REDESIGN PREMIUM — Modal de Edição de Receita
    Prefixo .rcp-edit- em tudo para nunca colidir com o resto do app.
    ══════════════════════════════════════════════════════ */
@@ -825,6 +909,140 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
 .rch-add-btn { width: 100%; margin-top: 6px; padding: 10px; border-radius: 10px; border: 1.5px dashed rgba(212,162,74,.35); background: none; color: var(--gold); font-size: 12.5px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .rch-add-btn:hover { background: rgba(212,162,74,.08); }
+
+
+/* Refinamentos finais de hierarquia e cards */
+.st,.dc-card-title,.rch-section-eyebrow,.rcp-edit-card-title{color:var(--gold);letter-spacing:.10em}
+.est{background:var(--gradient-card);border:1px solid rgba(212,162,74,.22);border-radius:20px;box-shadow:var(--shadow-soft);margin:12px 0}
+.est i{color:var(--gold)}
+.estoque-item{padding:18px 18px;margin-bottom:12px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.estoque-item-header{align-items:flex-start;gap:14px}.estoque-item-name{font-size:17px;color:var(--text);line-height:1.2}.estoque-item-price{font-size:18px;color:var(--gold);font-family:Georgia,'Playfair Display',serif}.estoque-edit-row{border-top:1px solid rgba(248,247,244,.08);padding-top:12px;margin-top:14px}
+.ped-header{margin-bottom:18px}.ped-header-title{font-size:24px}.ped-card-premium{background:var(--gradient-card);border-color:rgba(212,162,74,.24);border-radius:18px;box-shadow:var(--shadow-soft);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.ped-card-body{padding:16px}.ped-card-name{font-family:Georgia,'Playfair Display',serif;font-size:19px}.ped-card-valor{font-family:Georgia,'Playfair Display',serif;font-size:19px}.ped-card-thumb-placeholder{background:radial-gradient(circle,rgba(212,162,74,.16),transparent 52%),linear-gradient(145deg,#071B3A,#020B18);opacity:1}.ped-card-status{border:1px solid rgba(255,255,255,.16);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.rc-card-premium{background:var(--gradient-card);border-color:rgba(212,162,74,.24);border-radius:18px;box-shadow:var(--shadow-soft)}.rcp-media-empty{background:radial-gradient(circle,rgba(212,162,74,.18),transparent 48%),linear-gradient(145deg,#071B3A,#020B18)}.rcp-name{font-size:20px}.rcp-tag-main,.recheio-tipo-label,.estoque-badge,.badge,.tag,.pb{border:1px solid rgba(212,162,74,.24)}
+.rch-card{padding:14px 15px;border-radius:15px;background:linear-gradient(145deg,rgba(10,35,72,.66),rgba(2,11,24,.78));box-shadow:0 10px 28px rgba(0,0,0,.22)}.rch-card-name{font-size:15px}.dc-card{box-shadow:var(--shadow-soft)}
+@media(max-width:767px){.ped-metrics{grid-template-columns:repeat(2,1fr)}.ped-grid{grid-template-columns:1fr}.rcp-actions{display:grid;grid-template-columns:repeat(3,1fr)}.rcp-metrics{flex-direction:column}}
+
+
+/* Overrides finais para vencer estilos antigos definidos acima */
+.card,.rc,.rc-card-premium,.ped-header,.ped-card-premium,.dc-card,.rch-card,.rch-type-card,.dc-col,.rcp-edit-card,.met,.estoque-item,.premium-panel{position:relative;background:var(--gradient-card);border:1px solid rgba(212,162,74,.24);border-radius:var(--radius);box-shadow:var(--shadow-soft)}
+.btnp,.btn-next,.dc-btn-gold,.rcp-edit-btn-gold,.rcp-btn-main,.sidebar-premium-btn{background:var(--gradient-gold);color:#020B18;border:0;border-radius:999px;font-weight:800;box-shadow:0 14px 32px rgba(212,162,74,.24),inset 0 1px 0 rgba(255,255,255,.35)}
+.btns,.btn-back,.dc-btn-dark,.rcp-edit-btn-dark,.rb,.pm{background:rgba(2,11,24,.50);color:var(--text);border:1px solid rgba(212,162,74,.34);border-radius:999px}
+.fg input,.fg select,.fg textarea,.srow input,.srow select,.dc-input,.dc-select,.rcp-edit-input,.rcp-edit-select,.rcp-edit-textarea,.estoque-edit-row input,.estoque-edit-row select{background:rgba(2,11,24,.58);border:1px solid rgba(212,162,74,.30);border-radius:14px;color:var(--text)}
+
+
+/* ══════════════════════════════════════════════════════
+   REDESIGN OUSADO — Receitas
+   ══════════════════════════════════════════════════════ */
+@keyframes premiumFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes premiumPulseGold{0%,100%{box-shadow:0 0 0 rgba(212,162,74,0)}50%{box-shadow:0 0 24px rgba(212,162,74,.25)}}
+.rcp-page-header{overflow:hidden;position:relative}
+.rcp-page-header::after{content:"";position:absolute;right:-90px;top:-90px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(212,162,74,.20),transparent 66%);pointer-events:none}
+.rcp-page-title{font-size:clamp(32px,4.2vw,42px);letter-spacing:-.045em;line-height:.98}
+.rcp-cat-btn.act,.sub-aba.act{background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);box-shadow:0 0 24px rgba(212,162,74,.22);color:#020B18;border-color:rgba(232,200,122,.75)}
+.rc-card-premium{animation:premiumFadeUp .42s ease both;transform-origin:center;will-change:transform,opacity;isolation:isolate}
+.rc-card-premium:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 24px rgba(212,162,74,.18);border-color:rgba(232,200,122,.70)}
+.rc-card-premium::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.10) 38%,transparent 62%);transform:translateX(-130%);transition:transform .75s ease;pointer-events:none;z-index:2}
+.rc-card-premium:hover::after{transform:translateX(130%)}
+.rcp-media{aspect-ratio:16/10;background:radial-gradient(circle at 50% 30%,rgba(212,162,74,.18),transparent 52%),linear-gradient(145deg,#071B3A,#020B18)}
+.rcp-media::after{content:"";position:absolute;inset:auto 0 0 0;height:45%;background:linear-gradient(transparent,rgba(2,11,24,.82));pointer-events:none}
+.rcp-tag-main{background:linear-gradient(135deg,rgba(212,162,74,.22),rgba(168,117,40,.10));color:#E8C87A;border-color:rgba(232,200,122,.55)}
+.rcp-name{font-size:clamp(21px,2vw,26px);letter-spacing:-.035em;line-height:1.05}
+.rcp-metric-val,.rcp-badge-pct,.rcp-btn-main{font-variant-numeric:tabular-nums}
+.rcp-metric-val{font-family:Georgia,'Playfair Display',serif;font-size:16px;color:#E8C87A}
+.rcp-btn-main{position:relative;overflow:hidden;background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);box-shadow:0 0 24px rgba(212,162,74,.25)}
+.rcp-btn-main::before,.btnp::before,.sidebar-premium-btn::before{content:"";position:absolute;inset:-30% auto -30% -45%;width:38%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .65s ease;pointer-events:none}
+.rcp-btn-main:hover::before,.btnp:hover::before,.sidebar-premium-btn:hover::before{left:120%}
+.rcp-badge-pct.pos{background:linear-gradient(135deg,#D4A24A,#E8C87A,#A87528);color:#020B18;box-shadow:0 0 24px rgba(212,162,74,.25)}
+
+
+
+/* ══════════════════════════════════════════════════════
+   REDESIGN OUSADO — Confeitaria / Pedidos
+   ══════════════════════════════════════════════════════ */
+.ped-header{overflow:hidden;position:relative;background:linear-gradient(145deg,rgba(10,35,72,.92),rgba(2,11,24,.94)),radial-gradient(circle at 78% 8%,rgba(212,162,74,.22),transparent 34%)}
+.ped-header-title{font-size:clamp(34px,4vw,42px);letter-spacing:-.05em;line-height:1}
+.ped-header-title i{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);color:#020B18;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(212,162,74,.25)}
+.ped-metrics{grid-template-columns:minmax(220px,1.45fr) repeat(3,minmax(130px,1fr));align-items:stretch}
+.ped-metric{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(2,11,24,.72),rgba(10,35,72,.82));border:1px solid rgba(212,162,74,.26);border-radius:18px;padding:16px;box-shadow:0 14px 34px rgba(0,0,0,.28)}
+.ped-metric:first-child{min-height:132px;background:linear-gradient(135deg,rgba(212,162,74,.20),rgba(10,35,72,.88) 42%,rgba(2,11,24,.94));border-color:rgba(232,200,122,.62);box-shadow:0 0 24px rgba(212,162,74,.20),0 24px 60px rgba(0,0,0,.42)}
+.ped-metric-label{color:var(--color-muted);letter-spacing:.12em}
+.ped-metric-value{font-family:Georgia,'Playfair Display',serif;font-size:clamp(24px,3vw,36px);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.ped-metric:first-child .ped-metric-value{font-size:clamp(38px,5vw,58px);color:#E8C87A}
+.ped-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+@media(min-width:1280px){.ped-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.ped-card-premium{animation:premiumFadeUp .42s ease both;transform-origin:center;background:#020B18;border-color:rgba(212,162,74,.26)}
+.ped-card-premium:hover{transform:translateY(-4px) scale(1.02);border-color:rgba(232,200,122,.72);box-shadow:0 30px 80px rgba(0,0,0,.58),0 0 24px rgba(212,162,74,.18)}
+.ped-card-thumb{aspect-ratio:16/11;overflow:hidden;background:radial-gradient(circle,rgba(212,162,74,.16),transparent 54%),linear-gradient(145deg,#071B3A,#020B18)}
+.ped-card-thumb::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,11,24,.05),rgba(2,11,24,.88));z-index:1;pointer-events:none}
+.ped-card-status,.ped-card-urgent{z-index:2}
+.ped-card-body{background:linear-gradient(180deg,rgba(2,11,24,.28),rgba(2,11,24,.92));margin-top:-48px;position:relative;z-index:2;padding-top:54px}
+.ped-card-name{font-size:clamp(21px,2.2vw,27px);letter-spacing:-.04em;line-height:1.05;text-shadow:0 2px 18px rgba(0,0,0,.75)}
+.ped-card-valor{font-size:clamp(22px,2.4vw,30px);letter-spacing:-.05em;color:#E8C87A;font-variant-numeric:tabular-nums}
+.ped-card-premium.status-pronto .ped-card-status{animation:premiumPulseGold 1.9s ease-in-out infinite;background:linear-gradient(135deg,#D4A24A,#E8C87A,#A87528);color:#020B18}
+.ped-card-del{backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12)}
+@media(max-width:900px){.ped-metrics{grid-template-columns:1fr 1fr}.ped-metric:first-child{grid-column:1/-1}.ped-card-body{margin-top:0;padding-top:16px}}
+
+
+
+/* ══════════════════════════════════════════════════════
+   REDESIGN OUSADO — Estoque
+   ══════════════════════════════════════════════════════ */
+#page-estoque .premium-page-header{overflow:hidden;position:relative;background:linear-gradient(145deg,rgba(10,35,72,.92),rgba(2,11,24,.94)),radial-gradient(circle at 20% 0%,rgba(212,162,74,.20),transparent 32%)}
+#page-estoque .premium-page-header::after{content:"";position:absolute;right:-70px;bottom:-90px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(212,162,74,.18),transparent 68%);pointer-events:none}
+#page-estoque .premium-title{font-size:clamp(34px,4vw,42px);letter-spacing:-.05em}
+.estoque-item{animation:premiumFadeUp .42s ease both;transform-origin:center;display:block;background:linear-gradient(145deg,rgba(10,35,72,.80),rgba(2,11,24,.92));border-color:rgba(212,162,74,.26)}
+.estoque-item:hover{transform:translateY(-4px) scale(1.02);border-color:rgba(232,200,122,.70);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 24px rgba(212,162,74,.16)}
+.estoque-icon-badge{width:42px;height:42px;border-radius:15px;background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);border:0;color:#020B18;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;box-shadow:0 0 24px rgba(212,162,74,.25)}
+.estoque-item-name{font-size:clamp(19px,2vw,24px);letter-spacing:-.035em}.estoque-item-price{font-size:clamp(24px,2.8vw,34px);font-variant-numeric:tabular-nums;letter-spacing:-.05em}
+.estoque-badge,.estoque-badge-new{padding:4px 10px;border-radius:999px;background:rgba(212,162,74,.13);color:#E8C87A;border:1px solid rgba(212,162,74,.30)}
+.estoque-edit-row input,.estoque-edit-row select{min-height:46px}.estoque-edit-row .db{width:46px;height:46px;border-radius:14px;background:rgba(255,77,79,.12);border:1px solid rgba(255,77,79,.28);color:#FF8080}
+#page-estoque .rb.rb-active{background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);color:#020B18;box-shadow:0 0 24px rgba(212,162,74,.22)}
+
+
+
+/* ══════════════════════════════════════════════════════
+   REDESIGN OUSADO — Sidebar e demais telas premium
+   ══════════════════════════════════════════════════════ */
+.sidebar{box-shadow:18px 0 54px rgba(0,0,0,.35)}
+.sidebar-eyebrow{position:relative;color:#E8C87A!important;opacity:1!important;letter-spacing:.18em;margin-top:8px}
+.sidebar-eyebrow::before{content:"";position:absolute;left:10px;right:10px;top:0;height:1px;background:linear-gradient(90deg,rgba(212,162,74,.65),transparent)}
+.bni-premium{position:relative;overflow:hidden;border-left:3px solid transparent!important}
+.bni-premium:hover{background:linear-gradient(90deg,rgba(212,162,74,.16),rgba(212,162,74,.04));box-shadow:inset 3px 0 0 rgba(212,162,74,.55)}
+.bni-premium.act{background:linear-gradient(90deg,rgba(212,162,74,.96),rgba(232,200,122,.86),rgba(168,117,40,.78))!important;color:#020B18!important;box-shadow:0 0 24px rgba(212,162,74,.25)!important;border-left-color:#E8C87A!important}
+.bni-premium.act::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:4px;border-radius:999px;background:#020B18}
+.sidebar-logo-block{background:radial-gradient(circle at 50% 0%,rgba(212,162,74,.16),transparent 56%)}
+.sidebar-premium-card{background:linear-gradient(145deg,rgba(212,162,74,.18),rgba(2,11,24,.82));box-shadow:0 0 24px rgba(212,162,74,.16);border-color:rgba(232,200,122,.45)}
+.g4 .met,.met{position:relative;overflow:hidden}.met .mv{font-family:Georgia,'Playfair Display',serif;font-size:clamp(22px,2.6vw,32px);letter-spacing:-.04em;font-variant-numeric:tabular-nums}.met:hover{transform:translateY(-3px) scale(1.02);border-color:rgba(232,200,122,.65);box-shadow:0 0 24px rgba(212,162,74,.16),0 20px 48px rgba(0,0,0,.36)}
+.deco-option,.nmc,.forma-card,.prop-box,.cb,.comment-box,.info-box,.warn-box,.success-box{border-radius:18px;border-color:rgba(212,162,74,.25);box-shadow:0 12px 34px rgba(0,0,0,.22)}
+.deco-option:hover,.nmc.sel{transform:translateY(-3px) scale(1.01);box-shadow:0 0 24px rgba(212,162,74,.16),0 22px 54px rgba(0,0,0,.36)}
+.sheet-header h2,.lock-screen h2{font-family:Georgia,'Playfair Display',serif;font-size:clamp(24px,3vw,34px);letter-spacing:-.04em}.sheet{box-shadow:0 30px 90px rgba(0,0,0,.60);border-color:rgba(232,200,122,.34)}
+.btnp,.sidebar-premium-btn,.login-btn,.rcp-btn-main{position:relative;overflow:hidden}.btnp i,.btng i,.sidebar-premium-btn i{filter:drop-shadow(0 0 8px rgba(212,162,74,.25))}
+.page.act{animation:premiumFadeUp .28s ease both}
+@media(max-width:899px){.sidebar{height:82px}.bni:nth-child(n+7){display:flex}.bni{min-width:62px}.sidebar-mobile-only{justify-content:flex-start;padding:0 4px}.app{padding-bottom:82px}.bni.act{background:linear-gradient(135deg,rgba(212,162,74,.24),rgba(212,162,74,.08));box-shadow:0 0 24px rgba(212,162,74,.12),inset 0 0 0 1px rgba(232,200,122,.34)}}
+
+
+
+/* ══════════════════════════════════════════════════════
+   REFINO DO MODAL DE PEDIDO — tela do print
+   ══════════════════════════════════════════════════════ */
+#modal-pedido{background:rgba(0,0,0,.72);backdrop-filter:blur(8px);padding:20px}
+.ped-modal{width:min(1500px,96vw);height:min(920px,92vh);border-radius:28px;background:linear-gradient(180deg,#071B3A 0%,#020B18 74%);border:1px solid rgba(232,200,122,.42);box-shadow:0 34px 110px rgba(0,0,0,.72),0 0 34px rgba(212,162,74,.10);overflow:hidden}
+.ped-modal .rcp-edit-header{position:relative;min-height:142px;padding:26px 34px;background:linear-gradient(135deg,rgba(2,11,24,.96),rgba(7,27,58,.96) 46%,rgba(10,35,72,.96)),radial-gradient(circle at 12% 8%,rgba(212,162,74,.22),transparent 30%);border-bottom:1px solid rgba(232,200,122,.32);align-items:flex-start}
+.ped-modal .rcp-edit-header::after{content:"";position:absolute;right:-90px;top:-110px;width:320px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(212,162,74,.20),transparent 68%);pointer-events:none}
+.ped-modal .rcp-edit-header-icon{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);color:#020B18;border:0;box-shadow:0 0 24px rgba(212,162,74,.28);font-size:26px}
+.ped-modal .rcp-edit-eyebrow{font-size:12px;letter-spacing:.18em;color:#E8C87A}.ped-modal .rcp-edit-title{font-size:clamp(32px,4vw,44px);letter-spacing:-.055em;line-height:.98;white-space:normal}.ped-modal .rcp-edit-chips{gap:8px}.ped-modal .rcp-edit-chip{height:30px;padding:0 12px;background:rgba(2,11,24,.50);border-color:rgba(232,200,122,.28);color:var(--text2)}
+.ped-modal .rcp-edit-header-actions{position:relative;z-index:2}.ped-modal .rcp-edit-header-actions .rcp-edit-close{display:none}.ped-modal .rcp-edit-header-actions .rcp-edit-btn{height:48px;padding:0 22px}.ped-modal .rcp-edit-header-actions .rcp-edit-btn-gold{background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%);box-shadow:0 0 24px rgba(212,162,74,.25)}
+.ped-modal .rcp-edit-body{padding:28px 34px 34px;max-width:1420px;margin:0 auto;width:100%;background:linear-gradient(180deg,rgba(2,11,24,.18),rgba(2,11,24,.48));scrollbar-color:rgba(232,200,122,.42) rgba(2,11,24,.45)}
+.ped-modal .rcp-edit-card{padding:24px;border-radius:22px;background:linear-gradient(145deg,rgba(10,35,72,.84),rgba(2,11,24,.82));border:1px solid rgba(232,200,122,.30);box-shadow:0 18px 44px rgba(0,0,0,.34);overflow:hidden}.ped-modal .rcp-edit-card::before{height:2px;background:linear-gradient(90deg,rgba(212,162,74,.85),rgba(232,200,122,.28),transparent)}
+.ped-modal .rcp-edit-card-title,.ped-modal .ped-section-divider{font-size:12px;letter-spacing:.16em;color:#E8C87A}.ped-modal .rcp-edit-card-title i,.ped-modal .ped-section-divider i{width:28px;height:28px;border-radius:10px;background:rgba(212,162,74,.16);border:1px solid rgba(232,200,122,.32);display:inline-flex;align-items:center;justify-content:center;color:#E8C87A}.ped-modal .ped-section-divider{margin:34px 0 14px;padding:0 0 12px;border-bottom:1px solid rgba(232,200,122,.24)}
+.ped-modal .fg label{font-size:12px;font-weight:800;color:#D9D9D9;margin-bottom:8px}.ped-modal .fg input,.ped-modal .fg select,.ped-modal .fg textarea{min-height:50px;background:rgba(7,27,58,.78);border:1px solid rgba(232,200,122,.30);border-radius:14px;font-weight:650}.ped-modal .fg textarea{min-height:92px}.ped-modal .fr{gap:14px}.ped-modal .fg{margin-bottom:16px}
+.ped-modal #btn-retira-sim,.ped-modal #btn-retira-nao,.ped-modal .aro-btn,.ped-modal .massa-btn,.ped-modal .cob-btn{min-height:52px;border-radius:15px!important;background:rgba(2,11,24,.58)!important;border:1px solid rgba(232,200,122,.34)!important;color:#F8F7F4!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease}.ped-modal #btn-retira-sim:hover,.ped-modal #btn-retira-nao:hover,.ped-modal .aro-btn:hover,.ped-modal .massa-btn:hover,.ped-modal .cob-btn:hover{transform:translateY(-2px);border-color:rgba(232,200,122,.70)!important;box-shadow:0 0 24px rgba(212,162,74,.16)}.ped-modal .aro-btn.sel,.ped-modal #btn-retira-sim.is-selected,.ped-modal #btn-retira-nao.is-selected,.ped-modal .massa-btn.is-selected,.ped-modal .cob-btn.is-selected{background:linear-gradient(135deg,#D4A24A 0%,#E8C87A 50%,#A87528 100%)!important;color:#020B18!important;border-color:#E8C87A!important;box-shadow:0 0 24px rgba(212,162,74,.25)}
+.ped-modal #ped-tab-cliente .rcp-edit-card{background:linear-gradient(145deg,rgba(10,35,72,.90),rgba(2,11,24,.82)),radial-gradient(circle at 0% 0%,rgba(93,202,165,.10),transparent 34%)}.ped-modal #pedido-total-box{font-variant-numeric:tabular-nums}.ped-modal #pedido-total-box .total-row.grand{font-family:Georgia,'Playfair Display',serif;font-size:clamp(26px,3vw,38px);letter-spacing:-.05em;color:#E8C87A}.ped-modal .rcp-edit-footer{padding:16px 34px;background:rgba(2,11,24,.94);border-top:1px solid rgba(232,200,122,.28);box-shadow:0 -18px 44px rgba(0,0,0,.36)}
+@media(min-width:1100px){.ped-modal #ped-tab-cliente .rcp-edit-card{display:grid;grid-template-columns:1.15fr 1fr;gap:16px 18px}.ped-modal #ped-tab-cliente .rcp-edit-card-title,.ped-modal #ped-tab-cliente .fg:first-of-type,.ped-modal #ped-tab-cliente .fg:nth-of-type(4),.ped-modal #ped-tab-cliente .fg:nth-of-type(5){grid-column:1/-1}.ped-modal #ped-tab-cliente .fr{grid-column:1/-1}.ped-modal #ped-tab-cliente #entrega-addr-box{grid-column:1/-1}}
+@media(max-width:767px){#modal-pedido{padding:0}.ped-modal{width:100vw;height:100vh;border-radius:0}.ped-modal .rcp-edit-header{padding:18px 16px;min-height:auto}.ped-modal .rcp-edit-header-actions{width:100%;justify-content:stretch}.ped-modal .rcp-edit-header-actions .rcp-edit-btn{flex:1}.ped-modal .rcp-edit-body{padding:18px 14px 24px}.ped-modal .fr{grid-template-columns:1fr}.ped-modal .rcp-edit-footer{padding:12px 14px}.ped-modal .rcp-edit-footer-nav{display:none}}
+
+
+
 </style>
 </head>
 
@@ -1000,12 +1218,13 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 <div class="content">
   <div class="page" id="page-home"></div>
   <div class="page" id="page-receitas">
-    <div class="rcp-page-header">
+    <div class="rcp-page-header premium-page-header">
       <div class="rcp-page-header-left">
-        <i class="ti ti-book" style="font-size:24px;color:var(--gold)"></i>
+        <div style="width:46px;height:46px;border-radius:15px;background:linear-gradient(180deg,rgba(212,162,74,.24),rgba(212,162,74,.08));border:1px solid rgba(212,162,74,.35);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:22px"><i class="ti ti-book"></i></div>
         <div>
-          <div class="rcp-page-title">Receitas</div>
-          <div class="rcp-page-subtitle">Gerencie todas as suas receitas em um só lugar</div>
+          <div class="premium-kicker">Produção premium</div>
+          <div class="rcp-page-title premium-title">Receitas</div>
+          <div class="rcp-page-subtitle premium-subtitle">Gerencie todas as suas receitas em um só lugar</div>
         </div>
       </div>
       <div class="rcp-page-header-right">
@@ -1310,7 +1529,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
           <div id="ai-preco-bar" class="ai-bar" style="display:none"><div class="ai-dot pulse"></div><span id="ai-preco-msg">Buscando preços...</span></div>
           <div class="rcp-edit-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
             <table class="rcp-edit-table it" style="min-width:460px">
-              <thead><tr><th style="width:30px">Base</th><th>Ingrediente / Observação</th><th style="width:90px">Qtd</th><th style="width:60px">Un.</th><th style="width:80px">R$/kg</th><th style="width:75px">Subtotal</th><th style="width:32px"></th></tr></thead>
+              <thead><tr><th style="width:30px">Base</th><th>Ingrediente / Observação</th><th style="width:90px">Qtd</th><th style="width:60px">Un.</th><th style="width:80px">Preço</th><th style="width:75px">Subtotal</th><th style="width:32px"></th></tr></thead>
               <tbody id="ingr-body"></tbody>
             </table>
           </div>
@@ -1429,7 +1648,7 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
 
 <!-- CONFEITARIA PEDIDO SHEET -->
 <div class="rcp-edit-overlay" id="modal-pedido" style="display:none">
-<div class="rcp-edit-modal">
+<div class="rcp-edit-modal ped-modal">
 
   <!-- HEADER -->
   <div class="rcp-edit-header">
@@ -1502,8 +1721,9 @@ tr.ihl td input { color: #1a3a6b !important; background: #dbeaff !important; }
             <button class="massa-btn" onclick="setMassa('pao_de_lo')" id="massa-pao_de_lo" style="flex:1;padding:11px;border-radius:var(--radius-sm);border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s">🍰 Pão de Ló</button>
           </div>
         </div>
-        <div class="fg"><label>Recheio 1</label><select id="p-recheio1" onchange="calcPedidoTotal()"><option value="">Selecione o recheio...</option></select></div>
-        <div class="fg"><label>Recheio 2 (opcional)</label><select id="p-recheio2" onchange="calcPedidoTotal()"><option value="">Nenhum / mesmo recheio</option></select></div>
+        <div class="fg"><label>Recheio 1</label><select id="p-recheio1" onchange="onPedidoRecheiosChange()"><option value="">Selecione o recheio...</option></select></div>
+        <div class="fg"><label>Recheio 2 (opcional)</label><select id="p-recheio2" onchange="onPedidoRecheiosChange()"><option value="">Nenhum / mesmo recheio</option></select></div>
+        <div class="fg" id="p-recheio-repetido-box" style="display:none"><label>Qual recheio dobra? <span style="color:var(--text3);font-weight:500">(3 camadas no total)</span></label><select id="p-recheio-repetido" onchange="setPedidoRecheioRepetido(this.value)"><option value="recheio1">Recheio 1 (2x)</option><option value="recheio2">Recheio 2 (2x)</option></select></div>
         <div class="fg">
           <label>Tipo de cobertura</label>
           <div style="display:flex;gap:8px;margin-top:4px">
@@ -1639,8 +1859,12 @@ if("serviceWorker" in navigator){
 </div>
 
 
-<script src="js/app-core.js?v=79"></script>
-<script src="js/app-features.js?v=46"></script>
+<script src="js/app-core.js?v=82"></script>
+
+
+<script src="js/app-features.js?v=54"></script>
+
+
 <script src="js/version.js?v=21"></script>
 
 </body>
